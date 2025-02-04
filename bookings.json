@@ -1,0 +1,80 @@
+{
+    "lanes": [
+      {
+        "lane_id": 1,
+        "lane_name": "Lane 1",
+        "bookings_by_date": {
+          "2025-02-10": [
+            {
+              "start_time": "10:00 AM",
+              "end_time": "12:00 PM",
+              "booking_title": "Morning Practice",
+              "first_name": "John",
+              "last_name": "Doe",
+              "telephone": "+94761234567"
+            },
+            {
+              "start_time": "02:00 PM",
+              "end_time": "04:00 PM",
+              "booking_title": "Team Training",
+              "first_name": "Mark",
+              "last_name": "Smith",
+              "telephone": "+94779876543"
+            }
+          ],
+          "2025-02-11": [
+            {
+              "start_time": "03:00 PM",
+              "end_time": "05:00 PM",
+              "booking_title": "Evening Match",
+              "first_name": "Adam",
+              "last_name": "Taylor",
+              "telephone": "+94765552211"
+            }
+          ]
+        }
+      },
+      {
+        "lane_id": 2,
+        "lane_name": "Lane 2",
+        "bookings_by_date": {
+          "2025-02-11": [
+            {
+              "start_time": "01:00 PM",
+              "end_time": "03:00 PM",
+              "booking_title": "Club Practice",
+              "first_name": "Alice",
+              "last_name": "Johnson",
+              "telephone": "+94765432123"
+            }
+          ]
+        }
+      },
+      {
+        "lane_id": 3,
+        "lane_name": "Lane 3",
+        "bookings_by_date": {}
+      },
+      {
+        "lane_id": 4,
+        "lane_name": "Lane 4",
+        "bookings_by_date": {
+          "2025-02-12": [
+            {
+              "start_time": "09:00 AM",
+              "end_time": "11:00 AM",
+              "booking_title": "Net Practice",
+              "first_name": "Ryan",
+              "last_name": "Fernandez",
+              "telephone": "+94761112222"
+            }
+          ]
+        }
+      },
+      {
+        "lane_id": 5,
+        "lane_name": "Lane 5",
+        "bookings_by_date"{}
+  }
+]
+  }

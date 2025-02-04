@@ -7,7 +7,7 @@ const AppLayout: React.FC = () => {
     return (
         <>
             <AppHeader />
-            <main>
+            <main className="app_main_content">
                 <Outlet />
             </main>
             <AppFooter />

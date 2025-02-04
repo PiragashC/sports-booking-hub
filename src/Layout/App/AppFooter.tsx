@@ -4,7 +4,7 @@ const AppFooter: React.FC = () => {
     return (
         <>
             <footer>
-                Footer
+                App Footer
             </footer>
         </>
     )

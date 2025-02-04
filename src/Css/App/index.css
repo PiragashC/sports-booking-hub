@@ -1,0 +1,7 @@
+@import url(../element.css);
+
+.app_main_content{
+    position: relative;
+    min-height: 100dvh;
+    background-color: #FFF;
+}

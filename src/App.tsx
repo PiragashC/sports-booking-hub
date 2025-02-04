@@ -9,6 +9,9 @@ import WebLayout from './Layout/Web/WebLayout';
 import Home from './Pages/Home/Home';
 import ContactUs from './Pages/ContactUs/ContactUs';
 
+import AppLayout from './Layout/App/AppLayout';
+import Booking from './Pages/Booking/Booking';
+
 function App() {
   const value = {
     ripple: true,
@@ -18,9 +21,15 @@ function App() {
       <BrowserRouter>
         <ErrorBoundary>
           <Routes>
+            {/* Web routes */}
             <Route path='/' element={<WebLayout />}>
               <Route index element={<Home />} />
               <Route path="contact-us" element={<ContactUs />} />
+            </Route>
+
+            {/* App routes */}
+            <Route path='/' element={<AppLayout />}>
+              <Route path="booking" element={<Booking />} />
             </Route>
           </Routes>
         </ErrorBoundary>

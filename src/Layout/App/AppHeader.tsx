@@ -4,7 +4,7 @@ const AppHeader: React.FC = () => {
     return (
         <>
             <header>
-                <nav>Nav bar</nav>
+                <nav>App Nav bar</nav>
             </header>
         </>
     )

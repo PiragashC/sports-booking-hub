@@ -1,20 +1,4 @@
 /* Primereact components customize */
-
-:root {
-    --color-primary: #8953D7;
-    --color-primary-dark: #7b4dba;
-    --color-primary2: #9047CAE6;
-    --color-primary2-dark: #7234a5e6;
-    --color-primary-light: #EDE7F6;
-    --color-secondary: #FFB541;
-    --color-secondary-dark: #de9725;
-    --text-color: #000;
-    --color-danger: #f60000;
-    --color-danger-light: #f9e8e8;
-    --color-main: #F37C47;
-    --color-white: #FFF;
-}
-
 /* for input */
 .p-inputtext {
     width: 100%;
@@ -72,8 +56,8 @@
 
 
 .p-inputtext:focus {
-    border-color: #8953D7 !important;
-    box-shadow: 0px 0px 0px 4px #8a53d72f;
+    border-color: var(--color-secondary) !important;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary);
 }
 
 .p-inputtext::placeholder {

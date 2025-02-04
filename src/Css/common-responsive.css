@@ -1,0 +1,56 @@
+/* For XXL Screen (768p(1366 x 768) above - 1080p , 1920 x 1080) */
+@media (min-width: 1399.99px) {}
+
+/* For XL Screen (Laptop - HD Ready Display) */
+@media only screen and (min-width: 1199.9px) and (max-width: 1399.98px) {}
+
+/* For LG (Large) Screen  */
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+    .modal_dialog_lg {
+        min-width: 800px !important;
+        max-width: 800px !important;
+    }
+}
+
+/* For MD (Medium) Screen (ipad) */
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+
+    .modal_dialog_lg,
+    .modal_dialog_md {
+        min-width: 90vw !important;
+        max-width: 90vw !important;
+    }
+}
+
+/* For SM (Small) Screen (Tab) */
+@media (min-width: 576px) and (max-width: 767px) {
+
+    .modal_dialog_lg,
+    .modal_dialog_md {
+        min-width: 90vw !important;
+        max-width: 90vw !important;
+    }
+}
+
+/* For Mobile Screen */
+@media (max-width: 575px) {
+
+    .p-dialog.modal_dialog_lg,
+    .p-dialog.modal_dialog_sm,
+    .p-dialog.modal_dialog_md {
+        min-width: 95vw !important;
+        max-width: 95vw !important;
+        max-height: calc(100% - 25px);
+    }
+
+    .page_form_group {
+        margin-bottom: 20px;
+    }
+
+    .custom_form_label {
+        font-size: var(--font-size-sm);
+    }
+}
+
+/* For custom */
+@media (max-width: 991.5px) {}

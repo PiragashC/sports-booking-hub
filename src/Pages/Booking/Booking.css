@@ -1,0 +1,76 @@
+.booking_greeting {
+    position: relative;
+    border-radius: 10px;
+    padding: 15px;
+    background-color: #EEE;
+    margin-bottom: 20px;
+}
+
+.booking_greeting h4 {
+    font-size: var(--font-size-xxl);
+    color: rgba(0, 0, 0, 0.7);
+    font-weight: var(--font-weight-bold);
+    font-style: italic;
+    margin-bottom: 15px;
+    background-color: #FFF;
+    border-radius: 5px;
+    padding: 6px 10px;
+}
+
+.booking_greeting h4 span {
+    color: var(--color-secondary);
+}
+
+.booking_greeting h4 span span {
+    color: var(--color-primary);
+}
+
+.booking_greeting h5 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: rgba(0, 0, 0, 1);
+
+}
+
+.booking_greeting p {
+    margin-bottom: 0;
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-size-sm);
+}
+
+.message_label {
+    border-radius: 10px;
+    position: relative;
+    font-size: var(--font-size-sm);
+    padding: 10px;
+    width: 100%;
+    border: 1px solid;
+    border-left-width: 4px;
+}
+
+.message_label.info {
+    background-color: var(--color-info-light);
+    color: var(--text-color);
+    border-color: var(--color-info);
+
+}
+
+.message_label.info i {
+    color: var(--color-info);
+}
+
+.booking_form_area {
+    position: relative;
+
+}
+
+.booking_title {
+    font-size: var(--font-size-md);
+    color: rgba(0, 0, 0, 0.7);
+    margin-bottom: 20px;
+}
+
+.multi_date_input_group {
+    width: 100%;
+    position: relative;
+}
