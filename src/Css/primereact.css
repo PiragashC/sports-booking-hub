@@ -95,17 +95,17 @@
 
 
 .p-checkbox:not(.p-disabled):has(.p-checkbox-input:hover) .p-checkbox-box {
-    border-color: #8953D7;
+    border-color: var(--color-primary);
 }
 
 .p-checkbox:not(.p-disabled):has(.p-checkbox-input:hover).p-highlight .p-checkbox-box {
-    border-color: #8953D7;
-    background-color: #8953D7;
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
 }
 
 .p-checkbox.p-highlight .p-checkbox-box {
-    border-color: #8953D7;
-    background-color: #8953D7;
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
 }
 
 /*  */
@@ -161,8 +161,8 @@
 }
 
 .p-dropdown.p-inputwrapper-focus {
-    border-color: #8953D7 !important;
-    box-shadow: 0px 0px 0px 4px #8a53d72f !important;
+    border-color: var(--color-secondary) !important;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary) !important;
 }
 
 .p-dropdown .p-inputtext {
@@ -185,7 +185,7 @@
 }
 
 .p-dropdown-panel {
-    box-shadow: 0px 10px 30px #8a53d722;
+    box-shadow: 0px 10px 30px var(--color-overlay-shadow-secondary);
 }
 
 .p-dropdown-panel .p-dropdown-header {
@@ -217,13 +217,13 @@
 }
 
 .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight {
-    color: #8953D7;
-    background: #8a53d71a;
+    color: var(--color-primary);
+    background: var(--color-primary-light);
     font-weight: 500;
 }
 
 .p-dropdown-panel .p-dropdown-items .p-dropdown-item.p-highlight.p-focus {
-    background: #8a53d71a;
+    background: var(--color-primary-light);
 }
 
 .p-dropdown-panel .p-dropdown-items .p-dropdown-empty-message {
@@ -255,8 +255,8 @@
 }
 
 .p-multiselect.p-inputwrapper-focus {
-    border-color: #8953D7 !important;
-    box-shadow: 0px 0px 0px 4px #8a53d72f !important;
+    border-color: var(--color-secondary) !important;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary) !important;
 }
 
 .p-multiselect .p-inputtext {
@@ -268,7 +268,7 @@
 }
 
 .p-multiselect-panel {
-    box-shadow: 0px 10px 30px #8a53d722;
+    box-shadow: 0px 10px 30px var(--color-overlay-shadow-secondary);
     z-index: 99999 !important;
 }
 
@@ -643,8 +643,8 @@
 
 /* Datepicker */
 .p-calendar:not(.p-calendar-disabled).p-focus>.p-inputtext {
-    box-shadow: 0px 0px 0px 4px #8a53d72f;
-    border-color: var(--color-primary) !important;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary);
+    border-color: var(--color-secondary) !important;
 }
 
 .p-calendar.p-invalid.p-component>.p-inputtext {
@@ -661,11 +661,11 @@
 
 .p-datepicker .p-monthpicker .p-monthpicker-month:focus,
 .p-datepicker table td>span:focus {
-    box-shadow: 0px 0px 0px 4px #8a53d72f;
+    box-shadow: none;
 }
 
 .p-datepicker:not(.p-datepicker-inline) {
-    box-shadow: 0px 10px 30px #22205723 !important;
+    box-shadow: 0px 10px 30px var(--color-overlay-shadow-secondary) !important;
     border: 2px solid #FFF !important;
     border-radius: 8px !important;
 }
@@ -702,33 +702,46 @@
 
 .p-datepicker:not(.p-disabled) .p-yearpicker .p-yearpicker-year:not(.p-disabled):not(.p-highlight):hover {
     background: var(--color-primary-light) !important;
+    color: var(--color-primary) !important;
 }
 
 .p-datepicker .p-yearpicker .p-yearpicker-year.p-highlight {
-    background: var(--color-primary2) !important;
-    color: #FFF;
+    background: var(--color-secondary-light) !important;
+    color: var(--color-secondary);
 }
 
 .p-yearpicker-year:focus,
 .p-monthpicker:focus {
-    border-color: var(--color-primary) !important;
-    box-shadow: 0px 0px 0px 4px #8a53d72f;
+    /* border-color: var(--color-primary) !important; */
+    box-shadow: none;
 }
 
 .p-datepicker .p-monthpicker .p-monthpicker-month.p-highlight {
-    background: var(--color-primary2) !important;
-    color: #FFF;
+    background: var(--color-secondary-light) !important;
+    color: var(--color-secondary);
 }
 
+.p-datepicker .p-monthpicker .p-monthpicker-month,
+.p-datepicker .p-yearpicker .p-yearpicker-year,
+.p-datepicker table td>span {
+    border: 1px solid var(--color-white);
+}
 
 .p-datepicker table td>span.p-highlight {
-    background: var(--color-primary2) !important;
-    color: #FFF !important;
+    background: var(--color-secondary-light) !important;
+    color: var(--color-secondary) !important;
 }
 
 .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-year:enabled:hover,
 .p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-month:enabled:hover {
-    color: var(--color-primary2) !important;
+    color: var(--color-primary) !important;
+}
+
+.p-datepicker .p-datepicker-header .p-datepicker-prev:enabled:hover,
+.p-datepicker .p-datepicker-header .p-datepicker-next:enabled:hover {
+    color: var(--color-secondary);
+    border-color: transparent;
+    background: var(--color-white);
 }
 
 .p-datepicker:not(.p-disabled) .p-monthpicker .p-monthpicker-month:not(.p-disabled):not(.p-highlight):hover {
@@ -737,7 +750,7 @@
 
 .p-datepicker table td.p-datepicker-today>span {
     background: var(--color-primary-light);
-    color: var(--color-primary2);
+    color: var(--color-primary);
 }
 
 .p-datepicker-calendar tr td {
@@ -758,12 +771,12 @@
 
 /* For Radio button */
 .p-radiobutton:not(.p-disabled):has(.p-radiobutton-input:hover) .p-radiobutton-box {
-    border-color: var(--color-primary2);
+    border-color: var(--color-primary);
 }
 
 .p-radiobutton.p-highlight .p-radiobutton-box {
-    border-color: var(--color-primary2);
-    background: var(--color-primary2);
+    border-color: var(--color-primary);
+    background: var(--color-primary);
 }
 
 
@@ -775,7 +788,7 @@
 
 .p-checkbox .p-checkbox-input:focus+.p-checkbox-box {
     border-color: var(--color-primary) !important;
-    box-shadow: 0px 0px 0px 4px #8a53d727 !important;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-primary) !important;
 }
 
 
@@ -912,7 +925,7 @@
 .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
     background: #f3effb;
     border-color: #f3effb;
-    color: var(--color-primary2);
+    color: var(--color-primary);
 }
 
 .p-paginator .p-paginator-pages .p-paginator-page {
@@ -921,15 +934,15 @@
 }
 
 .p-slider .p-slider-range {
-    background: var(--color-primary2);
+    background: var(--color-primary);
 }
 
 .p-slider .p-slider-handle {
-    border-color: var(--color-primary2) !important;
+    border-color: var(--color-primary) !important;
 }
 
 .p-slider:not(.p-disabled) .p-slider-handle:hover {
-    background: var(--color-primary2);
+    background: var(--color-primary);
 }
 
 .p-datepicker .p-timepicker button {
@@ -948,4 +961,30 @@
 
 .p-inputswitch.p-highlight .p-inputswitch-slider {
     background: var(--color-primary);
+}
+
+.p-dropdown.filter_dropdown {
+    width: 180px !important;
+}
+
+.form_dropdown.p-dropdown.filter_dropdown {
+    border: 1px solid var(--color-primary) !important;
+    border-radius: 0;
+}
+
+.form_dropdown.p-dropdown.filter_dropdown .p-inputtext {
+    height: 43px !important;
+    font-size: 14px !important;
+    padding-right: 20px !important;
+}
+
+.p-dropdown.filter_dropdown .p-dropdown-clear-icon {
+    color: #6b7280;
+    right: 2.2rem;
+    width: 1.8rem;
+    background-color: #fff;
+}
+
+.p-inputtextarea.is_text_area {
+    height: 100px;
 }

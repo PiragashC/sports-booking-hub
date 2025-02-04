@@ -341,3 +341,106 @@ body {
     display: block;
     margin-top: 2px;
 }
+
+.message_label {
+    border-radius: 10px;
+    position: relative;
+    font-size: var(--font-size-md);
+    padding: 15px;
+    width: 100%;
+    border: 1px solid;
+    border-left-width: 4px;
+}
+
+.message_label.info {
+    background-color: var(--color-info-light);
+    color: var(--text-color);
+    border-color: var(--color-info);
+}
+
+.message_label.info i {
+    color: var(--color-info);
+}
+
+.message_label.danger {
+    background-color: var(--color-danger-light);
+    color: var(--text-color);
+    border-color: var(--color-danger);
+}
+
+.message_label.danger i {
+    color: var(--color-danger);
+}
+
+.message_label.warning {
+    background-color: var(--color-warning-light);
+    color: var(--text-color);
+    border-color: var(--color-warning);
+}
+
+.message_label.warning i {
+    color: var(--color-warning);
+}
+
+.message_label.success {
+    background-color: var(--color-success-light);
+    color: var(--text-color);
+    border-color: var(--color-success);
+}
+
+.message_label.success i {
+    color: var(--color-success);
+}
+
+.form_check_area {
+    display: flex;
+    position: relative;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: nowrap;
+    padding-top: 15px;
+}
+
+.form_divider {
+    border-color: #DDD;
+    margin: 25px 0 20px 0;
+}
+
+.form_title {
+    font-size: var(--font-size-md);
+    color: rgba(0, 0, 0, 1);
+    margin-bottom: 20px;
+}
+
+.form_check_area .form_check_label {
+    font-size: var(--font-size-sm);
+    color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+}
+
+
+.form_check_area .form_check_label a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: var(--font-weight-medium);
+}
+
+
+.form_check_area .form_check_label a:hover {
+    color: var(--color-primary-dark);
+}
+
+.form_checkbox {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.p-checkbox.form_checkbox .p-checkbox-box {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.p-checkbox.form_checkbox .p-checkbox-box .p-checkbox-icon.p-icon {
+    width: 12px !important;
+    height: 12px !important;
+}

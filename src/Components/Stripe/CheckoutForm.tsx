@@ -1,6 +1,7 @@
 import { PaymentElement } from "@stripe/react-stripe-js";
 import { useState, FormEvent } from "react";
 import { useStripe, useElements } from "@stripe/react-stripe-js";
+import { Button } from "primereact/button";
 
 export default function CheckoutForm() {
   const stripe = useStripe();
@@ -37,13 +38,19 @@ export default function CheckoutForm() {
   };
 
   return (
-    <form id="payment-form" onSubmit={handleSubmit}>
+    <form id="payment-form" className="payment_form" onSubmit={handleSubmit}>
       <PaymentElement id="payment-element" />
-      <button disabled={isProcessing || !stripe || !elements} id="submit">
-        <span id="button-text">
-          {isProcessing ? "Processing ... " : "Pay now"}
-        </span>
-      </button>
+
+      <div className="payment_btn_area">
+        <Button
+          id="submit"
+          label={isProcessing ? "Processing ... " : "Pay Now"}
+          className="custom_btn primary"
+          loading={isProcessing}
+          disabled={isProcessing || !stripe || !elements}
+        />
+      </div>
+
       {/* Show any error or success messages */}
       {message && <div id="payment-message">{message}</div>}
     </form>

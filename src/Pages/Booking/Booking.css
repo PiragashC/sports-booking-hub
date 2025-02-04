@@ -38,39 +38,67 @@
     font-size: var(--font-size-sm);
 }
 
-.message_label {
-    border-radius: 10px;
-    position: relative;
-    font-size: var(--font-size-sm);
-    padding: 10px;
-    width: 100%;
-    border: 1px solid;
-    border-left-width: 4px;
-}
-
-.message_label.info {
-    background-color: var(--color-info-light);
-    color: var(--text-color);
-    border-color: var(--color-info);
-
-}
-
-.message_label.info i {
-    color: var(--color-info);
-}
 
 .booking_form_area {
     position: relative;
-
 }
 
-.booking_title {
-    font-size: var(--font-size-md);
-    color: rgba(0, 0, 0, 0.7);
-    margin-bottom: 20px;
-}
 
 .multi_date_input_group {
     width: 100%;
     position: relative;
+}
+
+.multi_date_input_area {
+    width: 100%;
+}
+
+.multi_date_input {
+    padding-right: 3rem !important;
+}
+
+.data_clear_icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 1rem;
+    cursor: pointer;
+    color: #6b7280 !important;
+}
+
+.price_info_area {
+    border-radius: 10px;
+    background-color: #f3f3f3;
+    padding: 15px;
+}
+
+.price_info_area .custom_form_label {
+    opacity: 0.9;
+}
+
+.price_text {
+    color: var(--text-color);
+    font-size: var(--font-size-xxl);
+    font-weight: var(--font-weight-bold);
+}
+
+.form_info {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: var(--font-size-md);
+    margin-bottom: 0;
+}
+
+.payment_btn_area {
+    position: relative;
+    text-align: end;
+    padding-top: 30px;
+}
+
+.payment_area {
+    min-height: 30dvh;
+    position: relative;
+}
+
+.payment_form .p-FieldLabel{
+    display: none !important;
 }

@@ -50,6 +50,10 @@
     .custom_form_label {
         font-size: var(--font-size-sm);
     }
+
+    .custom_modal_body {
+        padding: 0;
+    }
 }
 
 /* For custom */
