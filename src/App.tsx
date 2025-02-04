@@ -5,8 +5,9 @@ import "primereact/resources/themes/lara-light-cyan/theme.css";
 
 import ErrorBoundary from './Components/ErrorBoundary';
 
-import Home from './Pages/Home/Home';
 import WebLayout from './Layout/Web/WebLayout';
+import Home from './Pages/Home/Home';
+import ContactUs from './Pages/ContactUs/ContactUs';
 
 function App() {
   const value = {
@@ -19,6 +20,7 @@ function App() {
           <Routes>
             <Route path='/' element={<WebLayout />}>
               <Route index element={<Home />} />
+              <Route path="contact-us" element={<ContactUs />} />
             </Route>
           </Routes>
         </ErrorBoundary>

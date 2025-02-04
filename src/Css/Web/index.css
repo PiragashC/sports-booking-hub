@@ -1,0 +1,73 @@
+html {
+    scroll-behavior: smooth;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif !important;
+}
+
+
+:root {
+    --color-primary: #8953D7;
+    --color-primary-dark: #7b4dba;
+    --color-primary2: #9047CAE6;
+    --color-primary2-dark: #7234a5e6;
+    --color-primary-light: #EDE7F6;
+    --color-secondary: #FFB541;
+    --color-secondary-dark: #de9725;
+    --text-color: #000;
+    --color-danger: #f60000;
+    --color-danger-light: #f9e8e8;
+    --color-main: #F37C47;
+    --color-white: #FFF;
+}
+
+::selection {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
+
+::-webkit-scrollbar {
+    background-color: transparent;
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-primary-light);
+    border-radius: 10px;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+::-webkit-scrollbar-track {
+    background-color: initial;
+    border-radius: 10px;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--color-white) !important;
+}
+
+.main_web_content {
+    min-height: 100dvh;
+}
