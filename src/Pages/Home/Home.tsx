@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import './Home.css';
 import './Home-responsive.css';
+import StripeFinalComponent from "../../Components/Stripe/StripeFinalComponent";
 
 const Home: React.FC = () => {
     return (
         <>
-            <h1>Home Page</h1>
+            <StripeFinalComponent />
+
         </>
     )
 }
