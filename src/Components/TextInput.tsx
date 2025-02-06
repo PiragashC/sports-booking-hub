@@ -5,6 +5,7 @@ import { InputType } from "../Utils/Common";
 
 interface TextInputProps {
     id?: string;
+    name?: string;
     label?: string;
     labelHtmlFor?: string;
     placeholder?: string;
@@ -30,6 +31,7 @@ const TextInput: React.FC<TextInputProps> = ({ id, label, labelHtmlFor, placehol
 
             <InputText
                 id={id}
+                name={name}
                 value={value}
                 onChange={onChange}
                 className="custom_form_input"

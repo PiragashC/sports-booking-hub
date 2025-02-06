@@ -20,6 +20,20 @@ import { Lane, lanes } from "./BookingData";
 
 import StripeFinalComponent from "../../Components/Stripe/StripeFinalComponent";
 
+interface BookingFormData {
+    email: string;
+    fromTime: string;
+    toTime: string;
+    bookingTitle?: string;
+    bookingDetails?: string;
+    firstName: string;
+    lastName: string;
+    telephoneNumber?: string;
+    organization?: string;
+    selectedLanesDtos: string[];
+    bookingDatesDtos: string[];
+}
+
 
 const Booking: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
@@ -60,6 +74,24 @@ const Booking: React.FC = () => {
     const [phoneNumberError, setPhoneNumberError] = useState<string>('');
     const [organizationError, setOrganizationError] = useState<string>('');
 
+    const initialBookingFormData = {
+        email: '',
+        fromTime: '',
+        toTime: '',
+        bookingTitle: '',
+        bookingDetails: '',
+        firstName: '',
+        lastName: '',
+        telephoneNumber: '',
+        organization: '',
+        selectedLanesDtos: [],
+        bookingDatesDtos: []
+    }
+    const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
+    const [isRequired, setIsRequired] = useState<boolean>(false);
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+
     useEffect(() => {
         setTimeListData(timeList);
         setCountryListData(countryList);
@@ -83,12 +115,17 @@ const Booking: React.FC = () => {
 
     const handleStartBooking = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsRequired(true);
         setLoading(true);
-
-        setTimeout(() => {
+        if (bookingFormData?.email && emailRegex.test(bookingFormData?.email)) {
+            setTimeout(() => {
+                setLoading(false);
+                setIsRequired(false);
+                setBookingStep(2);
+            }, 500);
+        } else {
             setLoading(false);
-            setBookingStep(2);
-        }, 500);
+        }
     }
 
     const handleGoPreviousStep = () => {
@@ -209,15 +246,16 @@ const Booking: React.FC = () => {
                                 <div className="col-12">
                                     <TextInput
                                         id="bookingEmail"
+                                        name="email"
                                         label="Email"
                                         labelHtmlFor="bookingEmail"
                                         required={true}
                                         inputType="email"
                                         keyFilter={'email'}
-                                        value={bookingEmail}
+                                        value={bookingFormData?.email}
                                         placeholder="Your email address"
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingEmail(e.target.value)}
-                                        error={bookingEmailError}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingFormData({ ...bookingFormData, email: e.target.value })}
+                                        error={(isRequired && bookingFormData?.email === "") ? "Email is required!" : (!emailRegex.test(bookingFormData?.email) && bookingFormData?.email) ? "Please enter valid email!" : ""}
                                         formGroupClassName="mb-0"
                                         inputAutoFocus={true}
                                     />
