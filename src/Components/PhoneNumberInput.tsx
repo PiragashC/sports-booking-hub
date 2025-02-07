@@ -14,6 +14,7 @@ interface PhoneInputProps {
     onChange?: (value: string) => void;
     error?: string;
     formGroupClassName?: string;
+    setIsValidNumber?: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const PhoneNumberInput: React.FC<PhoneInputProps> = ({
@@ -26,8 +27,10 @@ const PhoneNumberInput: React.FC<PhoneInputProps> = ({
     onChange,
     error,
     formGroupClassName,
+    setIsValidNumber
 }) => {
     const [countryCode, setCountryCode] = useState<CountryCode | undefined>();
+
 
     // Handle phone number change
     const handleChange = (phone: string, country: CountryData) => {
@@ -45,7 +48,7 @@ const PhoneNumberInput: React.FC<PhoneInputProps> = ({
         const formattedValue = value.startsWith("+") ? value : `+${value}`;
 
         const parsed = parsePhoneNumberFromString(formattedValue, countryCode as CountryCode);
-
+        setIsValidNumber && setIsValidNumber(parsed?.isValid() || false);
         return parsed?.isValid() || false;
     };
 

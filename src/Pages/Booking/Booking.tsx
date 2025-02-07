@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import './Booking.css';
 import './Booking-responsive.css';
 
@@ -10,16 +10,19 @@ import { Calendar } from 'primereact/calendar';
 import { FormEvent, Nullable } from "primereact/ts-helpers";
 import { Dropdown, DropdownChangeEvent, DropdownProps } from "primereact/dropdown";
 import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
-import { Checkbox, CheckboxChangeEvent } from "primereact/checkbox";
+import { Checkbox } from "primereact/checkbox";
 
 import TextInput from "../../Components/TextInput";
 import TextArea from "../../Components/TextArea";
 
-import { TimeList, timeList, CountryList, countryList } from "../../Utils/SiteData";
+import { TimeList, timeList } from "../../Utils/SiteData";
 import { Lane, lanes } from "./BookingData";
 
-import StripeFinalComponent from "../../Components/Stripe/StripeFinalComponent";
 import PhoneNumberInput from "../../Components/PhoneNumberInput";
+import apiRequest from "../../Utils/apiRequest";
+import { removeEmptyValues } from "../../Utils/commonLogic";
+import { loadStripe, Stripe } from "@stripe/stripe-js";
+import StripePayment from "../../Components/Stripe/StripePayment";
 
 interface BookingFormData {
     email: string;
@@ -39,41 +42,15 @@ interface BookingFormData {
 const Booking: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
-    const [bookingStep, setBookingStep] = useState<number>(2);
+    const [bookingStep, setBookingStep] = useState<number>(1);
     const [timeListData, setTimeListData] = useState<TimeList[]>([]);
     const [lanesListData, setLanesListData] = useState<Lane[]>([]);
-    const [countryListData, setCountryListData] = useState<CountryList[]>([]);
 
     /* Booking detail fields */
     const [bookingPrice, setBookingPrice] = useState<number>(0);
-    const [bookingEmail, setBookingEmail] = useState<string>('');
     const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
-    const [startTime, setStartTime] = useState<TimeList | null>(null);
-    const [endTime, setEndTime] = useState<TimeList | null>(null);
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
-    const [bookingTitle, setBookingTitle] = useState<string>('');
-    const [bookingDescription, setBookingDescription] = useState<string>('');
     const [isAgree, setIsAgree] = useState<boolean>(false);
-
-    /* Booking detail field errors */
-    const [bookingEmailError, setBookingEmailError] = useState<string>('');
-    const [bookingDateError, setBookingDateError] = useState<string>('');
-    const [bookingLaneError, setBookingLaneError] = useState<string>('');
-    const [timeError, setTimeError] = useState<string>('');
-    const [bookingTitleError, setBookingTitleError] = useState<string>('');
-    const [bookingDescriptionError, setBookingDescriptionError] = useState<string>('');
-
-    /* Personal detail fields */
-    const [firstName, setFirstName] = useState<string>('');
-    const [lastName, setLastName] = useState<string>('');
-    const [phoneNumber, setPhoneNumber] = useState<string>('');
-    const [organization, setOrganization] = useState<string>('');
-
-    /* Personal detail field errors */
-    const [firstNameError, setFirstNameError] = useState<string>('');
-    const [lastNameError, setLastNameError] = useState<string>('');
-    const [phoneNumberError, setPhoneNumberError] = useState<string>('');
-    const [organizationError, setOrganizationError] = useState<string>('');
 
     const initialBookingFormData = {
         email: '',
@@ -91,12 +68,17 @@ const Booking: React.FC = () => {
     const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
     const [isRequired, setIsRequired] = useState<boolean>(false);
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const [isValidNumber, setIsValidNumber] = useState<boolean>(true);
+
+    const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
+    const [clientSecret, setClientSecret] = useState<string>("");
 
 
     useEffect(() => {
-        setTimeListData(timeList);
-        setCountryListData(countryList);
-    }, []);
+        if (showBookingModal) {
+            setTimeListData(timeList);
+        }
+    }, [showBookingModal]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -106,12 +88,30 @@ const Booking: React.FC = () => {
         fetchData();
     }, []);
 
+    const handleClose = () => {
+        setLoading(false);
+        setShowBookingModal(false);
+        setBookingStep(1);
+        setTimeListData([]);
+        setLanesListData([]);
+        setBookingPrice(0);
+        setBookingDates(null);
+        setBookingLanes([]);
+        setIsAgree(false);
+        setBookingFormData(initialBookingFormData);
+        setIsRequired(false);
+        setIsValidNumber(true);
+        setStripePromise(null);
+        setClientSecret("");
+    }
+
+
     const handleOpenBooking = () => {
         setShowBookingModal(true);
     }
 
     const handleCloseBookingModal = () => {
-        setShowBookingModal(false);
+        handleClose();
     }
 
     const handleStartBooking = async (e: React.FormEvent) => {
@@ -129,19 +129,65 @@ const Booking: React.FC = () => {
         }
     }
 
-    const handleGoPreviousStep = () => {
-        setBookingStep(bookingStep - 1);
-    }
+    const confirmBooking = async () => {
+        setLoading(true);
+        try {
+            const response: any = await apiRequest({
+                method: "post",
+                url: "/booking",
+                data: removeEmptyValues(bookingFormData),
+            });
+
+            console.log(response);
+            if (response?.bookingId) {
+                try {
+                    const [configResponse, intentResponse] = await Promise.all([
+                        apiRequest<{ stripe_PUBLISHABLE_KEY: string }>({
+                            method: "get",
+                            url: "/payment/config",
+                        }).catch(() => ({ stripe_PUBLISHABLE_KEY: null })),
+
+                        apiRequest<{ clientSecret: string }>({
+                            method: "get",
+                            url: `/payment/create-payment-intent`,
+                            params: { bookingId: response.bookingId },
+                        }).catch(() => ({ clientSecret: "" })),
+                    ]);
+
+                    console.log("Payment Config:", configResponse.stripe_PUBLISHABLE_KEY);
+                    console.log("Client Secret:", intentResponse.clientSecret);
+
+                    if (configResponse.stripe_PUBLISHABLE_KEY && intentResponse.clientSecret) {
+                        setStripePromise(loadStripe(configResponse.stripe_PUBLISHABLE_KEY));
+                        setClientSecret(intentResponse.clientSecret);
+                        setBookingStep(3);
+                        setLoading(false);
+                    }
+
+
+                } catch (error) {
+                    console.log("Error in fetching payment config or intent:", error);
+                    setStripePromise(null);
+                    setClientSecret("");
+                    setLoading(false);
+                }
+            } else {
+                setLoading(false);
+            }
+        } catch (e) {
+            console.log("Error in confirm booking", e);
+            setLoading(false);
+        }
+    };
 
     const handleConfirmBooking = async (e: React.FormEvent) => {
+        setIsRequired(true);
         e.preventDefault();
-        setLoading(true);
+        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgree || !bookingFormData?.firstName || !bookingFormData?.lastName || !isValidNumber) {
+            return;
+        }
 
-        setTimeout(() => {
-            setLoading(false);
-            setBookingStep(3);
-        }, 500);
-
+        confirmBooking();
     }
 
     // Function to filter valid end times based on selected start time
@@ -162,6 +208,7 @@ const Booking: React.FC = () => {
             const formattedDates = e.value.map((date: Date) =>
                 date.toISOString().split("T")[0]
             );
+            setLanesListData([]);
             setBookingDates(e?.value);
             setBookingFormData({ ...bookingFormData, bookingDatesDtos: formattedDates });
         }
@@ -174,8 +221,6 @@ const Booking: React.FC = () => {
             [name]: value
         });
     }
-
-    console.log(bookingFormData, "fgsdf")
 
     const bookingModalHeader = (
         <div className="custom_modal_header_inner">
@@ -217,6 +262,7 @@ const Booking: React.FC = () => {
                 onClick={bookingStep === 1 ? handleStartBooking : bookingStep === 2 ? handleConfirmBooking : undefined}
                 loading={loading}
                 className="custom_btn primary"
+                disabled={bookingStep === 2 ? !isAgree : false}
             />
         </div>
     );
@@ -224,6 +270,7 @@ const Booking: React.FC = () => {
     const handleClearBookingDates = () => {
         setBookingDates([]);
         setBookingFormData({ ...bookingFormData, bookingDatesDtos: [] });
+        setLanesListData([]);
     }
 
     const selectedStartTimeTemplate = (data: TimeList, props: DropdownProps) => {
@@ -250,6 +297,63 @@ const Booking: React.FC = () => {
         return <span>{props.placeholder}</span>;
     };
 
+    const fetchLanes = async () => {
+        setLanesListData([]);
+
+        try {
+            const response = await apiRequest({
+                method: "get",
+                url: "/booking/check-availability",
+                params: {
+                    fromTime: bookingFormData?.fromTime,
+                    toTime: bookingFormData?.toTime,
+                    date: bookingFormData?.bookingDatesDtos?.join(',')
+                }
+            });
+
+            console.log(response);
+
+            setLanesListData(Array.isArray(response) ? response.map((laneObj: any) => ({
+                id: laneObj?.laneId || 0,
+                name: laneObj?.laneName || ""
+            })) : []);
+        } catch (e) {
+            console.error("Error fetching lanes", e);
+            setLanesListData([]);
+        }
+    };
+
+
+    const fetchBookingAmount = async () => {
+        setBookingPrice(0);
+        try {
+            const response = await apiRequest({
+                method: "get",
+                url: "/booking",
+                params: {
+                    noOfLanes: bookingFormData?.selectedLanesDtos?.length,
+                    fromTime: bookingFormData?.fromTime,
+                    toTime: bookingFormData?.toTime
+                }
+            });
+
+            console.log(response);
+            setBookingPrice(response && response?.bookingPrice ? Number(response.bookingPrice) : 0);
+        } catch (e) {
+            console.log("Error fetching booking amount!", e);
+            setBookingPrice(0);
+        }
+    }
+
+    useEffect(() => {
+        if (bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchLanes();
+    }, [bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
+
+    useEffect(() => {
+        if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
+    }, [bookingFormData?.selectedLanesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
+
+    console.log(bookingFormData, "vdfagaerdfs");
 
     return (
         <>
@@ -344,7 +448,7 @@ const Booking: React.FC = () => {
                                                     <Dropdown
                                                         id="startTime"
                                                         value={bookingFormData?.fromTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => { setBookingFormData({ ...bookingFormData, fromTime: e?.value || "", toTime: "" }) }}
+                                                        onChange={(e: DropdownChangeEvent) => { setLanesListData([]); setBookingPrice(0); setBookingFormData({ ...bookingFormData, fromTime: e?.value || "", toTime: "" }); }}
                                                         options={timeListData}
                                                         optionLabel="label"
                                                         valueTemplate={selectedStartTimeTemplate}
@@ -359,7 +463,7 @@ const Booking: React.FC = () => {
                                                     <Dropdown
                                                         id="endTime"
                                                         value={bookingFormData?.toTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => { setBookingFormData({ ...bookingFormData, toTime: e?.value || "" }) }}
+                                                        onChange={(e: DropdownChangeEvent) => { setLanesListData([]); setBookingPrice(0); setBookingFormData({ ...bookingFormData, toTime: e?.value || "" }) }}
                                                         options={endTimeOptions}
                                                         optionLabel="label"
                                                         valueTemplate={selectedEndTimeTemplate}
@@ -390,7 +494,16 @@ const Booking: React.FC = () => {
                                             <label htmlFor='bookingLanes' className={`custom_form_label is_required`}>Spaces</label>
                                             <MultiSelect
                                                 value={bookingLanes}
-                                                onChange={(e: MultiSelectChangeEvent) => setBookingLanes(e.value)}
+                                                onChange={(e: MultiSelectChangeEvent) => {
+                                                    setBookingPrice(0);
+                                                    setBookingLanes(e.value);
+                                                    setBookingFormData({
+                                                        ...bookingFormData,
+                                                        selectedLanesDtos: Array.isArray(e.value) && e?.value?.length > 0
+                                                            ? e.value.map((v: any) => String(v?.id)).filter(Boolean)
+                                                            : [],
+                                                    });
+                                                }}
                                                 options={lanesListData}
                                                 display="chip"
                                                 optionLabel="name"
@@ -399,7 +512,12 @@ const Booking: React.FC = () => {
                                                 maxSelectedLabels={4}
                                                 className="w-100"
                                                 emptyMessage="No spaces found!"
+                                                disabled={lanesListData?.length === 0}
                                             />
+
+                                            {(bookingFormData?.selectedLanesDtos?.length === 0 && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) && (
+                                                <small className="form_error_msg">No lanes available for your date and time!</small>
+                                            )}
 
                                             {(isRequired && bookingFormData?.selectedLanesDtos?.length === 0) && (
                                                 <small className="form_error_msg">Please select available lanes for booking!</small>
@@ -517,6 +635,7 @@ const Booking: React.FC = () => {
                                             onChange={(value: string) => { setBookingFormData({ ...bookingFormData, telephoneNumber: value }) }}
                                             error=""
                                             formGroupClassName="mb-sm-0"
+                                            setIsValidNumber={setIsValidNumber}
                                         />
                                     </div>
 
@@ -536,31 +655,37 @@ const Booking: React.FC = () => {
                                         />
                                     </div>
                                 </div>
+                                {bookingFormData?.selectedLanesDtos?.length > 0 && <>
+                                    <hr className="form_divider" />
 
-                                <hr className="form_divider" />
+                                    <h5 className="form_title">Payment and Cancellation/Changes</h5>
+                                    <div className="row">
+                                        <div className="col-12">
+                                            <div className="price_info_area">
+                                                <label htmlFor='bookingPrice' className={`custom_form_label`}>Booking price</label>
+                                                <h3 className="price_text">
+                                                    {bookingPrice === 0 ? "Calculating..." : `$ ${String(bookingPrice).padStart(2, '0')}`}
+                                                </h3>
 
-                                <h5 className="form_title">Payment and Cancellation/Changes</h5>
-                                <div className="row">
-                                    <div className="col-12">
-                                        <div className="price_info_area">
-                                            <label htmlFor='bookingPrice' className={`custom_form_label`}>Booking price</label>
-                                            <h3 className="price_text">£ {String(bookingPrice).padStart(2, '0')}</h3>
-                                            <p className="form_info">
-                                                There is no charge for this booking, however we still need a valid credit card in order to secure it and prevent abuse. Rest assured that your credit card will not be charged.
-                                            </p>
-                                            <hr />
-                                            <label htmlFor='bookingCancellation' className={`custom_form_label`}>Cancellation/Change options</label>
-                                            <p className="form_info mt-2">
-                                                You will not be able to self-service cancel or change this booking once you confirm it below.
-                                            </p>
+                                                <p className="form_info">
+                                                    There is no charge for this booking, however we still need a valid credit card in order to secure it and prevent abuse. Rest assured that your credit card will not be charged.
+                                                </p>
+                                                <hr />
+                                                <label htmlFor='bookingCancellation' className={`custom_form_label`}>Cancellation/Change options</label>
+                                                <p className="form_info mt-2">
+                                                    You will not be able to self-service cancel or change this booking once you confirm it below.
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </>}
                             </div>
                         </>
                     ) : bookingStep === 3 ? (
                         <div className="payment_area">
-                            <StripeFinalComponent />
+
+                            {stripePromise && clientSecret && <StripePayment stripePromise={stripePromise} clientSecret={clientSecret} />}
+
                         </div>
                     ) : null}
                 </div>
