@@ -21,7 +21,7 @@ interface TextInputProps {
     inputType?: InputType;
 }
 
-const TextInput: React.FC<TextInputProps> = ({ id, label, labelHtmlFor, placeholder, required, value, keyFilter, onChange, error, formGroupClassName, inputDisabled, inputReadOnly, inputAutoFocus, inputType }) => {
+const TextInput: React.FC<TextInputProps> = ({ id, label, labelHtmlFor, placeholder, required, value, keyFilter, onChange, error, formGroupClassName, inputDisabled, inputReadOnly, inputAutoFocus, inputType, name }) => {
 
     return (
         <div className={`page_form_group ${formGroupClassName}`}>

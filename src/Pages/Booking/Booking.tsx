@@ -7,7 +7,7 @@ import { Button } from "primereact/button";
 import { Ripple } from "primereact/ripple";
 import { Dialog } from "primereact/dialog";
 import { Calendar } from 'primereact/calendar';
-import { Nullable } from "primereact/ts-helpers";
+import { FormEvent, Nullable } from "primereact/ts-helpers";
 import { Dropdown, DropdownChangeEvent, DropdownProps } from "primereact/dropdown";
 import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
 import { Checkbox, CheckboxChangeEvent } from "primereact/checkbox";
@@ -19,6 +19,7 @@ import { TimeList, timeList, CountryList, countryList } from "../../Utils/SiteDa
 import { Lane, lanes } from "./BookingData";
 
 import StripeFinalComponent from "../../Components/Stripe/StripeFinalComponent";
+import PhoneNumberInput from "../../Components/PhoneNumberInput";
 
 interface BookingFormData {
     email: string;
@@ -38,7 +39,7 @@ interface BookingFormData {
 const Booking: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
-    const [bookingStep, setBookingStep] = useState<number>(1);
+    const [bookingStep, setBookingStep] = useState<number>(2);
     const [timeListData, setTimeListData] = useState<TimeList[]>([]);
     const [lanesListData, setLanesListData] = useState<Lane[]>([]);
     const [countryListData, setCountryListData] = useState<CountryList[]>([]);
@@ -143,6 +144,39 @@ const Booking: React.FC = () => {
 
     }
 
+    // Function to filter valid end times based on selected start time
+    const getValidEndTimes = (startTime?: string) => {
+        if (!startTime) return [];
+
+        const startIndex = timeList.findIndex((time) => time.value === startTime);
+        if (startIndex === -1) return [];
+
+        // Ensure the end times maintain the same minute part (e.g., :30 stays :30)
+        return timeList.filter((_, index) => index > startIndex && (index - startIndex) % 2 === 0);
+    };
+
+    const endTimeOptions = getValidEndTimes(bookingFormData.fromTime);
+
+    const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
+        if (e && e?.value) {
+            const formattedDates = e.value.map((date: Date) =>
+                date.toISOString().split("T")[0]
+            );
+            setBookingDates(e?.value);
+            setBookingFormData({ ...bookingFormData, bookingDatesDtos: formattedDates });
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setBookingFormData({
+            ...bookingFormData,
+            [name]: value
+        });
+    }
+
+    console.log(bookingFormData, "fgsdf")
+
     const bookingModalHeader = (
         <div className="custom_modal_header_inner">
             <h5 className="modal-title fs-5">
@@ -189,6 +223,7 @@ const Booking: React.FC = () => {
 
     const handleClearBookingDates = () => {
         setBookingDates([]);
+        setBookingFormData({ ...bookingFormData, bookingDatesDtos: [] });
     }
 
     const selectedStartTimeTemplate = (data: TimeList, props: DropdownProps) => {
@@ -281,7 +316,7 @@ const Booking: React.FC = () => {
                                                 <Calendar
                                                     inputId="bookingDate"
                                                     value={bookingDates}
-                                                    onChange={(e) => setBookingDates(e.value)}
+                                                    onChange={handleDateChange}
                                                     selectionMode="multiple"
                                                     readOnlyInput
                                                     placeholder="Select date(s)"
@@ -292,8 +327,8 @@ const Booking: React.FC = () => {
                                                     <i className="bi bi-x-lg data_clear_icon" onClick={handleClearBookingDates}></i>
                                                 )}
                                             </div>
-                                            {bookingDateError !== '' && (
-                                                <small className="form_error_msg">{bookingDateError}</small>
+                                            {(isRequired && bookingFormData?.bookingDatesDtos?.length === 0) && (
+                                                <small className="form_error_msg">Atleast single date needed for booking!</small>
                                             )}
                                         </div>
                                     </div>
@@ -308,8 +343,8 @@ const Booking: React.FC = () => {
                                                 <div className="col-12 col-sm-6">
                                                     <Dropdown
                                                         id="startTime"
-                                                        value={startTime}
-                                                        onChange={(e: DropdownChangeEvent) => setStartTime(e.value)}
+                                                        value={bookingFormData?.fromTime || undefined}
+                                                        onChange={(e: DropdownChangeEvent) => { setBookingFormData({ ...bookingFormData, fromTime: e?.value || "", toTime: "" }) }}
                                                         options={timeListData}
                                                         optionLabel="label"
                                                         valueTemplate={selectedStartTimeTemplate}
@@ -323,26 +358,31 @@ const Booking: React.FC = () => {
                                                 <div className="col-12 col-sm-6">
                                                     <Dropdown
                                                         id="endTime"
-                                                        value={endTime}
-                                                        onChange={(e: DropdownChangeEvent) => setEndTime(e.value)}
-                                                        options={timeListData}
+                                                        value={bookingFormData?.toTime || undefined}
+                                                        onChange={(e: DropdownChangeEvent) => { setBookingFormData({ ...bookingFormData, toTime: e?.value || "" }) }}
+                                                        options={endTimeOptions}
                                                         optionLabel="label"
                                                         valueTemplate={selectedEndTimeTemplate}
                                                         placeholder="End time"
                                                         className="form_dropdown w-100"
                                                         showClear
+                                                        disabled={!bookingFormData?.fromTime}
                                                     />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-
+                                    {(isRequired && (!bookingFormData?.fromTime || !bookingFormData?.fromTime)) && (
+                                        <small className="form_error_msg">Booking time range required!</small>
+                                    )}
                                     <div className="col-12">
                                         <div className="message_label danger mb-4">
                                             <i className="bi bi-exclamation-triangle-fill me-2"></i>
                                             Your booking doesn't meet the advance-notice requirements. Bookings are not allowed to be made less than 1 hour in advance.
                                         </div>
                                     </div>
+
+
 
                                     {/* Lanes */}
                                     <div className="col-12">
@@ -361,8 +401,8 @@ const Booking: React.FC = () => {
                                                 emptyMessage="No spaces found!"
                                             />
 
-                                            {bookingLaneError !== '' && (
-                                                <small className="form_error_msg">{bookingLaneError}</small>
+                                            {(isRequired && bookingFormData?.selectedLanesDtos?.length === 0) && (
+                                                <small className="form_error_msg">Please select available lanes for booking!</small>
                                             )}
                                         </div>
                                     </div>
@@ -375,10 +415,10 @@ const Booking: React.FC = () => {
                                             labelHtmlFor="bookingTitle"
                                             required={false}
                                             inputType="text"
-                                            value={bookingTitle}
+                                            value={bookingFormData?.bookingTitle}
                                             placeholder="Enter a title for this booking"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingTitle(e.target.value)}
-                                            error={bookingTitleError}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setBookingFormData({ ...bookingFormData, bookingTitle: e.target.value }) }}
+                                            error={''}
                                             formGroupClassName="mb-0"
                                         />
                                     </div>
@@ -409,10 +449,10 @@ const Booking: React.FC = () => {
                                             label="Booking description"
                                             labelHtmlFor="bookingDescription"
                                             required={false}
-                                            value={bookingDescription}
+                                            value={bookingFormData?.bookingDetails}
                                             placeholder="Enter a description for your booking"
-                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setBookingDescription(e.target.value)}
-                                            error={bookingDescriptionError}
+                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setBookingFormData({ ...bookingFormData, bookingDetails: e.target.value }) }}
+                                            error={''}
                                             formGroupClassName="mb-0"
                                         />
                                     </div>
@@ -420,7 +460,7 @@ const Booking: React.FC = () => {
 
                                 <hr className="form_divider" />
 
-                                <h5 className="form_title">Your details ({bookingEmail})</h5>
+                                <h5 className="form_title">Your details ({bookingFormData?.email})</h5>
                                 <div className="row">
                                     {/* First name */}
                                     <div className="col-12 col-sm-6">
@@ -430,10 +470,11 @@ const Booking: React.FC = () => {
                                             labelHtmlFor="firstName"
                                             required={true}
                                             inputType="text"
-                                            value={firstName}
+                                            value={bookingFormData?.firstName}
+                                            name="firstName"
                                             placeholder="eg: John"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
-                                            error={firstNameError}
+                                            onChange={handleChange}
+                                            error={(isRequired && !bookingFormData?.firstName) ? "First name is required!" : ""}
                                         />
                                     </div>
 
@@ -445,16 +486,16 @@ const Booking: React.FC = () => {
                                             labelHtmlFor="lastName"
                                             required={true}
                                             inputType="text"
-                                            value={lastName}
+                                            value={bookingFormData?.lastName}
                                             placeholder="eg: Doe"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
-                                            error={lastNameError}
+                                            onChange={handleChange}
+                                            error={(isRequired && !bookingFormData?.lastName) ? "Last name is required!" : ""}
                                         />
                                     </div>
 
                                     {/* Phone number */}
                                     <div className="col-12 col-sm-6">
-                                        <TextInput
+                                        {/* <TextInput
                                             id="phoneNumber"
                                             label="Phone number"
                                             labelHtmlFor="phoneNumber"
@@ -464,6 +505,17 @@ const Booking: React.FC = () => {
                                             placeholder="eg: 077 123 4567"
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
                                             error={phoneNumberError}
+                                            formGroupClassName="mb-sm-0"
+                                        /> */}
+                                        <PhoneNumberInput
+                                            id="phoneNumber"
+                                            label="Phone number"
+                                            labelHtmlFor="phoneNumber"
+                                            required={false}
+                                            name="telephoneNumber"
+                                            value={bookingFormData?.telephoneNumber}
+                                            onChange={(value: string) => { setBookingFormData({ ...bookingFormData, telephoneNumber: value }) }}
+                                            error=""
                                             formGroupClassName="mb-sm-0"
                                         />
                                     </div>
@@ -476,10 +528,10 @@ const Booking: React.FC = () => {
                                             labelHtmlFor="organization"
                                             required={false}
                                             inputType="text"
-                                            value={organization}
+                                            value={bookingFormData?.organization}
                                             placeholder="Optional"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOrganization(e.target.value)}
-                                            error={organizationError}
+                                            onChange={handleChange}
+                                            error={''}
                                             formGroupClassName="mb-0"
                                         />
                                     </div>
