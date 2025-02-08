@@ -37,6 +37,7 @@ const PhoneNumberInput: React.FC<PhoneInputProps> = ({
         setCountryCode(country.countryCode as CountryCode);
         if (onChange) {
             onChange(phone);
+            !phone && setIsValidNumber && setIsValidNumber(true);
         }
     };
 

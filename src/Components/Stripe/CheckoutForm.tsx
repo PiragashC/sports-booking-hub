@@ -2,8 +2,15 @@ import { PaymentElement } from "@stripe/react-stripe-js";
 import { useState, FormEvent } from "react";
 import { useStripe, useElements } from "@stripe/react-stripe-js";
 import { Button } from "primereact/button";
+import { PaymentIntent } from "@stripe/stripe-js";
 
-export default function CheckoutForm() {
+interface CheckoutFormProps {
+  onPaymentComplete: (paymentIntent: PaymentIntent | undefined) => void;
+  onPauseTimer: () => void;  // Function to pause timer
+  onResumeTimer: () => void; // Function to resume timer
+}
+
+export default function CheckoutForm({ onPaymentComplete, onPauseTimer, onResumeTimer }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -14,24 +21,36 @@ export default function CheckoutForm() {
     e.preventDefault();
 
     if (!stripe || !elements) {
-      // Stripe.js has not yet loaded.
-      // Make sure to disable form submission until Stripe.js has loaded.
       return;
     }
 
     setIsProcessing(true);
     setMessage("");
 
-    const { error } = await stripe.confirmPayment({
+    // Pause the timer when the user starts payment
+    onPauseTimer();
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        // Make sure to change this to your payment completion page
-        return_url: `${window.location.origin}/completion`,
+        // No need for return_url, we handle it via the function
       },
+      redirect: "if_required", // Prevent automatic redirect
     });
 
     if (error) {
       setMessage(error.message || "An unexpected error occurred.");
+      setIsProcessing(false);
+      onResumeTimer(); // Resume timer if payment fails
+      return;
+    }
+
+    if (paymentIntent?.status === "succeeded") {
+      // Call the passed function with paymentIntent ID
+      onPaymentComplete(paymentIntent);
+    } else {
+      setMessage("Payment was not completed.");
+      onResumeTimer(); // Resume timer if payment fails
     }
 
     setIsProcessing(false);
