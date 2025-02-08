@@ -94,7 +94,7 @@
 
 .page_tab_btn {
     background-color: #FFF;
-    border-radius: 6px;
+    border-radius: 8px;
     border: none;
     outline: none;
     color: rgba(0, 0, 0, 0.6);
@@ -117,4 +117,178 @@
     background-color: var(--color-primary);
     color: #FFF;
     border-color: var(--color-primary);
+}
+
+.page_header_area {
+    position: relative;
+    padding-bottom: 10px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.view_option_switch .p-button {
+    padding: 6px 12px !important;
+    height: 45px;
+    min-width: 100px;
+    background-color: #FFF;
+    border-color: #FFF;
+    border-radius: 8px;
+    font-size: var(--font-size-md) !important
+}
+
+.view_option_switch .p-button.p-highlight {
+    background-color: var(--color-secondary) !important;
+    color: #FFF;
+}
+
+.view_option_switch .p-button:focus {
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary);
+}
+
+.view_option_switch .p-button:hover {
+    background-color: var(--color-secondary-light);
+}
+
+.view_option_switch .p-button:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.view_option_switch .p-button:last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.date_selection_input.p-inputtext {
+    min-width: 250px !important;
+    border-color: #FFF;
+    background-color: #FFF;
+}
+
+.date_selection_input.p-inputtext {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    z-index: 2;
+}
+
+.nav_btn_switch_area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+}
+
+.is_btn,
+.is_btn:focus {
+    outline: none;
+}
+
+.nav_btn_switch {
+    border-radius: 8px;
+    background-color: #FFF;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    color: var(--color-secondary);
+    font-size: 20px;
+    transition: 0.5s ease;
+    border: 1px solid #FFF;
+}
+
+.nav_btn_switch:disabled {
+    pointer-events: none;
+    color: #000;
+    opacity: 0.6;
+}
+
+.nav_btn_switch:hover {
+    background-color: var(--color-secondary);
+    color: #FFF;
+}
+
+.nav_btn_switch:focus {
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary);
+    z-index: 2;
+}
+
+.nav_btn_switch i {
+    line-height: 0;
+}
+
+.nav_btn_switch_area .nav_btn_switch:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.nav_btn_switch_area .nav_btn_switch:last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.view_option_switch_area {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.view_option_switch {
+    border-radius: 8px;
+    background-color: #FFF;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 100px;
+    color: var(--color-secondary);
+    font-size: var(--font-size-md);
+    transition: 0.5s ease;
+    border: 1px solid #FFF;
+    font-weight: 500;
+}
+
+.view_option_switch.active {
+    background-color: var(--color-secondary) !important;
+    color: #FFF !important;
+}
+
+.view_option_switch:hover {
+    background-color: var(--color-secondary-light);
+}
+
+.view_option_switch:focus {
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary);
+    z-index: 2;
+}
+
+.view_option_switch_area .view_option_switch:first-child {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.view_option_switch_area .view_option_switch:last-child {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.p-datepicker-trigger {
+    height: 45px;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    background-color: var(--color-secondary-light) !important;
+    border-color: #FFF !important;
+    color: var(--color-secondary) !important;
+}
+
+.p-datepicker-trigger:hover {
+    background-color: var(--color-secondary) !important;
+    color: #FFF !important;
+}
+
+.p-datepicker-trigger:focus{
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary) !important;
+    z-index: 3 !important;
 }
