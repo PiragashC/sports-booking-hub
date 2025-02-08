@@ -8,3 +8,26 @@ export function removeEmptyValues<T extends Record<string, any>>(obj: T): Partia
         )
     ) as Partial<T>;
 }
+// Function to show an error toast
+export function showErrorToast(toastRef: React.RefObject<any>, title: string, content: string) {
+    if (toastRef.current) {
+        toastRef.current.show({
+            severity: "error",
+            summary: title,
+            detail: content,
+            life: 3000, // Duration in milliseconds
+        });
+    }
+}
+
+// Function to show a success toast
+export function showSuccessToast(toastRef: React.RefObject<any>, title: string, content: string) {
+    if (toastRef.current) {
+        toastRef.current.show({
+            severity: "success",
+            summary: title,
+            detail: content,
+            life: 3000,
+        });
+    }
+}

@@ -38,7 +38,7 @@ const StripeFinalComponent = () => {
 
     return (
         <>
-            {stripePromise && clientSecret && <StripePayment stripePromise={stripePromise} clientSecret={clientSecret} />}
+            {/* {stripePromise && clientSecret && <StripePayment stripePromise={stripePromise} clientSecret={clientSecret} />} */}
         </>
     )
 }
