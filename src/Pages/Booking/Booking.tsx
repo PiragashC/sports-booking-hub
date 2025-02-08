@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import './Booking.css';
 import './Booking-responsive.css';
@@ -20,9 +20,10 @@ import { Lane, lanes } from "./BookingData";
 
 import PhoneNumberInput from "../../Components/PhoneNumberInput";
 import apiRequest from "../../Utils/apiRequest";
-import { removeEmptyValues } from "../../Utils/commonLogic";
-import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { removeEmptyValues, showSuccessToast, showErrorToast } from "../../Utils/commonLogic";
+import { loadStripe, PaymentIntent, Stripe } from "@stripe/stripe-js";
 import StripePayment from "../../Components/Stripe/StripePayment";
+import { Toast } from "primereact/toast";
 
 interface BookingFormData {
     email: string;
@@ -40,6 +41,7 @@ interface BookingFormData {
 
 
 const Booking: React.FC = () => {
+    const toastRef = useRef<Toast>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
     const [bookingStep, setBookingStep] = useState<number>(1);
@@ -72,6 +74,8 @@ const Booking: React.FC = () => {
 
     const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
     const [clientSecret, setClientSecret] = useState<string>("");
+    const [bookingId, setBookingId] = useState<string>("");
+    const [enableTimeOutComponent, setEnableTimeOutComponent] = useState<boolean>(false);
 
 
     useEffect(() => {
@@ -79,14 +83,6 @@ const Booking: React.FC = () => {
             setTimeListData(timeList);
         }
     }, [showBookingModal]);
-
-    useEffect(() => {
-        const fetchData = async () => {
-
-            setLanesListData(lanes);
-        }
-        fetchData();
-    }, []);
 
     const handleClose = () => {
         setLoading(false);
@@ -103,6 +99,39 @@ const Booking: React.FC = () => {
         setIsValidNumber(true);
         setStripePromise(null);
         setClientSecret("");
+        setBookingId("");
+        setEnableTimeOutComponent(false);
+    }
+
+    const changeBookingStatus = async (status: string) => {
+        const response = await apiRequest({
+            method: "put",
+            url: "/booking",
+            params: {
+                bookingId,
+                status
+            }
+        });
+
+        console.log(response);
+        if (response) {
+            if (status === "SUCCESS") {
+                showSuccessToast(toastRef, "Booking Confirmed", "Your payment was successful, and your reservation is confirmed! A confirmation email has been sent to you.");
+                handleClose();
+            } else {
+                showErrorToast(toastRef, "Booking Failed", "Your payment was not completed, and your booking could not be confirmed. Please try again.");
+            }
+
+        } else {
+            if (status === "SUCCESS") {
+                showErrorToast(toastRef, "Payment Successful, But Confirmation Pending", "Your payment was successful, but we couldn't finalize your reservation. Your booking is marked as pending. Please contact support for confirmation.");
+            }
+        }
+    }
+
+    const onPaymentComplete = (paymentIntent: PaymentIntent | undefined) => {
+        console.log(paymentIntent);
+        changeBookingStatus("SUCCESS");
     }
 
 
@@ -112,6 +141,9 @@ const Booking: React.FC = () => {
 
     const handleCloseBookingModal = () => {
         handleClose();
+        if (bookingStep === 3) {
+            changeBookingStatus("FAILURE");
+        }
     }
 
     const handleStartBooking = async (e: React.FormEvent) => {
@@ -131,52 +163,50 @@ const Booking: React.FC = () => {
 
     const confirmBooking = async () => {
         setLoading(true);
-        try {
-            const response: any = await apiRequest({
-                method: "post",
-                url: "/booking",
-                data: removeEmptyValues(bookingFormData),
-            });
+        const response: any = await apiRequest({
+            method: "post",
+            url: "/booking",
+            data: removeEmptyValues({ ...bookingFormData, telephoneNumber: bookingFormData.telephoneNumber ? `+${bookingFormData.telephoneNumber}` : "" }),
+        });
 
-            console.log(response);
-            if (response?.bookingId) {
-                try {
-                    const [configResponse, intentResponse] = await Promise.all([
-                        apiRequest<{ stripe_PUBLISHABLE_KEY: string }>({
-                            method: "get",
-                            url: "/payment/config",
-                        }).catch(() => ({ stripe_PUBLISHABLE_KEY: null })),
+        console.log(response);
+        if (response?.bookingId) {
+            showSuccessToast(toastRef, "Booking Pending Payment", "Your booking has been successfully created! Please complete the payment to confirm your reservation.")
+            setBookingId(response.bookingId);
 
-                        apiRequest<{ clientSecret: string }>({
-                            method: "get",
-                            url: `/payment/create-payment-intent`,
-                            params: { bookingId: response.bookingId },
-                        }).catch(() => ({ clientSecret: "" })),
-                    ]);
+            const [configResponse, intentResponse] = await Promise.all([
+                apiRequest<{ stripe_PUBLISHABLE_KEY: string }>({
+                    method: "get",
+                    url: "/payment/config",
+                }),
 
-                    console.log("Payment Config:", configResponse.stripe_PUBLISHABLE_KEY);
-                    console.log("Client Secret:", intentResponse.clientSecret);
+                apiRequest<{ clientSecret: string }>({
+                    method: "post",
+                    url: `/payment/create-payment-intent`,
+                    params: { bookingId: response.bookingId },
+                }),
+            ]);
 
-                    if (configResponse.stripe_PUBLISHABLE_KEY && intentResponse.clientSecret) {
-                        setStripePromise(loadStripe(configResponse.stripe_PUBLISHABLE_KEY));
-                        setClientSecret(intentResponse.clientSecret);
-                        setBookingStep(3);
-                        setLoading(false);
-                    }
+            console.log("Payment Config:", configResponse.stripe_PUBLISHABLE_KEY);
+            console.log("Client Secret:", intentResponse.clientSecret);
 
-
-                } catch (error) {
-                    console.log("Error in fetching payment config or intent:", error);
-                    setStripePromise(null);
-                    setClientSecret("");
-                    setLoading(false);
-                }
-            } else {
+            if (configResponse.stripe_PUBLISHABLE_KEY && intentResponse.clientSecret) {
+                setStripePromise(loadStripe(configResponse.stripe_PUBLISHABLE_KEY));
+                setClientSecret(intentResponse.clientSecret);
+                setBookingStep(3);
                 setLoading(false);
+            } else {
+                setStripePromise(null);
+                setClientSecret("");
+                setLoading(false);
+                showErrorToast(toastRef, "Payment Setup Failed", "We couldn't initialize the payment process. Please try again or contact support if the issue persists.");
             }
-        } catch (e) {
-            console.log("Error in confirm booking", e);
+
+
+
+        } else {
             setLoading(false);
+            showErrorToast(toastRef, " Booking Failed", "We couldn’t process your booking due to a technical issue. Please try again later or contact support if the issue persists.");
         }
     };
 
@@ -205,14 +235,22 @@ const Booking: React.FC = () => {
 
     const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
         if (e && e?.value) {
-            const formattedDates = e.value.map((date: Date) =>
-                date.toISOString().split("T")[0]
-            );
+            const formattedDates = e.value.map((date: Date) => {
+                const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                return localDate.toISOString().split("T")[0];
+            });
+
             setLanesListData([]);
+            setBookingLanes([]);
+            setBookingFormData({
+                ...bookingFormData,
+                selectedLanesDtos: [],
+                bookingDatesDtos: formattedDates
+            });
             setBookingDates(e?.value);
-            setBookingFormData({ ...bookingFormData, bookingDatesDtos: formattedDates });
         }
     };
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -269,8 +307,9 @@ const Booking: React.FC = () => {
 
     const handleClearBookingDates = () => {
         setBookingDates([]);
-        setBookingFormData({ ...bookingFormData, bookingDatesDtos: [] });
+        setBookingFormData({ ...bookingFormData, bookingDatesDtos: [], selectedLanesDtos: [] });
         setLanesListData([]);
+        setBookingLanes([]);
     }
 
     const selectedStartTimeTemplate = (data: TimeList, props: DropdownProps) => {
@@ -332,6 +371,7 @@ const Booking: React.FC = () => {
                 url: "/booking",
                 params: {
                     noOfLanes: bookingFormData?.selectedLanesDtos?.length,
+                    noOfDates: bookingFormData?.bookingDatesDtos?.length,
                     fromTime: bookingFormData?.fromTime,
                     toTime: bookingFormData?.toTime
                 }
@@ -350,16 +390,16 @@ const Booking: React.FC = () => {
     }, [bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
 
     useEffect(() => {
-        if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
-    }, [bookingFormData?.selectedLanesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
+        if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
+    }, [bookingFormData?.selectedLanesDtos, bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
 
-    console.log(bookingFormData, "vdfagaerdfs");
+    console.log(bookingFormData?.selectedLanesDtos, bookingLanes, "vdfagaerdfs");
 
     return (
         <>
             This is booking page
             <Button label="Book Now" onClick={handleOpenBooking} />
-
+            <Toast ref={toastRef} />
             {/* Booking modal */}
             <Dialog
                 visible={showBookingModal}
@@ -426,6 +466,7 @@ const Booking: React.FC = () => {
                                                     placeholder="Select date(s)"
                                                     className="multi_date_input_area w-100"
                                                     inputClassName="multi_date_input"
+                                                    minDate={new Date()}
                                                 />
                                                 {bookingDates && bookingDates?.length > 0 && (
                                                     <i className="bi bi-x-lg data_clear_icon" onClick={handleClearBookingDates}></i>
@@ -448,7 +489,18 @@ const Booking: React.FC = () => {
                                                     <Dropdown
                                                         id="startTime"
                                                         value={bookingFormData?.fromTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => { setLanesListData([]); setBookingPrice(0); setBookingFormData({ ...bookingFormData, fromTime: e?.value || "", toTime: "" }); }}
+                                                        onChange={(e: DropdownChangeEvent) => {
+                                                            setLanesListData([]);
+                                                            setBookingLanes([]);
+                                                            setBookingPrice(0);
+
+                                                            setBookingFormData((prev: BookingFormData) => ({
+                                                                ...prev,
+                                                                fromTime: e?.value || "",
+                                                                toTime: "",
+                                                                selectedLanesDtos: []
+                                                            }));
+                                                        }}
                                                         options={timeListData}
                                                         optionLabel="label"
                                                         valueTemplate={selectedStartTimeTemplate}
@@ -463,7 +515,17 @@ const Booking: React.FC = () => {
                                                     <Dropdown
                                                         id="endTime"
                                                         value={bookingFormData?.toTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => { setLanesListData([]); setBookingPrice(0); setBookingFormData({ ...bookingFormData, toTime: e?.value || "" }) }}
+                                                        onChange={(e: DropdownChangeEvent) => {
+                                                            setLanesListData([]);
+                                                            setBookingLanes([]);
+                                                            setBookingPrice(0);
+
+                                                            setBookingFormData((prev: BookingFormData) => ({
+                                                                ...prev,
+                                                                toTime: e?.value || "",
+                                                                selectedLanesDtos: []
+                                                            }));
+                                                        }}
                                                         options={endTimeOptions}
                                                         optionLabel="label"
                                                         valueTemplate={selectedEndTimeTemplate}
@@ -515,7 +577,7 @@ const Booking: React.FC = () => {
                                                 disabled={lanesListData?.length === 0}
                                             />
 
-                                            {(bookingFormData?.selectedLanesDtos?.length === 0 && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) && (
+                                            {(lanesListData?.length === 0 && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) && (
                                                 <small className="form_error_msg">No lanes available for your date and time!</small>
                                             )}
 
@@ -601,6 +663,7 @@ const Booking: React.FC = () => {
                                         <TextInput
                                             id="lastName"
                                             label="Last name"
+                                            name="lastName"
                                             labelHtmlFor="lastName"
                                             required={true}
                                             inputType="text"
@@ -652,6 +715,7 @@ const Booking: React.FC = () => {
                                             onChange={handleChange}
                                             error={''}
                                             formGroupClassName="mb-0"
+                                            name="organization"
                                         />
                                     </div>
                                 </div>
@@ -684,7 +748,19 @@ const Booking: React.FC = () => {
                     ) : bookingStep === 3 ? (
                         <div className="payment_area">
 
-                            {stripePromise && clientSecret && <StripePayment stripePromise={stripePromise} clientSecret={clientSecret} />}
+                            {stripePromise && clientSecret && !enableTimeOutComponent ? <StripePayment
+                                stripePromise={stripePromise}
+                                clientSecret={clientSecret} onPaymentComplete={onPaymentComplete}
+                                changeBookingStatus={changeBookingStatus}
+                                handleClose={() => { setEnableTimeOutComponent(true); }}
+                            /> : <div>
+                                <p>Oops! time out for your booking</p>
+                                <Button
+                                    label="Start new slot for booking"
+                                    className="custom_btn secondary"
+                                    onClick={handleCloseBookingModal}
+                                />
+                            </div>}
 
                         </div>
                     ) : null}
