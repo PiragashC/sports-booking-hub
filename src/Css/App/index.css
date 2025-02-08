@@ -1,7 +1,120 @@
 @import url(../element.css);
 
-.app_main_content{
+.app_main_content {
     position: relative;
-    min-height: 100dvh;
+    min-height: calc(100dvh - 30px);
+    background-color: var(--color-secondary-light);
+}
+
+.app_header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 70px;
+    left: 0;
     background-color: #FFF;
+    /* background-color: var(--color-primary-light); */
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.06);
+}
+
+.app_header .app_nav {
+    width: 100%;
+    height: 100%;
+}
+
+.app_header .app_nav .app_nav_area {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 0 20px;
+}
+
+.app_nav_logo_link {
+    position: relative;
+    text-decoration: none;
+}
+
+.app_nav_logo_link img {
+    height: 50px;
+}
+
+.head_title {
+    font-size: 24px;
+    font-style: italic;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.head_title span {
+    color: var(--color-secondary);
+    font-weight: 700;
+}
+
+.app_footer {
+    background-color: #FFF;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    width: 100%;
+}
+
+.app_footer_area {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 20px;
+}
+
+.page_content {
+    padding: 90px 25px 25px;
+}
+
+.page_card {
+    position: relative;
+    min-height: calc(100dvh - 160px);
+    background-color: #FFF;
+    border-radius: 15px;
+}
+
+.page_tabs_area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 0 0 15px 0;
+}
+
+.page_tab_btn {
+    background-color: #FFF;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    padding: 8px 12px;
+    min-width: 160px;
+    transition: ease 0.3s;
+    overflow: hidden;
+    border: 1px solid #FFF;
+}
+
+.page_tab_btn:focus {
+    outline: none;
+    border-color: #FFF !important;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-primary);
+}
+
+.page_tab_btn.active {
+    background-color: var(--color-primary);
+    color: #FFF;
+    border-color: var(--color-primary);
 }

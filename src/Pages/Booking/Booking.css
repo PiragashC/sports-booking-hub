@@ -102,3 +102,10 @@
 .payment_form .p-FieldLabel{
     display: none !important;
 }
+
+.p-LTR .p-Select-select{
+    display: none;
+}
+
+/*  */
+
