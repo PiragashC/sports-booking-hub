@@ -99,13 +99,125 @@
     position: relative;
 }
 
-.payment_form .p-FieldLabel{
+.payment_form .p-FieldLabel {
     display: none !important;
 }
 
-.p-LTR .p-Select-select{
+.p-LTR .p-Select-select {
     display: none;
 }
 
 /*  */
 
+.booking_time_line_view {
+    position: relative;
+    width: 100%;
+    max-height: calc(100dvh - 255px);
+    overflow-y: auto;
+    border-radius: 13px;
+}
+
+.booking_time_line_view.day_mode .fc-timeGridDay-view .fc-scrollgrid thead tr {
+    background-color: var(--color-secondary) !important;
+    border-bottom: 2px solid #FFF;
+}
+
+.booking_time_line_view.day_mode .fc-timeGridDay-view .fc-scrollgrid thead tr th th {
+    padding: 6px;
+}
+
+.booking_time_line_view.day_mode .fc-timeGridDay-view .fc-scrollgrid thead tr th a {
+    color: #FFF !important;
+    text-decoration: none;
+    font-weight: 500 !important;
+
+}
+
+.booking_time_line_view.day_mode .fc-theme-standard .fc-scrollgrid {
+    border-radius: 13px !important;
+}
+
+.booking_time_line_view.day_mode .fc .fc-timegrid-slot-label-cushion {
+    font-size: var(--font-size-md);
+}
+
+/*  */
+
+
+.booking_event {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    gap: 6px;
+    height: 100%;
+    padding: 5px 10px;
+    border-radius: 1px;
+    margin: 0;
+    cursor: pointer;
+    background-color: var(--color-primary-light);
+}
+
+.booking_event:hover {
+    background-color: #cfe9cf;
+}
+
+.booking_event .booking_title {
+    text-align: left;
+    line-height: 1.2em;
+    font-weight: 500;
+}
+
+.booking_event .booking_time {
+    font-size: 13px;
+    color: var(--text-color);
+    font-weight: 400;
+}
+
+.booking_event i {
+    font-size: 18px;
+    line-height: 0;
+}
+
+.day_view_event {
+    border-left-width: 6px;
+    border-radius: 5px;
+}
+
+.booking_detail_area {
+    position: relative;
+    width: 100%;
+    padding: 15px 12px;
+    background-color: #eee;
+    border-radius: 8px;
+}
+
+.booking_detail_area hr {
+    border-top-color: #919191;
+    margin: 15px 0;
+}
+
+.booking_detail {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    width: 100%;
+}
+
+.booking_detail i {
+    line-height: 0;
+    font-size: 20px;
+    color: var(--color-primary);
+}
+
+.booking_detail span {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-color);
+}
+
+
+.booking_detail span.font_light {
+    font-weight: var(--font-weight-regular);
+    opacity: 0.7;
+}

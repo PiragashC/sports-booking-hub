@@ -73,14 +73,17 @@
 }
 
 .page_content {
-    padding: 90px 25px 25px;
+    padding: 90px 25px 20px;
 }
 
 .page_card {
     position: relative;
-    min-height: calc(100dvh - 160px);
+    min-height: calc(100dvh - 255px);
     background-color: #FFF;
     border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid #FFF;
+    ;
 }
 
 .page_tabs_area {
@@ -89,7 +92,6 @@
     gap: 10px;
     flex-wrap: wrap;
     width: 100%;
-    padding: 0 0 15px 0;
 }
 
 .page_tab_btn {
@@ -103,8 +105,12 @@
     padding: 8px 12px;
     min-width: 160px;
     transition: ease 0.3s;
+    height: 40px;
     overflow: hidden;
     border: 1px solid #FFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .page_tab_btn:focus {
@@ -126,6 +132,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .view_option_switch .p-button {
@@ -288,7 +295,49 @@
     color: #FFF !important;
 }
 
-.p-datepicker-trigger:focus{
+.p-datepicker-trigger:focus {
     box-shadow: 0px 0px 0px 4px var(--color-focus-secondary) !important;
     z-index: 3 !important;
+}
+
+.page_sub_header_area {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    row-gap: 10px;
+    flex-wrap: nowrap;
+    padding-bottom: 15px;
+}
+
+.new_data_button {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-primary);
+    padding: 6px 12px;
+    min-width: 150px;
+    font-size: var(--font-size-md);
+    color: #FFF;
+    border: 1px solid var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    border-radius: 8px;
+    font-weight: var(--font-weight-medium);
+}
+
+.new_data_button i {
+    line-height: 0;
+}
+
+.new_data_button:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.new_data_button:focus {
+    border-color: #FFF;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-primary);
 }

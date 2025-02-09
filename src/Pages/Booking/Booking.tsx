@@ -1,285 +1,237 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import './Booking.css';
-import './Booking-responsive.css';
+import { useNavigate, useLocation } from "react-router-dom";
 
-import { Button } from "primereact/button";
 import { Ripple } from "primereact/ripple";
-import { Dialog } from "primereact/dialog";
-import { Calendar } from 'primereact/calendar';
-import { FormEvent, Nullable } from "primereact/ts-helpers";
-import { Dropdown, DropdownChangeEvent, DropdownProps } from "primereact/dropdown";
-import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
-import { Checkbox } from "primereact/checkbox";
-
-import TextInput from "../../Components/TextInput";
-import TextArea from "../../Components/TextArea";
-
-import { TimeList, timeList } from "../../Utils/SiteData";
-import { Lane, lanes } from "./BookingData";
-
-import PhoneNumberInput from "../../Components/PhoneNumberInput";
-import apiRequest from "../../Utils/apiRequest";
-import { removeEmptyValues, showSuccessToast, showErrorToast } from "../../Utils/commonLogic";
-import { loadStripe, PaymentIntent, Stripe } from "@stripe/stripe-js";
-import StripePayment from "../../Components/Stripe/StripePayment";
 import { Toast } from "primereact/toast";
+import { Calendar } from 'primereact/calendar';
+import { Nullable } from "primereact/ts-helpers";
 
-interface BookingFormData {
-    email: string;
-    fromTime: string;
-    toTime: string;
-    bookingTitle?: string;
-    bookingDetails?: string;
-    firstName: string;
-    lastName: string;
-    telephoneNumber?: string;
-    organization?: string;
-    selectedLanesDtos: string[];
-    bookingDatesDtos: string[];
-}
+import FullCalendar from "@fullcalendar/react";
+import { MutableRefObject } from "react";
 
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { format, startOfWeek, endOfWeek, parseISO } from "date-fns";
+
+import BookingModal from "./BookingModal";
+
+import { Lane, lanes, BookingsByDate, bookingsByDate, BookingsByDateRange, bookingsByDateRange, BookingResponse } from "./BookingData";
+import { Dialog } from "primereact/dialog";
 
 const Booking: React.FC = () => {
-    const toastRef = useRef<Toast>(null);
     const [loading, setLoading] = useState<boolean>(false);
+    const toastRef = useRef<Toast>(null);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const calendarRef = useRef(null);
+
+    const [isLoginAsAdmin, setIsLoginAsAdmin] = useState<boolean>(true);
+    const [bookingViewMode, setBookingViewMode] = useState<'Day' | 'Month'>('Day');
+
     const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
-    const [bookingStep, setBookingStep] = useState<number>(1);
-    const [timeListData, setTimeListData] = useState<TimeList[]>([]);
-    const [lanesListData, setLanesListData] = useState<Lane[]>([]);
 
-    /* Booking detail fields */
-    const [bookingPrice, setBookingPrice] = useState<number>(0);
-    const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
-    const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
-    const [isAgree, setIsAgree] = useState<boolean>(false);
+    const [lanesData, setLanesData] = useState<Lane[]>([]);
+    const [selectedLaneData, setSelectedLaneData] = useState<Lane | null>(null);
 
-    const initialBookingFormData = {
-        email: '',
-        fromTime: '',
-        toTime: '',
-        bookingTitle: '',
-        bookingDetails: '',
-        firstName: '',
-        lastName: '',
-        telephoneNumber: '',
-        organization: '',
-        selectedLanesDtos: [],
-        bookingDatesDtos: []
-    }
-    const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
-    const [isRequired, setIsRequired] = useState<boolean>(false);
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const [isValidNumber, setIsValidNumber] = useState<boolean>(true);
+    const [dateWiseBookingData, setDateWiseBookingData] = useState<BookingsByDate[]>([]);
+    const [filteredDateWiseBookingData, setFilteredDateWiseBookingData] = useState<BookingsByDate[]>([]);
+    const [filteredLaneDateWiseBookingData, setFilteredLaneDateWiseBookingData] = useState<BookingsByDate | null>(null);
 
-    const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
-    const [clientSecret, setClientSecret] = useState<string>("");
-    const [bookingId, setBookingId] = useState<string>("");
-    const [enableTimeOutComponent, setEnableTimeOutComponent] = useState<boolean>(false);
+    const [dateRangeWiseBookingData, setDateRangeWiseBookingData] = useState<BookingsByDateRange[]>([]);
+    const [filteredDateRangeWiseBookingData, setFilteredDateRangeWiseBookingData] = useState<BookingsByDateRange[]>([]);
+    const [filteredLaneDateRangeWiseBookingData, setFilteredLaneDateRangeWiseBookingData] = useState<BookingsByDateRange | null>(null);
 
+
+    const [date, setDate] = useState<Date>(new Date());
+    const [dayViewEvents, setDayViewEvents] = useState<any | null>(null);
+    const dayViewModeRef = useRef(null);
+
+    const [month, setMonth] = useState<Date>(new Date());
+    const monthViewModeRef = useRef(null);
+
+
+    const [showBookingDetailsModal, setShowBookingDetailsModal] = useState<boolean>(false);
+    const [dayWiseBookingDetails, setDayWiseBookingDetails] = useState<BookingResponse | null>(null);
 
     useEffect(() => {
-        if (showBookingModal) {
-            setTimeListData(timeList);
+        const fetchData = async () => {
+            setLanesData(lanes);
+            setDateWiseBookingData(bookingsByDate);
+            setDateRangeWiseBookingData(bookingsByDateRange);
         }
-    }, [showBookingModal]);
+        fetchData();
+    }, []);
 
-    const handleClose = () => {
-        setLoading(false);
-        setShowBookingModal(false);
-        setBookingStep(1);
-        setTimeListData([]);
-        setLanesListData([]);
-        setBookingPrice(0);
-        setBookingDates(null);
-        setBookingLanes([]);
-        setIsAgree(false);
-        setBookingFormData(initialBookingFormData);
-        setIsRequired(false);
-        setIsValidNumber(true);
-        setStripePromise(null);
-        setClientSecret("");
-        setBookingId("");
-        setEnableTimeOutComponent(false);
-    }
-
-    const changeBookingStatus = async (status: string) => {
-        const response = await apiRequest({
-            method: "put",
-            url: "/booking",
-            params: {
-                bookingId,
-                status
-            }
-        });
-
-        console.log(response);
-        if (response) {
-            if (status === "SUCCESS") {
-                showSuccessToast(toastRef, "Booking Confirmed", "Your payment was successful, and your reservation is confirmed! A confirmation email has been sent to you.");
-                handleClose();
-            } else {
-                showErrorToast(toastRef, "Booking Failed", "Your payment was not completed, and your booking could not be confirmed. Please try again.");
-            }
-
-        } else {
-            if (status === "SUCCESS") {
-                showErrorToast(toastRef, "Payment Successful, But Confirmation Pending", "Your payment was successful, but we couldn't finalize your reservation. Your booking is marked as pending. Please contact support for confirmation.");
-            }
+    useEffect(() => {
+        if (lanesData && lanesData?.length !== 0) {
+            setSelectedLaneData(lanesData[0]);
         }
-    }
-
-    const onPaymentComplete = (paymentIntent: PaymentIntent | undefined) => {
-        console.log(paymentIntent);
-        changeBookingStatus("SUCCESS");
-    }
+    }, [lanesData]);
 
 
-    const handleOpenBooking = () => {
+    /* ********************************** For new booking ********************************* */
+    const handleNewBooking = () => {
         setShowBookingModal(true);
     }
 
     const handleCloseBookingModal = () => {
-        handleClose();
-        if (bookingStep === 3) {
-            changeBookingStatus("FAILURE");
-        }
+        setShowBookingModal(false);
     }
+    /* *********************************************************************************** */
 
-    const handleStartBooking = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsRequired(true);
-        setLoading(true);
-        if (bookingFormData?.email && emailRegex.test(bookingFormData?.email)) {
-            setTimeout(() => {
-                setLoading(false);
-                setIsRequired(false);
-                setBookingStep(2);
-            }, 500);
-        } else {
-            setLoading(false);
-        }
-    }
 
-    const confirmBooking = async () => {
-        setLoading(true);
-        const response: any = await apiRequest({
-            method: "post",
-            url: "/booking",
-            data: removeEmptyValues({ ...bookingFormData, telephoneNumber: bookingFormData.telephoneNumber ? `+${bookingFormData.telephoneNumber}` : "" }),
+    /* ********************************* Helper functions ******************************** */
+    const formatDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    const formatTime = (time?: string) => {
+        if (!time) return "Invalid Time";
+        const [hours, minutes] = time.split(":").map(Number);
+        const date = new Date();
+        date.setHours(hours, minutes);
+
+        return date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
         });
+    };
+    /* *********************************************************************************** */
 
-        console.log(response);
-        if (response?.bookingId) {
-            showSuccessToast(toastRef, "Booking Pending Payment", "Your booking has been successfully created! Please complete the payment to confirm your reservation.")
-            setBookingId(response.bookingId);
 
-            const [configResponse, intentResponse] = await Promise.all([
-                apiRequest<{ stripe_PUBLISHABLE_KEY: string }>({
-                    method: "get",
-                    url: "/payment/config",
-                }),
+    const handleChangeLane = (lane: Lane) => {
+        setSelectedLaneData(lane);
+    }
 
-                apiRequest<{ clientSecret: string }>({
-                    method: "post",
-                    url: `/payment/create-payment-intent`,
-                    params: { bookingId: response.bookingId },
-                }),
-            ]);
+    const handleSwitchViewMode = (view: 'Day' | 'Month') => {
+        setBookingViewMode(view);
 
-            console.log("Payment Config:", configResponse.stripe_PUBLISHABLE_KEY);
-            console.log("Client Secret:", intentResponse.clientSecret);
+        if (calendarRef.current) {
+            (calendarRef.current as any).show();
+        }
+    }
 
-            if (configResponse.stripe_PUBLISHABLE_KEY && intentResponse.clientSecret) {
-                setStripePromise(loadStripe(configResponse.stripe_PUBLISHABLE_KEY));
-                setClientSecret(intentResponse.clientSecret);
-                setBookingStep(3);
-                setLoading(false);
-            } else {
-                setStripePromise(null);
-                setClientSecret("");
-                setLoading(false);
-                showErrorToast(toastRef, "Payment Setup Failed", "We couldn't initialize the payment process. Please try again or contact support if the issue persists.");
+
+    /* ********************************** For date view ********************************** */
+    useEffect(() => {
+        if (date) {
+            const formattedDate = formatDate(date);
+
+            if (dateWiseBookingData && dateWiseBookingData?.length > 0) {
+                const filteredData = dateWiseBookingData?.filter(booking => booking?.bookingDate === formattedDate);
+
+                setFilteredDateWiseBookingData(filteredData);
             }
+        }
+    }, [dateWiseBookingData, date]);
 
 
+    useEffect(() => {
+        const fetchData = async () => {
+            if (selectedLaneData && selectedLaneData !== null) {
+                const filteredData = filteredDateWiseBookingData?.find(booking => booking?.laneId === selectedLaneData?.id);
 
+                if (filteredData) {
+                    setFilteredLaneDateWiseBookingData(filteredData);
+
+                    // if (filteredData?.bookingResponseDtos) {
+                    //     const events = filteredData?.bookingResponseDtos?.map((booking) => ({
+                    //         id: booking.bookingId,
+                    //         title: isLoginAsAdmin ? booking.userName : '',
+                    //         start: `${formatDate(date)}T${booking.startTime}`,
+                    //         end: `${formatDate(date)}T${booking.endTime}`,
+                    //         backgroundColor: "#ddf8dd",
+                    //         borderColor: "#008000",
+                    //         textColor: "#006800",
+                    //     })) || [];
+
+                    //     setDayViewEvents(events);
+                    // } else {
+                    //     setDayViewEvents([]);
+                    // }
+
+                } else {
+                    setFilteredLaneDateWiseBookingData(null);
+                    // setDayViewEvents([]);
+                }
+            }
+        }
+        fetchData();
+
+    }, [selectedLaneData, filteredDateWiseBookingData, date, isLoginAsAdmin]);
+
+
+    useEffect(() => {
+        if (filteredLaneDateWiseBookingData?.bookingResponseDtos) {
+            const events = filteredLaneDateWiseBookingData?.bookingResponseDtos?.map((booking) => ({
+                id: booking.bookingId,
+                title: isLoginAsAdmin ? booking.userName : '',
+                start: `${formatDate(date)}T${booking.startTime}`,
+                end: `${formatDate(date)}T${booking.endTime}`,
+                backgroundColor: "#ddf8dd",
+                borderColor: "#008000",
+                textColor: "#006800",
+            })) || [];
+
+            setDayViewEvents(events);
         } else {
-            setLoading(false);
-            showErrorToast(toastRef, " Booking Failed", "We couldn’t process your booking due to a technical issue. Please try again later or contact support if the issue persists.");
+            setDayViewEvents([]);
         }
+    }, [filteredLaneDateWiseBookingData, isLoginAsAdmin, date]);
+
+
+    const handleNavigatePrevDay = () => {
+        if (date > today) {
+            const prevDay = new Date(date);
+            prevDay.setDate(prevDay.getDate() - 1);
+            setDate(prevDay);
+        }
+
+        setSelectedLaneData(lanesData[0]);
     };
 
-    const handleConfirmBooking = async (e: React.FormEvent) => {
-        setIsRequired(true);
-        e.preventDefault();
-        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgree || !bookingFormData?.firstName || !bookingFormData?.lastName || !isValidNumber) {
-            return;
-        }
 
-        confirmBooking();
+    const handleNavigateNextDay = () => {
+        const nextDay = new Date(date);
+        nextDay.setDate(nextDay.getDate() + 1);
+        setDate(nextDay);
+
+        setSelectedLaneData(lanesData[0]);
+    };
+
+
+    const handleViewDayWiseBookingDetail = (detail: any) => {
+        const bookingId = detail.event.id;
+        const booking = filteredLaneDateWiseBookingData?.bookingResponseDtos?.find(data => data?.bookingId === bookingId);
+
+        if (booking) {
+            setDayWiseBookingDetails(booking);
+            setShowBookingDetailsModal(true);
+        }
     }
 
-    // Function to filter valid end times based on selected start time
-    const getValidEndTimes = (startTime?: string) => {
-        if (!startTime) return [];
-
-        const startIndex = timeList.findIndex((time) => time.value === startTime);
-        if (startIndex === -1) return [];
-
-        // Ensure the end times maintain the same minute part (e.g., :30 stays :30)
-        return timeList.filter((_, index) => index > startIndex && (index - startIndex) % 2 === 0);
-    };
-
-    const endTimeOptions = getValidEndTimes(bookingFormData.fromTime);
-
-    const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
-        if (e && e?.value) {
-            const formattedDates = e.value.map((date: Date) => {
-                const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-                return localDate.toISOString().split("T")[0];
-            });
-
-            setLanesListData([]);
-            setBookingLanes([]);
-            setBookingFormData({
-                ...bookingFormData,
-                selectedLanesDtos: [],
-                bookingDatesDtos: formattedDates
-            });
-            setBookingDates(e?.value);
-        }
-    };
-
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setBookingFormData({
-            ...bookingFormData,
-            [name]: value
-        });
+    const handleCloseBookingDetailsModal = () => {
+        setShowBookingDetailsModal(false);
     }
 
-    const bookingModalHeader = (
+    const bookingDetailsModalHeader = (
         <div className="custom_modal_header_inner">
             <h5 className="modal-title fs-5">
-                {bookingStep === 3 ? (
-                    <>
-                        <i className="bi bi-credit-card me-2 modal_head_icon"></i>
-                        Payment
-                    </>
-                ) : (
-                    <>
-                        <i className="bi bi-calendar-plus me-2 modal_head_icon"></i>
-                        New booking
-                    </>
-                )}
+                <i className="bi bi-calendar-check me-2 modal_head_icon"></i>
+                Booking details
             </h5>
             <button
                 type="button"
                 aria-label="Close"
                 className="close_modal_btn p-ripple"
-                onClick={handleCloseBookingModal}
+                onClick={handleCloseBookingDetailsModal}
             >
                 <i className="bi bi-x-circle"></i>
                 <Ripple />
@@ -287,483 +239,325 @@ const Booking: React.FC = () => {
         </div>
     )
 
-    const bookingModalFooter = (
-        <div className="custom_modal_footer">
-            <Button
-                label="Cancel"
-                className="custom_btn secondary"
-                onClick={handleCloseBookingModal}
-            />
+    /* *********************************************************************************** */
 
-            <Button
-                label={`${loading ? 'Processing' : bookingStep === 1 ? 'Next' : bookingStep === 2 ? 'Confirm booking' : null}`}
-                onClick={bookingStep === 1 ? handleStartBooking : bookingStep === 2 ? handleConfirmBooking : undefined}
-                loading={loading}
-                className="custom_btn primary"
-                disabled={bookingStep === 2 ? !isAgree : false}
-            />
-        </div>
-    );
 
-    const handleClearBookingDates = () => {
-        setBookingDates([]);
-        setBookingFormData({ ...bookingFormData, bookingDatesDtos: [], selectedLanesDtos: [] });
-        setLanesListData([]);
-        setBookingLanes([]);
-    }
+    /* ********************************* For month view ********************************** */
+    useEffect(() => {
+        if (!dateRangeWiseBookingData.length) return;
 
-    const selectedStartTimeTemplate = (data: TimeList, props: DropdownProps) => {
-        if (data) {
-            return (
-                <div className="d-flex align-items-center">
-                    <div>From - {data.label}</div>
-                </div>
-            );
-        }
-
-        return <span>{props.placeholder}</span>;
-    };
-
-    const selectedEndTimeTemplate = (data: TimeList, props: DropdownProps) => {
-        if (data) {
-            return (
-                <div className="d-flex align-items-center">
-                    <div>To - {data.label}</div>
-                </div>
-            );
-        }
-
-        return <span>{props.placeholder}</span>;
-    };
-
-    const fetchLanes = async () => {
-        setLanesListData([]);
-
-        try {
-            const response = await apiRequest({
-                method: "get",
-                url: "/booking/check-availability",
-                params: {
-                    fromTime: bookingFormData?.fromTime,
-                    toTime: bookingFormData?.toTime,
-                    date: bookingFormData?.bookingDatesDtos?.join(',')
-                }
+        const filteredBookings = dateRangeWiseBookingData.map((laneData) => {
+            const filteredDates = laneData.weekMonthViewResponseDtos?.filter((bookingDate) => {
+                if (!bookingDate.bookingDate) return false;
+                const bookingDateObj = new Date(bookingDate.bookingDate);
+                return bookingDateObj.getMonth() === month.getMonth() && bookingDateObj.getFullYear() === month.getFullYear();
             });
 
-            console.log(response);
+            return { ...laneData, weekMonthViewResponseDtos: filteredDates };
+        }).filter((laneData) => laneData.weekMonthViewResponseDtos?.length);
 
-            setLanesListData(Array.isArray(response) ? response.map((laneObj: any) => ({
-                id: laneObj?.laneId || 0,
-                name: laneObj?.laneName || ""
-            })) : []);
-        } catch (e) {
-            console.error("Error fetching lanes", e);
-            setLanesListData([]);
+        setFilteredDateRangeWiseBookingData(filteredBookings);
+    }, [month, dateRangeWiseBookingData]);
+
+    useEffect(() => {
+        if (!selectedLaneData || !filteredDateRangeWiseBookingData.length) {
+            setFilteredLaneDateRangeWiseBookingData(null);
+            return;
         }
+
+        const selectedLaneBookings = filteredDateRangeWiseBookingData.find((lane) => lane.laneId === selectedLaneData.id);
+        setFilteredLaneDateRangeWiseBookingData(selectedLaneBookings || null);
+    }, [selectedLaneData, filteredDateRangeWiseBookingData]);
+
+
+    // const monthViewEvents = filteredLaneDateRangeWiseBookingData?.weekMonthViewResponseDtos?.flatMap((bookingDate) =>
+    //     bookingDate.bookingResponseDtos?.map((booking) => ({
+    //         id: booking.bookingId,
+    //         title: booking.userName,
+    //         start: `${bookingDate.bookingDate}T${booking.startTime}`,
+    //         end: `${bookingDate.bookingDate}T${booking.endTime}`,
+    //         allDay: false
+    //     }))
+    // ) || [];
+
+    const monthViewEvents = filteredLaneDateRangeWiseBookingData?.weekMonthViewResponseDtos?.flatMap((bookingDate) =>
+        bookingDate.bookingResponseDtos?.map((booking) => ({
+            id: booking.bookingId || "", // Ensure non-null ID
+            title: booking.userName || "Unknown", // Provide a default title
+            start: bookingDate.bookingDate && booking.startTime ? `${bookingDate.bookingDate}T${booking.startTime}` : "",
+            end: bookingDate.bookingDate && booking.endTime ? `${bookingDate.bookingDate}T${booking.endTime}` : "",
+            allDay: false
+        }))
+    ) || [];
+
+    const validEvents = monthViewEvents.filter(event => event && event.start && event.end);
+
+    // const monthViewEvents = filteredLaneDateRangeWiseBookingData?.weekMonthViewResponseDtos?.map((booking) => ({
+    //     id: booking.bookingId,
+    //     title: isLoginAsAdmin ? booking.userName : '',
+    //     start: `${formatDate(date)}T${booking.startTime}`,
+    //     end: `${formatDate(date)}T${booking.endTime}`,
+    //     backgroundColor: "#ddf8dd",
+    //     borderColor: "#008000",
+    //     textColor: "#006800",
+    // })) || [];
+
+
+    const handleNavigatePrevMonth = () => {
+        const prevMonth = new Date(month);
+        prevMonth.setMonth(prevMonth.getMonth() - 1);
+        setMonth(prevMonth);
     };
 
+    const handleNavigateNextMonth = () => {
+        const nextMonth = new Date(month);
+        nextMonth.setMonth(nextMonth.getMonth() + 1);
+        setMonth(nextMonth);
+    };
+    /* *********************************************************************************** */
 
-    const fetchBookingAmount = async () => {
-        setBookingPrice(0);
-        try {
-            const response = await apiRequest({
-                method: "get",
-                url: "/booking",
-                params: {
-                    noOfLanes: bookingFormData?.selectedLanesDtos?.length,
-                    noOfDates: bookingFormData?.bookingDatesDtos?.length,
-                    fromTime: bookingFormData?.fromTime,
-                    toTime: bookingFormData?.toTime
-                }
-            });
-
-            console.log(response);
-            setBookingPrice(response && response?.bookingPrice ? Number(response.bookingPrice) : 0);
-        } catch (e) {
-            console.log("Error fetching booking amount!", e);
-            setBookingPrice(0);
-        }
-    }
-
-    useEffect(() => {
-        if (bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchLanes();
-    }, [bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
-
-    useEffect(() => {
-        if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
-    }, [bookingFormData?.selectedLanesDtos, bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
-
-    console.log(bookingFormData?.selectedLanesDtos, bookingLanes, "vdfagaerdfs");
 
     return (
         <>
-            This is booking page
-            <Button label="Book Now" onClick={handleOpenBooking} />
             <Toast ref={toastRef} />
-            {/* Booking modal */}
-            <Dialog
-                visible={showBookingModal}
-                header={bookingModalHeader}
-                footer={bookingStep !== 3 && bookingModalFooter}
-                headerClassName="custom_modal_header"
-                className={`custom_modal_dialog ${bookingStep === 1 ? 'modal_dialog_sm' : 'modal_dialog_md'} `}
-                onHide={handleCloseBookingModal}
-            >
-                <div className="custom_modal_body">
-                    {bookingStep === 1 ? (
+
+            <div className="page_content">
+                <div className="page_header_area">
+                    <div className="view_option_switch_area">
+                        <button
+                            className={`view_option_switch is_btn p-ripple ${bookingViewMode === 'Day' && 'active'}`}
+                            type="button"
+                            aria-label="Day"
+                            onClick={() => handleSwitchViewMode('Day')}
+                        >
+                            Day
+                            <Ripple />
+                        </button>
+
+                        <button
+                            className={`view_option_switch is_btn p-ripple ${bookingViewMode === 'Month' && 'active'}`}
+                            type="button"
+                            aria-label="Month"
+                            onClick={() => handleSwitchViewMode('Month')}
+                        >
+                            Month
+                            <Ripple />
+                        </button>
+                    </div>
+
+
+                    {bookingViewMode === 'Day' ? (
                         <>
-                            <div className="booking_greeting">
-                                <h4>Welcome to...&nbsp;
-                                    <span>Kover <span>Drive</span></span>
-                                </h4>
-                                <h5>To start, please enter your email address.</h5>
-                                <p>You'll be the holder of this new booking.</p>
+                            <div className="nav_btn_switch_area">
+                                <button
+                                    className="nav_btn_switch is_btn p-ripple"
+                                    type="button"
+                                    aria-label="Prev"
+                                    onClick={handleNavigatePrevDay}
+                                    disabled={date.getDate() <= today.getDate()}>
+                                    <i className="bi bi-chevron-left"></i>
+                                    <Ripple />
+                                </button>
+
+                                <button
+                                    className="nav_btn_switch is_btn p-ripple"
+                                    type="button"
+                                    aria-label="Next"
+                                    onClick={handleNavigateNextDay}>
+                                    <i className="bi bi-chevron-right"></i>
+                                    <Ripple />
+                                </button>
                             </div>
 
-                            <div className="row">
-                                {/* Email */}
-                                <div className="col-12">
-                                    <TextInput
-                                        id="bookingEmail"
-                                        name="email"
-                                        label="Email"
-                                        labelHtmlFor="bookingEmail"
-                                        required={true}
-                                        inputType="email"
-                                        keyFilter={'email'}
-                                        value={bookingFormData?.email}
-                                        placeholder="Your email address"
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingFormData({ ...bookingFormData, email: e.target.value })}
-                                        error={(isRequired && bookingFormData?.email === "") ? "Email is required!" : (!emailRegex.test(bookingFormData?.email) && bookingFormData?.email) ? "Please enter valid email!" : ""}
-                                        formGroupClassName="mb-0"
-                                        inputAutoFocus={true}
-                                    />
-                                </div>
-                            </div>
+                            <Calendar
+                                key="day-calendar"
+                                ref={calendarRef}
+                                value={date}
+                                selectionMode="single"
+                                onChange={(e) => setDate(e.value as Date)}
+                                dateFormat="DD, MM dd, yy"
+                                inputClassName="date_selection_input"
+                                view="date"
+                                minDate={today}
+                                showIcon
+                                iconPos='left'
+                                readOnlyInput
+                                icon='bi bi-calendar-event'
+                            />
                         </>
-                    ) : bookingStep === 2 ? (
+                    ) : bookingViewMode === 'Month' ? (
                         <>
-                            <div className="message_label info mb-4">
-                                <i className="bi bi-info-circle-fill me-2"></i>
-                                Outside shoes are not allowed at the facility. Metal spikes are not allowed on Cricket lanes.
+                            <div className="nav_btn_switch_area">
+                                <button
+                                    className="nav_btn_switch is_btn p-ripple"
+                                    type="button"
+                                    aria-label="Prev"
+                                    onClick={handleNavigatePrevMonth}
+                                    disabled={month.getMonth() === currentMonth && month.getFullYear() === currentYear}>
+                                    <i className="bi bi-chevron-left"></i>
+                                    <Ripple />
+                                </button>
+
+                                <button
+                                    className="nav_btn_switch is_btn p-ripple"
+                                    type="button"
+                                    aria-label="Next"
+                                    onClick={handleNavigateNextMonth}>
+                                    <i className="bi bi-chevron-right"></i>
+                                    <Ripple />
+                                </button>
                             </div>
 
-                            <div className="booking_form_area">
-                                <h5 className="form_title">Booking details</h5>
-
-                                <div className="row">
-                                    {/* Date */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingDate' className={`custom_form_label is_required`}>Date</label>
-                                            <div className="multi_date_input_group">
-                                                <Calendar
-                                                    inputId="bookingDate"
-                                                    value={bookingDates}
-                                                    onChange={handleDateChange}
-                                                    selectionMode="multiple"
-                                                    readOnlyInput
-                                                    placeholder="Select date(s)"
-                                                    className="multi_date_input_area w-100"
-                                                    inputClassName="multi_date_input"
-                                                    minDate={new Date()}
-                                                />
-                                                {bookingDates && bookingDates?.length > 0 && (
-                                                    <i className="bi bi-x-lg data_clear_icon" onClick={handleClearBookingDates}></i>
-                                                )}
-                                            </div>
-                                            {(isRequired && bookingFormData?.bookingDatesDtos?.length === 0) && (
-                                                <small className="form_error_msg">Atleast single date needed for booking!</small>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Time */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingTime' className={`custom_form_label is_required`}>Time</label>
-
-                                            <div className="row">
-                                                {/* Start time */}
-                                                <div className="col-12 col-sm-6">
-                                                    <Dropdown
-                                                        id="startTime"
-                                                        value={bookingFormData?.fromTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => {
-                                                            setLanesListData([]);
-                                                            setBookingLanes([]);
-                                                            setBookingPrice(0);
-
-                                                            setBookingFormData((prev: BookingFormData) => ({
-                                                                ...prev,
-                                                                fromTime: e?.value || "",
-                                                                toTime: "",
-                                                                selectedLanesDtos: []
-                                                            }));
-                                                        }}
-                                                        options={timeListData}
-                                                        optionLabel="label"
-                                                        valueTemplate={selectedStartTimeTemplate}
-                                                        placeholder="Start time"
-                                                        className="form_dropdown w-100"
-                                                        showClear
-                                                    />
-                                                </div>
-
-                                                {/* End time */}
-                                                <div className="col-12 col-sm-6">
-                                                    <Dropdown
-                                                        id="endTime"
-                                                        value={bookingFormData?.toTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => {
-                                                            setLanesListData([]);
-                                                            setBookingLanes([]);
-                                                            setBookingPrice(0);
-
-                                                            setBookingFormData((prev: BookingFormData) => ({
-                                                                ...prev,
-                                                                toTime: e?.value || "",
-                                                                selectedLanesDtos: []
-                                                            }));
-                                                        }}
-                                                        options={endTimeOptions}
-                                                        optionLabel="label"
-                                                        valueTemplate={selectedEndTimeTemplate}
-                                                        placeholder="End time"
-                                                        className="form_dropdown w-100"
-                                                        showClear
-                                                        disabled={!bookingFormData?.fromTime}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {(isRequired && (!bookingFormData?.fromTime || !bookingFormData?.fromTime)) && (
-                                        <small className="form_error_msg">Booking time range required!</small>
-                                    )}
-                                    <div className="col-12">
-                                        <div className="message_label danger mb-4">
-                                            <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                                            Your booking doesn't meet the advance-notice requirements. Bookings are not allowed to be made less than 1 hour in advance.
-                                        </div>
-                                    </div>
-
-
-
-                                    {/* Lanes */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingLanes' className={`custom_form_label is_required`}>Spaces</label>
-                                            <MultiSelect
-                                                value={bookingLanes}
-                                                onChange={(e: MultiSelectChangeEvent) => {
-                                                    setBookingPrice(0);
-                                                    setBookingLanes(e.value);
-                                                    setBookingFormData({
-                                                        ...bookingFormData,
-                                                        selectedLanesDtos: Array.isArray(e.value) && e?.value?.length > 0
-                                                            ? e.value.map((v: any) => String(v?.id)).filter(Boolean)
-                                                            : [],
-                                                    });
-                                                }}
-                                                options={lanesListData}
-                                                display="chip"
-                                                optionLabel="name"
-                                                showClear
-                                                placeholder="Select space"
-                                                maxSelectedLabels={4}
-                                                className="w-100"
-                                                emptyMessage="No spaces found!"
-                                                disabled={lanesListData?.length === 0}
-                                            />
-
-                                            {(lanesListData?.length === 0 && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) && (
-                                                <small className="form_error_msg">No lanes available for your date and time!</small>
-                                            )}
-
-                                            {(isRequired && bookingFormData?.selectedLanesDtos?.length === 0) && (
-                                                <small className="form_error_msg">Please select available lanes for booking!</small>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Booking title */}
-                                    <div className="col-12">
-                                        <TextInput
-                                            id="bookingTitle"
-                                            label="Booking title"
-                                            labelHtmlFor="bookingTitle"
-                                            required={false}
-                                            inputType="text"
-                                            value={bookingFormData?.bookingTitle}
-                                            placeholder="Enter a title for this booking"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setBookingFormData({ ...bookingFormData, bookingTitle: e.target.value }) }}
-                                            error={''}
-                                            formGroupClassName="mb-0"
-                                        />
-                                    </div>
-
-                                    {/* Terms and conditions agreement */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <div className="form_check_area">
-                                                <Checkbox
-                                                    inputId="isAgree"
-                                                    name="isAgree"
-                                                    value={isAgree}
-                                                    className="form_checkbox"
-                                                    onChange={e => setIsAgree(e.checked ?? false)}
-                                                    checked={isAgree}
-                                                />
-                                                <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
-                                                    <Link to={'/terms-conditions'} target="_blank">Terms and Conditions</Link>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Booking description */}
-                                    <div className="col-12">
-                                        <TextArea
-                                            id="bookingDescription"
-                                            label="Booking description"
-                                            labelHtmlFor="bookingDescription"
-                                            required={false}
-                                            value={bookingFormData?.bookingDetails}
-                                            placeholder="Enter a description for your booking"
-                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setBookingFormData({ ...bookingFormData, bookingDetails: e.target.value }) }}
-                                            error={''}
-                                            formGroupClassName="mb-0"
-                                        />
-                                    </div>
-                                </div>
-
-                                <hr className="form_divider" />
-
-                                <h5 className="form_title">Your details ({bookingFormData?.email})</h5>
-                                <div className="row">
-                                    {/* First name */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="firstName"
-                                            label="First name"
-                                            labelHtmlFor="firstName"
-                                            required={true}
-                                            inputType="text"
-                                            value={bookingFormData?.firstName}
-                                            name="firstName"
-                                            placeholder="eg: John"
-                                            onChange={handleChange}
-                                            error={(isRequired && !bookingFormData?.firstName) ? "First name is required!" : ""}
-                                        />
-                                    </div>
-
-                                    {/* Last name */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="lastName"
-                                            label="Last name"
-                                            name="lastName"
-                                            labelHtmlFor="lastName"
-                                            required={true}
-                                            inputType="text"
-                                            value={bookingFormData?.lastName}
-                                            placeholder="eg: Doe"
-                                            onChange={handleChange}
-                                            error={(isRequired && !bookingFormData?.lastName) ? "Last name is required!" : ""}
-                                        />
-                                    </div>
-
-                                    {/* Phone number */}
-                                    <div className="col-12 col-sm-6">
-                                        {/* <TextInput
-                                            id="phoneNumber"
-                                            label="Phone number"
-                                            labelHtmlFor="phoneNumber"
-                                            required={false}
-                                            inputType="number"
-                                            value={phoneNumber}
-                                            placeholder="eg: 077 123 4567"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
-                                            error={phoneNumberError}
-                                            formGroupClassName="mb-sm-0"
-                                        /> */}
-                                        <PhoneNumberInput
-                                            id="phoneNumber"
-                                            label="Phone number"
-                                            labelHtmlFor="phoneNumber"
-                                            required={false}
-                                            name="telephoneNumber"
-                                            value={bookingFormData?.telephoneNumber}
-                                            onChange={(value: string) => { setBookingFormData({ ...bookingFormData, telephoneNumber: value }) }}
-                                            error=""
-                                            formGroupClassName="mb-sm-0"
-                                            setIsValidNumber={setIsValidNumber}
-                                        />
-                                    </div>
-
-                                    {/* Organization */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="organization"
-                                            label="Organization"
-                                            labelHtmlFor="organization"
-                                            required={false}
-                                            inputType="text"
-                                            value={bookingFormData?.organization}
-                                            placeholder="Optional"
-                                            onChange={handleChange}
-                                            error={''}
-                                            formGroupClassName="mb-0"
-                                            name="organization"
-                                        />
-                                    </div>
-                                </div>
-                                {bookingFormData?.selectedLanesDtos?.length > 0 && <>
-                                    <hr className="form_divider" />
-
-                                    <h5 className="form_title">Payment and Cancellation/Changes</h5>
-                                    <div className="row">
-                                        <div className="col-12">
-                                            <div className="price_info_area">
-                                                <label htmlFor='bookingPrice' className={`custom_form_label`}>Booking price</label>
-                                                <h3 className="price_text">
-                                                    {bookingPrice === 0 ? "Calculating..." : `$ ${String(bookingPrice).padStart(2, '0')}`}
-                                                </h3>
-
-                                                <p className="form_info">
-                                                    There is no charge for this booking, however we still need a valid credit card in order to secure it and prevent abuse. Rest assured that your credit card will not be charged.
-                                                </p>
-                                                <hr />
-                                                <label htmlFor='bookingCancellation' className={`custom_form_label`}>Cancellation/Change options</label>
-                                                <p className="form_info mt-2">
-                                                    You will not be able to self-service cancel or change this booking once you confirm it below.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>}
-                            </div>
+                            <Calendar
+                                key="month-calendar"
+                                ref={calendarRef}
+                                value={month}
+                                selectionMode="single"
+                                onChange={(e) => setMonth(e.value as Date)}
+                                view="month"
+                                dateFormat="MM yy"
+                                minDate={today}
+                                readOnlyInput
+                                inputClassName="date_selection_input"
+                                showIcon
+                                iconPos='left'
+                                icon='bi bi-calendar2'
+                            />
                         </>
-                    ) : bookingStep === 3 ? (
-                        <div className="payment_area">
+                    ) : null}
 
-                            {stripePromise && clientSecret && !enableTimeOutComponent ? <StripePayment
-                                stripePromise={stripePromise}
-                                clientSecret={clientSecret} onPaymentComplete={onPaymentComplete}
-                                changeBookingStatus={changeBookingStatus}
-                                handleClose={() => { setEnableTimeOutComponent(true); }}
-                            /> : <div>
-                                <p>Oops! time out for your booking</p>
-                                <Button
-                                    label="Start new slot for booking"
-                                    className="custom_btn secondary"
-                                    onClick={handleCloseBookingModal}
-                                />
-                            </div>}
+                </div>
 
+                <div className="page_sub_header_area">
+                    {lanesData && lanesData?.length > 0 && (
+                        <div className="page_tabs_area">
+                            {lanesData?.map((lane) => (
+                                <button
+                                    key={lane?.id}
+                                    className={`page_tab_btn ${lane?.id === selectedLaneData?.id && 'active'} p-ripple`}
+                                    type="button"
+                                    onClick={() => handleChangeLane(lane)}>
+                                    {lane?.name}
+                                    <Ripple pt={{ root: { style: { background: 'rgba(0, 128, 0, 0.2)' } } }} />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    <button
+                        className="new_data_button is_btn p-ripple"
+                        aria-label="New booking"
+                        onClick={handleNewBooking}>
+                        <i className="bi bi-calendar-plus"></i>
+                        <span>New booking</span>
+                        <Ripple />
+                    </button>
+                </div>
+
+                <article className="page_card">
+                    {bookingViewMode === 'Day' ? (
+                        <div className="booking_time_line_view day_mode">
+                            <FullCalendar
+                                key={`day_view_${date.getTime()}`}
+                                ref={dayViewModeRef}
+                                plugins={[timeGridPlugin, interactionPlugin]}
+                                initialView="timeGridDay"
+                                headerToolbar={false}
+                                slotMinTime="00:00:00"
+                                slotMaxTime="23:59:59"
+                                allDaySlot={false}
+                                events={dayViewEvents}
+                                nowIndicator={true}
+                                eventClick={handleViewDayWiseBookingDetail}
+                                eventClassNames={'day_view_event'}
+                                height={'auto'}
+                                eventContent={(eventInfo) => {
+                                    const { title, start, end } = eventInfo.event;
+                                    const formattedStartTime = format(new Date(start || ""), "hh:mm a");
+                                    const formattedEndTime = format(new Date(end || ""), "hh:mm a");
+                                    return (
+                                        <div className="booking_event p-ripple">
+                                            <i className="bi bi-person-fill"></i>
+
+                                            <div className="booking_event_detail">
+                                                <div className="booking_title">{title}</div>
+                                                <div className="booking_time">
+                                                    {formattedStartTime} - {formattedEndTime}
+                                                </div>
+                                            </div>
+                                            <Ripple />
+                                        </div>
+                                    )
+                                }}
+                            />
+                        </div>
+                    ) : bookingViewMode === 'Month' ? (
+                        <div className="booking_time_line_view day_mode">
+                            {/* <FullCalendar
+                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                                initialView="timeGridMonth"
+                                events={monthViewEvents}
+                                headerToolbar={{
+                                    left: "prev,next today",
+                                    center: "title",
+                                    right: "dayGridMonth,timeGridWeek,timeGridDay",
+                                }}
+                                height="auto"
+                            /> */}
                         </div>
                     ) : null}
+                </article>
+            </div>
+
+            <BookingModal
+                isOpen={showBookingModal}
+                onClose={handleCloseBookingModal}
+                toastRef={toastRef}
+            />
+
+            <Dialog
+                visible={showBookingDetailsModal}
+                header={bookingDetailsModalHeader}
+                headerClassName="custom_modal_header"
+                className={`custom_modal_dialog modal_dialog_sm`}
+                onHide={handleCloseBookingDetailsModal}
+                dismissableMask
+            >
+                <div className="custom_modal_body p-0">
+                    {dayWiseBookingDetails && dayWiseBookingDetails !== null && (
+                        <div className="booking_detail_area">
+                            <div className="booking_detail">
+                                <i className="bi bi-person-circle"></i>
+                                {isLoginAsAdmin && dayWiseBookingDetails?.userName !== null ? (
+                                    <span>
+                                        {dayWiseBookingDetails?.userName}
+                                    </span>
+                                ) : (
+                                    <span className="font_light">
+                                        User detail hidden or empty
+                                    </span>
+                                )}
+                            </div>
+
+                            <hr />
+
+                            <div className="booking_detail">
+                                <i className="bi bi-clock-fill"></i>
+                                <span>
+                                    {formatTime(dayWiseBookingDetails?.startTime) + '-' + formatTime(dayWiseBookingDetails?.endTime)}
+                                </span>
+                            </div>
+
+                            <hr />
+
+                            <div className="booking_detail">
+                                <i className="bi bi-info-circle-fill"></i>
+                                <span className="font_light">
+                                    Additional details are hidden or not available
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </Dialog>
         </>
