@@ -221,3 +221,7 @@
     font-weight: var(--font-weight-regular);
     opacity: 0.7;
 }
+
+.fc .fc-daygrid-day-frame{
+    height: 103px !important;
+}

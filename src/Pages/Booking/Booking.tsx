@@ -36,22 +36,19 @@ const Booking: React.FC = () => {
     const [lanesData, setLanesData] = useState<Lane[]>([]);
     const [selectedLaneData, setSelectedLaneData] = useState<Lane | null>(null);
 
+    const [date, setDate] = useState<Date>(new Date());
+    const [dayViewEvents, setDayViewEvents] = useState<any | null>(null);
+    const dayViewModeRef = useRef(null);
     const [dateWiseBookingData, setDateWiseBookingData] = useState<BookingsByDate[]>([]);
     const [filteredDateWiseBookingData, setFilteredDateWiseBookingData] = useState<BookingsByDate[]>([]);
     const [filteredLaneDateWiseBookingData, setFilteredLaneDateWiseBookingData] = useState<BookingsByDate | null>(null);
 
-    const [dateRangeWiseBookingData, setDateRangeWiseBookingData] = useState<BookingsByDateRange[]>([]);
-    const [filteredDateRangeWiseBookingData, setFilteredDateRangeWiseBookingData] = useState<BookingsByDateRange[]>([]);
-    const [filteredLaneDateRangeWiseBookingData, setFilteredLaneDateRangeWiseBookingData] = useState<BookingsByDateRange | null>(null);
-
-
-    const [date, setDate] = useState<Date>(new Date());
-    const [dayViewEvents, setDayViewEvents] = useState<any | null>(null);
-    const dayViewModeRef = useRef(null);
-
     const [month, setMonth] = useState<Date>(new Date());
+    const [monthViewEvents, setMonthViewEvents] = useState<any[]>([]);
     const monthViewModeRef = useRef(null);
-
+    const [monthWiseBookingData, setMonthWiseBookingData] = useState<BookingsByDate[]>([]);
+    const [filteredMonthWiseBookingData, setFilteredMonthWiseBookingData] = useState<BookingsByDate[]>([]);
+    const [filteredLaneMonthWiseBookingData, setFilteredLaneMonthWiseBookingData] = useState<BookingsByDate[]>([]);
 
     const [showBookingDetailsModal, setShowBookingDetailsModal] = useState<boolean>(false);
     const [dayWiseBookingDetails, setDayWiseBookingDetails] = useState<BookingResponse | null>(null);
@@ -60,7 +57,7 @@ const Booking: React.FC = () => {
         const fetchData = async () => {
             setLanesData(lanes);
             setDateWiseBookingData(bookingsByDate);
-            setDateRangeWiseBookingData(bookingsByDateRange);
+            setMonthWiseBookingData(bookingsByDate);
         }
         fetchData();
     }, []);
@@ -243,31 +240,31 @@ const Booking: React.FC = () => {
 
 
     /* ********************************* For month view ********************************** */
-    useEffect(() => {
-        if (!dateRangeWiseBookingData.length) return;
+    // useEffect(() => {
+    //     if (!dateRangeWiseBookingData.length) return;
 
-        const filteredBookings = dateRangeWiseBookingData.map((laneData) => {
-            const filteredDates = laneData.weekMonthViewResponseDtos?.filter((bookingDate) => {
-                if (!bookingDate.bookingDate) return false;
-                const bookingDateObj = new Date(bookingDate.bookingDate);
-                return bookingDateObj.getMonth() === month.getMonth() && bookingDateObj.getFullYear() === month.getFullYear();
-            });
+    //     const filteredBookings = dateRangeWiseBookingData.map((laneData) => {
+    //         const filteredDates = laneData.weekMonthViewResponseDtos?.filter((bookingDate) => {
+    //             if (!bookingDate.bookingDate) return false;
+    //             const bookingDateObj = new Date(bookingDate.bookingDate);
+    //             return bookingDateObj.getMonth() === month.getMonth() && bookingDateObj.getFullYear() === month.getFullYear();
+    //         });
 
-            return { ...laneData, weekMonthViewResponseDtos: filteredDates };
-        }).filter((laneData) => laneData.weekMonthViewResponseDtos?.length);
+    //         return { ...laneData, weekMonthViewResponseDtos: filteredDates };
+    //     }).filter((laneData) => laneData.weekMonthViewResponseDtos?.length);
 
-        setFilteredDateRangeWiseBookingData(filteredBookings);
-    }, [month, dateRangeWiseBookingData]);
+    //     setFilteredDateRangeWiseBookingData(filteredBookings);
+    // }, [month, dateRangeWiseBookingData]);
 
-    useEffect(() => {
-        if (!selectedLaneData || !filteredDateRangeWiseBookingData.length) {
-            setFilteredLaneDateRangeWiseBookingData(null);
-            return;
-        }
+    // useEffect(() => {
+    //     if (!selectedLaneData || !filteredDateRangeWiseBookingData.length) {
+    //         setFilteredLaneDateRangeWiseBookingData(null);
+    //         return;
+    //     }
 
-        const selectedLaneBookings = filteredDateRangeWiseBookingData.find((lane) => lane.laneId === selectedLaneData.id);
-        setFilteredLaneDateRangeWiseBookingData(selectedLaneBookings || null);
-    }, [selectedLaneData, filteredDateRangeWiseBookingData]);
+    //     const selectedLaneBookings = filteredDateRangeWiseBookingData.find((lane) => lane.laneId === selectedLaneData.id);
+    //     setFilteredLaneDateRangeWiseBookingData(selectedLaneBookings || null);
+    // }, [selectedLaneData, filteredDateRangeWiseBookingData]);
 
 
     // const monthViewEvents = filteredLaneDateRangeWiseBookingData?.weekMonthViewResponseDtos?.flatMap((bookingDate) =>
@@ -280,17 +277,17 @@ const Booking: React.FC = () => {
     //     }))
     // ) || [];
 
-    const monthViewEvents = filteredLaneDateRangeWiseBookingData?.weekMonthViewResponseDtos?.flatMap((bookingDate) =>
-        bookingDate.bookingResponseDtos?.map((booking) => ({
-            id: booking.bookingId || "", // Ensure non-null ID
-            title: booking.userName || "Unknown", // Provide a default title
-            start: bookingDate.bookingDate && booking.startTime ? `${bookingDate.bookingDate}T${booking.startTime}` : "",
-            end: bookingDate.bookingDate && booking.endTime ? `${bookingDate.bookingDate}T${booking.endTime}` : "",
-            allDay: false
-        }))
-    ) || [];
+    // const monthViewEvents = filteredLaneDateRangeWiseBookingData?.weekMonthViewResponseDtos?.flatMap((bookingDate) =>
+    //     bookingDate.bookingResponseDtos?.map((booking) => ({
+    //         id: booking.bookingId || "", // Ensure non-null ID
+    //         title: booking.userName || "Unknown", // Provide a default title
+    //         start: bookingDate.bookingDate && booking.startTime ? `${bookingDate.bookingDate}T${booking.startTime}` : "",
+    //         end: bookingDate.bookingDate && booking.endTime ? `${bookingDate.bookingDate}T${booking.endTime}` : "",
+    //         allDay: false
+    //     }))
+    // ) || [];
 
-    const validEvents = monthViewEvents.filter(event => event && event.start && event.end);
+    // const validEvents = monthViewEvents.filter(event => event && event.start && event.end);
 
     // const monthViewEvents = filteredLaneDateRangeWiseBookingData?.weekMonthViewResponseDtos?.map((booking) => ({
     //     id: booking.bookingId,
@@ -302,6 +299,59 @@ const Booking: React.FC = () => {
     //     textColor: "#006800",
     // })) || [];
 
+    // useEffect(() => {
+    //     if (filteredLaneMonthWiseBookingData?.bookingResponseDtos) {
+    //         const events: any[] = filteredLaneMonthWiseBookingData.bookingResponseDtos.map((booking) => {
+    //             const startDate = `${filteredLaneMonthWiseBookingData.bookingDate}T${booking.startTime}`;
+    //             const endDate = `${filteredLaneMonthWiseBookingData.bookingDate}T${booking.endTime}`;
+
+    //             return {
+    //                 id: booking.bookingId,
+    //                 title: booking.userName || "Booking",
+    //                 start: startDate,
+    //                 end: endDate,
+    //                 backgroundColor: "#ddf8dd",
+    //                 borderColor: "#008000",
+    //                 textColor: "#006800",
+    //             };
+    //         });
+    //         setMonthViewEvents(events);
+    //     } else {
+    //         setMonthViewEvents([]);
+    //     }
+    // }, [filteredLaneMonthWiseBookingData]);
+
+    useEffect(() => {
+        const selectedMonth = format(month, "yyyy-MM");
+        const filteredData = monthWiseBookingData.filter((booking) =>
+            booking.bookingDate?.startsWith(selectedMonth)
+        );
+        setFilteredMonthWiseBookingData(filteredData);
+    }, [month, monthWiseBookingData]);
+
+    useEffect(() => {
+        if (selectedLaneData) {
+            const filteredData = filteredMonthWiseBookingData.filter(
+                (booking) => booking.laneId === selectedLaneData.id
+            );
+            setFilteredLaneMonthWiseBookingData(filteredData);
+        }
+    }, [selectedLaneData, filteredMonthWiseBookingData]);
+
+    useEffect(() => {
+        const events: any[] = filteredLaneMonthWiseBookingData.flatMap((booking) =>
+            booking.bookingResponseDtos?.map((res) => ({
+                id: res.bookingId,
+                title: res.userName || "",
+                start: `${booking.bookingDate}T${res.startTime}`,
+                end: `${booking.bookingDate}T${res.endTime}`,
+                backgroundColor: "#ddf8dd",
+                borderColor: "#008000",
+                textColor: "#006800",
+            })) || []
+        );
+        setMonthViewEvents(events);
+    }, [filteredLaneMonthWiseBookingData]);
 
     const handleNavigatePrevMonth = () => {
         const prevMonth = new Date(month);
@@ -458,7 +508,7 @@ const Booking: React.FC = () => {
                     {bookingViewMode === 'Day' ? (
                         <div className="booking_time_line_view day_mode">
                             <FullCalendar
-                                key={`day_view_${date.getTime()}`}
+                                key={`day_view_${formatDate(date)}`}
                                 ref={dayViewModeRef}
                                 plugins={[timeGridPlugin, interactionPlugin]}
                                 initialView="timeGridDay"
@@ -466,6 +516,7 @@ const Booking: React.FC = () => {
                                 slotMinTime="00:00:00"
                                 slotMaxTime="23:59:59"
                                 allDaySlot={false}
+                                initialDate={date}
                                 events={dayViewEvents}
                                 nowIndicator={true}
                                 eventClick={handleViewDayWiseBookingDetail}
@@ -493,17 +544,20 @@ const Booking: React.FC = () => {
                         </div>
                     ) : bookingViewMode === 'Month' ? (
                         <div className="booking_time_line_view day_mode">
-                            {/* <FullCalendar
-                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                                initialView="timeGridMonth"
+                            <FullCalendar
+                                key={`month_view_${month.getMonth() + 1}`}
+                                // plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                                ref={monthViewModeRef}
+                                plugins={[dayGridPlugin, interactionPlugin]}
+                                initialView="dayGridMonth"
+                                initialDate={month}
                                 events={monthViewEvents}
-                                headerToolbar={{
-                                    left: "prev,next today",
-                                    center: "title",
-                                    right: "dayGridMonth,timeGridWeek,timeGridDay",
-                                }}
-                                height="auto"
-                            /> */}
+                                headerToolbar={false}
+                                eventClassNames={'month_view_event'}
+                                height={'auto'}
+                                dayMaxEvents={2}
+                                moreLinkText="View More"
+                            />
                         </div>
                     ) : null}
                 </article>

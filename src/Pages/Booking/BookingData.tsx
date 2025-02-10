@@ -26,7 +26,7 @@ export interface BookingsByDate {
 
 export const bookingsByDate: BookingsByDate[] = [
     {
-        bookingDate: "2025-02-09",
+        bookingDate: "2025-02-10",
         laneName: "Lane 1",
         laneId: "1",
         bookingResponseDtos: [
@@ -69,7 +69,7 @@ export const bookingsByDate: BookingsByDate[] = [
         ]
     },
     {
-        bookingDate: "2025-02-09",
+        bookingDate: "2025-02-10",
         laneName: "Lane 2",
         laneId: "2",
         bookingResponseDtos: [
@@ -112,7 +112,7 @@ export const bookingsByDate: BookingsByDate[] = [
         ]
     },
     {
-        bookingDate: "2025-02-09",
+        bookingDate: "2025-02-10",
         laneName: "Lane 3",
         laneId: "3",
         bookingResponseDtos: [
@@ -137,7 +137,7 @@ export const bookingsByDate: BookingsByDate[] = [
         ]
     },
     {
-        bookingDate: "2025-02-09",
+        bookingDate: "2025-02-10",
         laneName: "Lane 4",
         laneId: "4",
         bookingResponseDtos: [
@@ -162,7 +162,7 @@ export const bookingsByDate: BookingsByDate[] = [
         ]
     },
     {
-        bookingDate: "2025-02-09",
+        bookingDate: "2025-02-10",
         laneName: "Lane 3",
         laneId: "3",
         bookingResponseDtos: [
@@ -177,25 +177,6 @@ export const bookingsByDate: BookingsByDate[] = [
                 userName: "Jack White",
                 startTime: "16:00:00",
                 endTime: "17:30:00"
-            }
-        ]
-    },
-    {
-        bookingDate: "2025-02-10",
-        laneName: "Lane 4",
-        laneId: "4",
-        bookingResponseDtos: [
-            {
-                bookingId: "402888e594e0bc7b0194e0cb1cd20011",
-                userName: "Karen Taylor",
-                startTime: "08:00:00",
-                endTime: "09:00:00"
-            },
-            {
-                bookingId: "402888e594e0bc7b0194e0cb1cd20012",
-                userName: "Leo Adams",
-                startTime: "20:00:00",
-                endTime: "21:00:00"
             }
         ]
     },
@@ -252,7 +233,7 @@ export const bookingsByDate: BookingsByDate[] = [
         ]
     },
     {
-        bookingDate: "2025-02-15",
+        bookingDate: "2025-03-15",
         laneName: "Lane 1",
         laneId: "1",
         bookingResponseDtos: [
@@ -265,7 +246,7 @@ export const bookingsByDate: BookingsByDate[] = [
         ]
     },
     {
-        bookingDate: "2025-02-16",
+        bookingDate: "2025-03-16",
         laneName: "Lane 2",
         laneId: "2",
         bookingResponseDtos: [
@@ -278,7 +259,7 @@ export const bookingsByDate: BookingsByDate[] = [
         ]
     },
     {
-        bookingDate: "2025-02-17",
+        bookingDate: "2025-03-17",
         laneName: "Lane 3",
         laneId: "3",
         bookingResponseDtos: [

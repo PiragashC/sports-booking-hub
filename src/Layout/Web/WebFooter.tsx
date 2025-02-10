@@ -4,7 +4,6 @@ const WebFooter: React.FC = () => {
     return (
         <>
             <footer>
-                Footer
             </footer>
         </>
     )
