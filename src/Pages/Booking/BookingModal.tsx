@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import './Booking.css';
 import './Booking-responsive.css';
@@ -16,7 +16,7 @@ import TextInput from "../../Components/TextInput";
 import TextArea from "../../Components/TextArea";
 
 import { TimeList, timeList } from "../../Utils/SiteData";
-import { Lane, lanes } from "./BookingData";
+import { Lane } from "./BookingData";
 
 import PhoneNumberInput from "../../Components/PhoneNumberInput";
 import apiRequest from "../../Utils/apiRequest";
@@ -43,9 +43,10 @@ interface BookingModalProps {
     isOpen: boolean;
     onClose: () => void;
     toastRef: React.RefObject<Toast>;
+    fetchBookingsForCalenderView?: () => Promise<void>;
 }
 
-const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef }) => {
+const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, fetchBookingsForCalenderView }) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
     const [bookingStep, setBookingStep] = useState<number>(1);
@@ -83,10 +84,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef }
 
 
     useEffect(() => {
-        if (showBookingModal) {
+        if (isOpen) {
             setTimeListData(timeList);
         }
-    }, [showBookingModal]);
+    }, [isOpen]);
 
     const handleClose = () => {
         setLoading(false);
@@ -126,6 +127,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef }
             } else {
                 showErrorToast(toastRef, "Booking Failed", "Your payment was not completed, and your booking could not be confirmed. Please try again.");
             }
+            fetchBookingsForCalenderView && fetchBookingsForCalenderView();
 
         } else {
             if (status === "SUCCESS") {
@@ -137,11 +139,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef }
     const onPaymentComplete = (paymentIntent: PaymentIntent | undefined) => {
         console.log(paymentIntent);
         changeBookingStatus("SUCCESS");
-    }
-
-
-    const handleOpenBooking = () => {
-        setShowBookingModal(true);
     }
 
     const handleCloseBookingModal = () => {
@@ -213,6 +210,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef }
             setLoading(false);
             showErrorToast(toastRef, " Booking Failed", "We couldn’t process your booking due to a technical issue. Please try again later or contact support if the issue persists.");
         }
+        fetchBookingsForCalenderView && fetchBookingsForCalenderView();
     };
 
     const handleConfirmBooking = async (e: React.FormEvent) => {
@@ -344,50 +342,41 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef }
     const fetchLanes = async () => {
         setLanesListData([]);
 
-        try {
-            const response = await apiRequest({
-                method: "get",
-                url: "/booking/check-availability",
-                params: {
-                    fromTime: bookingFormData?.fromTime,
-                    toTime: bookingFormData?.toTime,
-                    date: bookingFormData?.bookingDatesDtos?.join(',')
-                }
-            });
+        const response = await apiRequest({
+            method: "get",
+            url: "/booking/check-availability",
+            params: {
+                fromTime: bookingFormData?.fromTime,
+                toTime: bookingFormData?.toTime,
+                date: bookingFormData?.bookingDatesDtos?.join(',')
+            }
+        });
 
-            console.log(response);
+        console.log(response);
 
-            setLanesListData(Array.isArray(response) ? response.map((laneObj: any) => ({
-                id: laneObj?.laneId || 0,
-                name: laneObj?.laneName || ""
-            })) : []);
-        } catch (e) {
-            console.error("Error fetching lanes", e);
-            setLanesListData([]);
-        }
+        setLanesListData(Array.isArray(response) ? response.map((laneObj: any) => ({
+            id: laneObj?.laneId || 0,
+            name: laneObj?.laneName || ""
+        })) : []);
+        fetchBookingsForCalenderView && fetchBookingsForCalenderView();
     };
 
 
     const fetchBookingAmount = async () => {
         setBookingPrice(0);
-        try {
-            const response = await apiRequest({
-                method: "get",
-                url: "/booking",
-                params: {
-                    noOfLanes: bookingFormData?.selectedLanesDtos?.length,
-                    noOfDates: bookingFormData?.bookingDatesDtos?.length,
-                    fromTime: bookingFormData?.fromTime,
-                    toTime: bookingFormData?.toTime
-                }
-            });
+        const response = await apiRequest({
+            method: "get",
+            url: "/booking",
+            params: {
+                noOfLanes: bookingFormData?.selectedLanesDtos?.length,
+                noOfDates: bookingFormData?.bookingDatesDtos?.length,
+                fromTime: bookingFormData?.fromTime,
+                toTime: bookingFormData?.toTime
+            }
+        });
 
-            console.log(response);
-            setBookingPrice(response && response?.bookingPrice ? Number(response.bookingPrice) : 0);
-        } catch (e) {
-            console.log("Error fetching booking amount!", e);
-            setBookingPrice(0);
-        }
+        console.log(response);
+        setBookingPrice(response && response?.bookingPrice ? Number(response.bookingPrice) : 0);
     }
 
     useEffect(() => {
@@ -397,8 +386,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef }
     useEffect(() => {
         if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
     }, [bookingFormData?.selectedLanesDtos, bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
-
-    console.log(bookingFormData?.selectedLanesDtos, bookingLanes, "vdfagaerdfs");
 
     return (
         <>
@@ -468,7 +455,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef }
                                                     placeholder="Select date(s)"
                                                     className="multi_date_input_area w-100"
                                                     inputClassName="multi_date_input"
-                                                    minDate={new Date()}
+                                                    // minDate={new Date()}
+                                                    minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
                                                 />
                                                 {bookingDates && bookingDates?.length > 0 && (
                                                     <i className="bi bi-x-lg data_clear_icon" onClick={handleClearBookingDates}></i>
