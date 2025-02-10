@@ -11,6 +11,7 @@ import ContactUs from './Pages/ContactUs/ContactUs';
 
 import AppLayout from './Layout/App/AppLayout';
 import Booking from './Pages/Booking/Booking';
+import BookingCopy from './Pages/Booking/Booking copy';
 
 function App() {
   const value = {
@@ -29,7 +30,7 @@ function App() {
 
             {/* App routes */}
             <Route path='/' element={<AppLayout />}>
-              <Route path="booking" element={<Booking />} />
+              <Route path="booking" element={<BookingCopy />} />
             </Route>
           </Routes>
         </ErrorBoundary>
