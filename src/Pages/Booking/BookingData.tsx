@@ -24,6 +24,11 @@ export interface BookingsByDate {
     bookingResponseDtos?: BookingResponse[];
 }
 
+export interface BookingResponseMonth {
+    bookingDate?: string;
+    bookingResponseDtos?: BookingResponse[];
+}
+
 export const bookingsByDate: BookingsByDate[] = [
     {
         bookingDate: "2025-02-10",
@@ -275,8 +280,8 @@ export const bookingsByDate: BookingsByDate[] = [
 
 
 export interface BookingRangeResponse {
-    bookingDate?: string;
-    bookingResponseDtos?: BookingResponse[];
+    bookingDate: string;
+    bookingResponseDtos: BookingResponse[];
 }
 
 export interface BookingsByDateRange {

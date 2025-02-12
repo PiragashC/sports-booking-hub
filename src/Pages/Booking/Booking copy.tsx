@@ -11,10 +11,12 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { format } from "date-fns";
 
 import BookingModal from "./BookingModal";
+import dayGridPlugin from "@fullcalendar/daygrid";
 
-import { Lane, BookingResponse } from "./BookingData";
+import { Lane, BookingResponse, BookingResponseMonth, BookingRangeResponse } from "./BookingData";
 import { Dialog } from "primereact/dialog";
 import apiRequest from "../../Utils/apiRequest";
+import { formatDate, getMonthDateRange } from "../../Utils/commonLogic";
 
 const BookingCopy: React.FC = () => {
     const toastRef = useRef<Toast>(null);
@@ -33,9 +35,15 @@ const BookingCopy: React.FC = () => {
     const [month, setMonth] = useState<Date>(new Date());
     const [showBookingDetailsModal, setShowBookingDetailsModal] = useState<boolean>(false);
     const [dayWiseBookingDetails, setDayWiseBookingDetails] = useState<BookingResponse | null>(null);
-    const [fromDate, setFromDate] = useState<string>(new Date().toISOString().split("T")[0]);
-    const [toDate, setToDate] = useState<string>(new Date().toISOString().split("T")[0]);
-    const [calenderBookings, setCalenderBookings] = useState<BookingResponse[]>([]);
+
+    const { from, to } = bookingViewMode === "Month" ? getMonthDateRange(new Date()) : { from: formatDate(new Date()), to: formatDate(new Date()) };
+
+    const [fromDate, setFromDate] = useState<string>(from);
+    const [toDate, setToDate] = useState<string>(to);
+
+    const [calenderBookings, setCalenderBookings] = useState<any[]>([]);
+    const [monthViewEvents, setMonthViewEvents] = useState<any[]>([]);
+    const monthViewModeRef = useRef(null);
 
     const handleNewBooking = () => {
         setShowBookingModal(true);
@@ -55,6 +63,13 @@ const BookingCopy: React.FC = () => {
         if (calendarRef.current) {
             (calendarRef.current as any).show();
         }
+        if (view === "Day") {
+            setFromDate(formatDate(new Date()));
+            setToDate(formatDate(new Date()));
+        } else if (view === "Month") {
+            setFromDate(getMonthDateRange(new Date())?.from);
+            setToDate(getMonthDateRange(new Date())?.to);
+        }
     }
 
 
@@ -70,7 +85,7 @@ const BookingCopy: React.FC = () => {
         })) : []);
         setSelectedLaneData(response && Array.isArray(response) && response[0] ? { id: response[0]?.laneId, name: response[0]?.laneName } : null);
     }
-
+    console.log(fromDate, toDate, "rgrbgrf");
     const fetchBookingsForCalenderView = async () => {
         const response = await apiRequest({
             method: "get",
@@ -84,6 +99,7 @@ const BookingCopy: React.FC = () => {
 
         console.log(response);
         if (bookingViewMode === 'Day') {
+            setDayViewEvents([]);
             if (response && response?.bookingResponseDtos && Array.isArray(response?.bookingResponseDtos) && response?.bookingResponseDtos.length > 0) {
                 setCalenderBookings(response?.bookingResponseDtos);
                 const events = response?.bookingResponseDtos?.map((booking: BookingResponse) => ({
@@ -100,10 +116,39 @@ const BookingCopy: React.FC = () => {
                 setCalenderBookings([]);
                 setDayViewEvents([]);
             }
+        } else if (bookingViewMode === 'Month') {
+            setMonthViewEvents([]);
+            if (
+                response &&
+                response?.weekMonthViewResponseDtos &&
+                Array.isArray(response?.weekMonthViewResponseDtos) &&
+                response?.weekMonthViewResponseDtos.length > 0
+            ) {
+                const monthViewEvents = response.weekMonthViewResponseDtos
+                    .flatMap((dayBooking: BookingRangeResponse) =>
+                        dayBooking.bookingResponseDtos.map((booking) => ({
+                            id: booking.bookingId,
+                            title: booking.userName || '',
+                            start: `${dayBooking.bookingDate}T${booking.startTime}`,
+                            end: `${dayBooking.bookingDate}T${booking.endTime}`,
+                            backgroundColor: "#ddf8dd",
+                            borderColor: "#008000",
+                            textColor: "#006800",
+                        }))
+                    )
+                    .sort((a: { start: string }, b: { start: string }) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+
+                setCalenderBookings(response.weekMonthViewResponseDtos);
+                setMonthViewEvents(monthViewEvents);
+            } else {
+                setCalenderBookings([]);
+                setMonthViewEvents([]);
+            }
         }
     }
 
-    console.log(dayViewEvents);
+    console.log(monthViewEvents);
 
 
     const handleNavigatePrevDay = () => {
@@ -132,17 +177,30 @@ const BookingCopy: React.FC = () => {
 
         setSelectedLaneData(lanesData[0]);
     };
-
+    console.log(calenderBookings)
 
     const handleViewDayWiseBookingDetail = (detail: any) => {
         const bookingId = detail.event.id;
-        const booking = calenderBookings?.find(data => data?.bookingId === bookingId);
+
+        let booking: any = null;
+
+        if (bookingViewMode === "Day") {
+            booking = calenderBookings?.find((data) => data?.bookingId === bookingId);
+        } else if (bookingViewMode === "Month") {
+            const bookingDateObj = calenderBookings?.find((data) =>
+                data.bookingResponseDtos.some((b: any) => b.bookingId === bookingId)
+            );
+
+            booking = bookingDateObj?.bookingResponseDtos.find(
+                (b: any) => b.bookingId === bookingId
+            );
+        }
 
         if (booking) {
             setDayWiseBookingDetails(booking);
             setShowBookingDetailsModal(true);
         }
-    }
+    };
 
     const handleCloseBookingDetailsModal = () => {
         setShowBookingDetailsModal(false);
@@ -288,16 +346,27 @@ const BookingCopy: React.FC = () => {
                                 ref={calendarRef}
                                 value={month}
                                 selectionMode="single"
-                                onChange={(e) => setMonth(e.value as Date)}
+                                onChange={(e) => {
+                                    if (e.value) {
+                                        const { from, to } = getMonthDateRange(new Date(e.value));
+                                        setMonth(e.value as Date);
+                                        setFromDate(from);
+                                        setToDate(to);
+                                    } else {
+                                        setFromDate("");
+                                        setToDate("");
+                                    }
+                                }}
                                 view="month"
                                 dateFormat="MM yy"
                                 minDate={today}
                                 readOnlyInput
                                 inputClassName="date_selection_input"
                                 showIcon
-                                iconPos='left'
-                                icon='bi bi-calendar2'
+                                iconPos="left"
+                                icon="bi bi-calendar2"
                             />
+
                         </>
                     ) : null}
 
@@ -332,39 +401,6 @@ const BookingCopy: React.FC = () => {
                 <article className="page_card">
                     {bookingViewMode === 'Day' ? (
                         <div className="booking_time_line_view day_mode">
-                            {/* <FullCalendar
-                                key={`day_view_${date.getTime()}`}
-                                ref={dayViewModeRef}
-                                plugins={[timeGridPlugin, interactionPlugin]}
-                                initialView="timeGridDay"
-                                headerToolbar={false}
-                                slotMinTime="00:00:00"
-                                slotMaxTime="23:59:59"
-                                allDaySlot={false}
-                                events={dayViewEvents}
-                                nowIndicator={true}
-                                eventClick={handleViewDayWiseBookingDetail}
-                                eventClassNames={'day_view_event'}
-                                height={'auto'}
-                                eventContent={(eventInfo) => {
-                                    const { title, start, end } = eventInfo.event;
-                                    const formattedStartTime = format(new Date(start || ""), "hh:mm a");
-                                    const formattedEndTime = format(new Date(end || ""), "hh:mm a");
-                                    return (
-                                        <div className="booking_event p-ripple">
-                                            <i className="bi bi-person-fill"></i>
-
-                                            <div className="booking_event_detail">
-                                                <div className="booking_title">{title}</div>
-                                                <div className="booking_time">
-                                                    {formattedStartTime} - {formattedEndTime}
-                                                </div>
-                                            </div>
-                                            <Ripple />
-                                        </div>
-                                    )
-                                }}
-                            /> */}
                             <FullCalendar
                                 key={`day_view_${date.getTime()}`} // Force re-render when date changes
                                 ref={dayViewModeRef}
@@ -372,10 +408,10 @@ const BookingCopy: React.FC = () => {
                                 initialView="timeGridDay"
                                 initialDate={date} // Set selected date
                                 headerToolbar={false}
-                                slotMinTime="00:00:00"
-                                slotMaxTime="23:59:59"
+                                slotMinTime="08:00:00"
+                                slotMaxTime="23:00:00"
                                 allDaySlot={false}
-                                events={dayViewEvents} // Pass events for the selected date
+                                events={dayViewEvents}
                                 nowIndicator={true}
                                 eventClick={handleViewDayWiseBookingDetail}
                                 eventClassNames={"day_view_event"}
@@ -400,17 +436,37 @@ const BookingCopy: React.FC = () => {
                         </div>
                     ) : bookingViewMode === 'Month' ? (
                         <div className="booking_time_line_view day_mode">
-                            {/* <FullCalendar
-                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                                initialView="timeGridMonth"
+                            <FullCalendar
+                                key={month.getMonth() + monthViewEvents.length}
+                                plugins={[dayGridPlugin, interactionPlugin]}
+                                initialView="dayGridMonth"
+                                initialDate={month}
                                 events={monthViewEvents}
-                                headerToolbar={{
-                                    left: "prev,next today",
-                                    center: "title",
-                                    right: "dayGridMonth,timeGridWeek,timeGridDay",
+                                headerToolbar={false}
+                                eventClassNames={'month_view_event'}
+                                height={'auto'}
+                                dayMaxEvents={2}
+                                // dayMaxEventRows={true}
+                                moreLinkClick="popover"
+                                moreLinkText="View More"
+                                eventClick={handleViewDayWiseBookingDetail}
+                                eventContent={(eventInfo) => {
+                                    const { title, start, end } = eventInfo.event;
+                                    const formattedStartTime = start ? format(new Date(start), "hh:mm a") : "";
+                                    const formattedEndTime = end ? format(new Date(end), "hh:mm a") : "";
+                                    return (
+                                        <div className="booking_event p-ripple">
+                                            <i className="bi bi-person-fill"></i>
+                                            <div className="booking_event_detail">
+                                                <div className="booking_title">{title}</div>
+                                                <div className="booking_time">
+                                                    {formattedStartTime} - {formattedEndTime}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
                                 }}
-                                height="auto"
-                            /> */}
+                            />
                         </div>
                     ) : null}
                 </article>

@@ -113,6 +113,8 @@ const Booking: React.FC = () => {
         if (calendarRef.current) {
             (calendarRef.current as any).show();
         }
+
+        
     }
 
 

@@ -31,3 +31,32 @@ export function showSuccessToast(toastRef: React.RefObject<any>, title: string, 
         });
     }
 }
+
+export const formatDate = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+export const getMonthDateRange = (selectedDate: Date) => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+
+    // Get today's date
+    const today = new Date();
+    const todayYear = today.getFullYear();
+    const todayMonth = today.getMonth();
+
+    // Get first and last date of the selected month
+    let fromDate = new Date(year, month, 1);
+    let toDate = new Date(year, month + 1, 0); // Last day of the selected month
+
+    // If the selected month is the current month, set fromDate to today
+    if (year === todayYear && month === todayMonth) {
+        fromDate = today;
+    }
+
+
+    return {
+        from: formatDate(fromDate),
+        to: formatDate(toDate),
+    };
+};
+
