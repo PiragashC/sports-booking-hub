@@ -5,22 +5,22 @@ export interface TimeList {
 }
 
 export const timeList: TimeList[] = [
-    { id: 1, label: '12:00 AM', value: '00:00:00' },
-    { id: 2, label: '12:30 AM', value: '00:30:00' },
-    { id: 3, label: '01:00 AM', value: '01:00:00' },
-    { id: 4, label: '01:30 AM', value: '01:30:00' },
-    { id: 5, label: '02:00 AM', value: '02:00:00' },
-    { id: 6, label: '02:30 AM', value: '02:30:00' },
-    { id: 7, label: '03:00 AM', value: '03:00:00' },
-    { id: 8, label: '03:30 AM', value: '03:30:00' },
-    { id: 9, label: '04:00 AM', value: '04:00:00' },
-    { id: 10, label: '04:30 AM', value: '04:30:00' },
-    { id: 11, label: '05:00 AM', value: '05:00:00' },
-    { id: 12, label: '05:30 AM', value: '05:30:00' },
-    { id: 13, label: '06:00 AM', value: '06:00:00' },
-    { id: 14, label: '06:30 AM', value: '06:30:00' },
-    { id: 15, label: '07:00 AM', value: '07:00:00' },
-    { id: 16, label: '07:30 AM', value: '07:30:00' },
+    // { id: 1, label: '12:00 AM', value: '00:00:00' },
+    // { id: 2, label: '12:30 AM', value: '00:30:00' },
+    // { id: 3, label: '01:00 AM', value: '01:00:00' },
+    // { id: 4, label: '01:30 AM', value: '01:30:00' },
+    // { id: 5, label: '02:00 AM', value: '02:00:00' },
+    // { id: 6, label: '02:30 AM', value: '02:30:00' },
+    // { id: 7, label: '03:00 AM', value: '03:00:00' },
+    // { id: 8, label: '03:30 AM', value: '03:30:00' },
+    // { id: 9, label: '04:00 AM', value: '04:00:00' },
+    // { id: 10, label: '04:30 AM', value: '04:30:00' },
+    // { id: 11, label: '05:00 AM', value: '05:00:00' },
+    // { id: 12, label: '05:30 AM', value: '05:30:00' },
+    // { id: 13, label: '06:00 AM', value: '06:00:00' },
+    // { id: 14, label: '06:30 AM', value: '06:30:00' },
+    // { id: 15, label: '07:00 AM', value: '07:00:00' },
+    // { id: 16, label: '07:30 AM', value: '07:30:00' },
     { id: 17, label: '08:00 AM', value: '08:00:00' },
     { id: 18, label: '08:30 AM', value: '08:30:00' },
     { id: 19, label: '09:00 AM', value: '09:00:00' },
@@ -50,9 +50,9 @@ export const timeList: TimeList[] = [
     { id: 43, label: '09:00 PM', value: '21:00:00' },
     { id: 44, label: '09:30 PM', value: '21:30:00' },
     { id: 45, label: '10:00 PM', value: '22:00:00' },
-    { id: 46, label: '10:30 PM', value: '22:30:00' },
-    { id: 47, label: '11:00 PM', value: '23:00:00' },
-    { id: 48, label: '11:30 PM', value: '23:30:00' }
+    // { id: 46, label: '10:30 PM', value: '22:30:00' },
+    // { id: 47, label: '11:00 PM', value: '23:00:00' },
+    // { id: 48, label: '11:30 PM', value: '23:30:00' }
 ];
 
 export interface CountryList {

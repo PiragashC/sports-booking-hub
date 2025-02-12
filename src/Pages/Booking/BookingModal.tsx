@@ -30,7 +30,7 @@ interface BookingFormData {
     fromTime: string;
     toTime: string;
     bookingTitle?: string;
-    bookingDetails?: string;
+    // bookingDetails?: string;
     firstName: string;
     lastName: string;
     telephoneNumber?: string;
@@ -64,7 +64,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         fromTime: '',
         toTime: '',
         bookingTitle: '',
-        bookingDetails: '',
+        // bookingDetails: '',
         firstName: '',
         lastName: '',
         telephoneNumber: '',
@@ -216,7 +216,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const handleConfirmBooking = async (e: React.FormEvent) => {
         setIsRequired(true);
         e.preventDefault();
-        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgree || !bookingFormData?.firstName || !bookingFormData?.lastName || !isValidNumber) {
+        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgree || !bookingFormData?.firstName || !bookingFormData?.lastName || !bookingFormData?.telephoneNumber || !isValidNumber) {
             return;
         }
 
@@ -238,9 +238,27 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
 
     const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
         if (e && e?.value) {
-            const formattedDates = e.value.map((date: Date) => {
-                const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-                return localDate.toISOString().split("T")[0];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const selectedDates = e.value.map(date => {
+                const normalizedDate = new Date(date);
+                normalizedDate.setHours(0, 0, 0, 0);
+                return normalizedDate;
+            });
+
+            const isTodaySelected = selectedDates.some(date => date.getTime() === today.getTime());
+
+            let finalDates = selectedDates;
+
+            if (isTodaySelected) {
+                finalDates = [today];
+            } else {
+                finalDates = selectedDates;
+            }
+
+            const formattedDates = finalDates.map(date => {
+                return date.toISOString().split("T")[0];
             });
 
             setLanesListData([]);
@@ -250,9 +268,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                 selectedLanesDtos: [],
                 bookingDatesDtos: formattedDates
             });
-            setBookingDates(e?.value);
+
+            setBookingDates(finalDates);
         }
     };
+
 
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -455,8 +475,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     placeholder="Select date(s)"
                                                     className="multi_date_input_area w-100"
                                                     inputClassName="multi_date_input"
-                                                    // minDate={new Date()}
-                                                    minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+                                                    minDate={new Date()}
+                                                // minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
                                                 />
                                                 {bookingDates && bookingDates?.length > 0 && (
                                                     <i className="bi bi-x-lg data_clear_icon" onClick={handleClearBookingDates}></i>
@@ -613,7 +633,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                     </div>
 
                                     {/* Booking description */}
-                                    <div className="col-12">
+                                    {/* <div className="col-12">
                                         <TextArea
                                             id="bookingDescription"
                                             label="Booking description"
@@ -625,7 +645,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                             error={''}
                                             formGroupClassName="mb-0"
                                         />
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 <hr className="form_divider" />
@@ -682,7 +702,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                             id="phoneNumber"
                                             label="Phone number"
                                             labelHtmlFor="phoneNumber"
-                                            required={false}
+                                            required={true}
                                             name="telephoneNumber"
                                             value={bookingFormData?.telephoneNumber}
                                             onChange={(value: string) => { setBookingFormData({ ...bookingFormData, telephoneNumber: value }) }}
