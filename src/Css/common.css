@@ -430,6 +430,27 @@ body {
     color: var(--color-primary-dark);
 }
 
+.form_check_label button {
+    padding: 0;
+    background-color: transparent;
+    outline: none;
+    border: none;
+    color: var(--color-primary);
+    transition: ease 0.3s;
+    font-weight: 600;
+}
+
+.form_check_label button:hover,
+.form_check_label button:hover {
+    outline: none;
+    border: none;
+}
+
+
+.form_check_label button:hover {
+    color: var(--color-primary-dark);
+}
+
 .form_checkbox {
     width: 20px !important;
     height: 20px !important;
@@ -443,4 +464,86 @@ body {
 .p-checkbox.form_checkbox .p-checkbox-box .p-checkbox-icon.p-icon {
     width: 12px !important;
     height: 12px !important;
+}
+
+/*  */
+.content_modal.p-dialog {
+    border-radius: 15px !important;
+    overflow: hidden;
+    border: 3px solid #FFF;
+}
+
+.content_modal.p-dialog .p-dialog-footer {
+    justify-content: center !important;
+}
+
+.content_modal_content {
+    padding: 0px !important;
+}
+
+.content_modal_header.p-dialog-header {
+    width: 100%;
+    background-color: #EEE;
+    padding: 14px 15px !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+    z-index: 2;
+    border-bottom: 1px solid #DDD !important;
+}
+
+.content_modal_header h5 {
+    color: #000;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.content_modal_bottom_area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top: 1px solid #DDD;
+    padding-top: 20px;
+}
+
+.content_modal_body {
+    position: relative;
+    width: 100%;
+    padding: 20px;
+}
+
+.content_group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.content_head {
+    font-size: var(--font-size-md);
+    font-weight: 600;
+    color: #000;
+}
+
+.content_desc {
+    font-size: var(--font-size-md);
+}
+
+.content_link {
+    color: var(--color-primary);
+    transition: ease 0.3s;
+    font-size: var(--font-size-md);
+    text-decoration: none;
+}
+
+.content_link:hover {
+    color: var(--color-secondary);
+    text-decoration: underline;
+}
+
+.content_list li {
+    font-size: var(--font-size-md);
+    margin-bottom: 15px;
 }

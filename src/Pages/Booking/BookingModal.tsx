@@ -417,6 +417,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                 headerClassName="custom_modal_header"
                 className={`custom_modal_dialog ${bookingStep === 1 ? 'modal_dialog_sm' : 'modal_dialog_md'} `}
                 onHide={onClose}
+                closable={false}
             >
                 <div className="custom_modal_body">
                     {bookingStep === 1 ? (
@@ -580,6 +581,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                 display="chip"
                                                 optionLabel="name"
                                                 showClear
+                                                filter
+                                                filterPlaceholder="Search lanes"
                                                 placeholder="Select space"
                                                 maxSelectedLabels={4}
                                                 className="w-100"
@@ -625,9 +628,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     onChange={e => setIsAgree(e.checked ?? false)}
                                                     checked={isAgree}
                                                 />
-                                                <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
-                                                    <Link to={'/terms-conditions'} target="_blank">Terms and Conditions</Link>
-                                                </label>
+                                                
                                             </div>
                                         </div>
                                     </div>
@@ -732,7 +733,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                 {bookingFormData?.selectedLanesDtos?.length > 0 && <>
                                     <hr className="form_divider" />
 
-                                    <h5 className="form_title">Payment and Cancellation/Changes</h5>
+                                    <h5 className="form_title">Payment and Facility Disclaimer</h5>
                                     <div className="row">
                                         <div className="col-12">
                                             <div className="price_info_area">
@@ -745,9 +746,15 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     There is no charge for this booking, however we still need a valid credit card in order to secure it and prevent abuse. Rest assured that your credit card will not be charged.
                                                 </p>
                                                 <hr />
-                                                <label htmlFor='bookingCancellation' className={`custom_form_label`}>Cancellation/Change options</label>
+                                                <label htmlFor='bookingCancellation' className={`custom_form_label`}>Facility Disclaimer</label>
                                                 <p className="form_info mt-2">
-                                                    You will not be able to self-service cancel or change this booking once you confirm it below.
+                                                    By using this facility, you acknowledge and agree to the following terms:
+                                                </p>
+                                                <p className="form_info mt-3">
+                                                    <span>1. </span>Assumption of Risk: Participation in cricket activities is at your own risk. We are not responsible for any injury, accident, or harm that may occur while using the facility.
+                                                </p>
+                                                <p className="form_info mt-3">
+                                                    <span>2. </span>Property Damage: Any damage to the facility, equipment, or property caused by you or your group will be your sole responsibility. You agree to cover the costs for repairs or replacements.
                                                 </p>
                                             </div>
                                         </div>

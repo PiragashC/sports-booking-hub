@@ -307,13 +307,13 @@
 }
 
 .p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight {
-    color: #8953D7;
-    background: #8a53d71a;
+    color: var(--color-primary);
+    background: var(--color-primary-light);
     font-weight: 500;
 }
 
 .p-multiselect-panel .p-multiselect-items .p-multiselect-item.p-highlight.p-focus {
-    background: #8a53d71a;
+    background: var(--color-primary-light);
 }
 
 .p-multiselect-panel .p-multiselect-items .p-multiselect-empty-message {
