@@ -11,10 +11,14 @@ export const lanes: Lane[] = [
 ]
 
 export interface BookingResponse {
-    bookingId?: string;
+    bookingStatus?: string;
+    bookingPrice?: string;
+    bookingTitle?: string;
+    bookingId: string;
     userName?: string;
     startTime?: string;
     endTime?: string;
+    phoneNumber?: string;
 }
 
 export interface BookingsByDate {

@@ -13,13 +13,16 @@ import { format } from "date-fns";
 import BookingModal from "./BookingModal";
 import dayGridPlugin from "@fullcalendar/daygrid";
 
-import { Lane, BookingResponse, BookingResponseMonth, BookingRangeResponse } from "./BookingData";
+import { Lane, BookingResponse, BookingRangeResponse } from "./BookingData";
 import { Dialog } from "primereact/dialog";
 import apiRequest from "../../Utils/apiRequest";
-import { formatDate, getMonthDateRange } from "../../Utils/commonLogic";
+import { formatDate, getMonthDateRange, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
+import { Button } from "primereact/button";
+import { useSelector } from "react-redux";
 
 const BookingCopy: React.FC = () => {
     const toastRef = useRef<Toast>(null);
+    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const currentMonth = today.getMonth();
@@ -94,7 +97,8 @@ const BookingCopy: React.FC = () => {
                 laneId: selectedLaneData?.id,
                 fromDate,
                 toDate
-            }
+            },
+            ...(token && { token })
         });
 
         console.log(response);
@@ -148,9 +152,6 @@ const BookingCopy: React.FC = () => {
         }
     }
 
-    console.log(monthViewEvents);
-
-
     const handleNavigatePrevDay = () => {
         if (date > today) {
             const prevDay = new Date(date);
@@ -177,7 +178,6 @@ const BookingCopy: React.FC = () => {
 
         setSelectedLaneData(lanesData[0]);
     };
-    console.log(calenderBookings)
 
     const handleViewDayWiseBookingDetail = (detail: any) => {
         const bookingId = detail.event.id;
@@ -235,6 +235,25 @@ const BookingCopy: React.FC = () => {
         nextMonth.setMonth(nextMonth.getMonth() + 1);
         setMonth(nextMonth);
     };
+
+    const deleteBooking = async (id: string) => {
+        const response = await apiRequest({
+            method: "delete",
+            url: "/booking",
+            params: {
+                bookingId: id
+            },
+            token
+        });
+        console.log(response);
+        if (response) {
+            showSuccessToast(toastRef, "Success", "Booking deleted successfully. The space is now available.");
+            setShowBookingDetailsModal(false);
+            fetchBookingsForCalenderView();
+        } else {
+            showErrorToast(toastRef, "Error", "Failed to delete booking. Please try again.");
+        }
+    }
 
     useEffect(() => { if (fromDate && toDate && selectedLaneData) fetchBookingsForCalenderView() }, [fromDate, toDate, selectedLaneData]);
 
@@ -492,10 +511,15 @@ const BookingCopy: React.FC = () => {
                         <div className="booking_detail_area">
                             <div className="booking_detail">
                                 <i className="bi bi-person-circle"></i>
-                                {dayWiseBookingDetails?.userName ? (
-                                    <span>
-                                        {dayWiseBookingDetails?.userName}
-                                    </span>
+                                {token ? (
+                                    <>
+                                        <span>
+                                            Name: {dayWiseBookingDetails?.userName}
+                                        </span>
+                                        <span>
+                                            Phone Number: {dayWiseBookingDetails?.phoneNumber}
+                                        </span>
+                                    </>
                                 ) : (
                                     <span className="font_light">
                                         User detail hidden or empty
@@ -516,10 +540,37 @@ const BookingCopy: React.FC = () => {
 
                             <div className="booking_detail">
                                 <i className="bi bi-info-circle-fill"></i>
-                                <span className="font_light">
-                                    Additional details are hidden or not available
-                                </span>
+                                {token ? (
+                                    <>
+                                        <span>
+                                            Booking Title: {dayWiseBookingDetails?.bookingTitle || "----"}
+                                        </span>
+                                        <span>
+                                            Booking Charge: ${dayWiseBookingDetails?.bookingPrice}
+                                        </span>
+                                        <span>
+                                            Status: {dayWiseBookingDetails?.bookingStatus}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span className="font_light">
+                                        Additional details are hidden or not available
+                                    </span>
+                                )}
                             </div>
+                            {token && <>
+                                <hr />
+
+                                <div className="booking_detail">
+                                    <Button
+                                        label={`Delete Booking`}
+                                        onClick={() => deleteBooking(dayWiseBookingDetails?.bookingId)}
+                                        loading={false}
+                                        severity="danger"
+                                        disabled={false}
+                                    />
+                                </div>
+                            </>}
                         </div>
                     )}
                 </div>
