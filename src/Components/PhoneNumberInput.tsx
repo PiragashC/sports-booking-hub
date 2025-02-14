@@ -79,6 +79,8 @@ const PhoneNumberInput: React.FC<PhoneInputProps> = ({
                     disabled: !countryCode, // Disable input if no country is selected
                 }}
                 containerClass="custom_phone_input"
+                dropdownClass="custom_phone_input_dropdown"
+                searchPlaceholder="Search"
                 inputClass={`phone_input ${error ? "invalid" : ""}`}
             />
 

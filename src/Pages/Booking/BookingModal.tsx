@@ -276,13 +276,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         if (e && e?.value) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-    
+
             let selectedDates = e.value.map(date => {
                 return new Date(date.getFullYear(), date.getMonth(), date.getDate());
             });
-    
+
             const isTodaySelected = selectedDates.some(date => date.getTime() === today.getTime());
-    
+
             // If today is selected, only today should be set; otherwise, remove today from the selection
             let finalDates: Date[];
             if (isTodaySelected) {
@@ -290,9 +290,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
             } else {
                 finalDates = selectedDates.filter(date => date.getTime() !== today.getTime());
             }
-    
+
             // Format the dates correctly for form submission
-            const formattedDates = finalDates.map(date => 
+            const formattedDates = finalDates.map(date =>
                 new Date(date.getTime() - date.getTimezoneOffset() * 60000)
                     .toISOString()
                     .split("T")[0]
@@ -305,12 +305,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                 selectedLanesDtos: [],
                 bookingDatesDtos: formattedDates
             });
-    
+
             setBookingDates(finalDates);
         }
     };
-    
-    
+
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -443,6 +443,65 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     useEffect(() => {
         if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
     }, [bookingFormData?.selectedLanesDtos, bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
+
+
+    /* For Terms and conditions */
+    const [showTermsConditionModal, setShowTermsConditionModal] = useState<boolean>(false);
+
+    const handleViewTermsCondition = () => {
+        setShowTermsConditionModal(true);
+    }
+
+    const handleCloseTermsConditionModal = () => {
+        setShowTermsConditionModal(false);
+    }
+
+    const termsConditionModalHeader = (
+        <h5 className="modal-title">
+            <i className="bi bi-journal-check me-2"></i>
+            Terms and Conditions
+        </h5>
+    )
+
+    const termsConditionModalFooter = (
+        <div className="custom_modal_footer">
+            <Button
+                label="Ok"
+                className="custom_btn secondary"
+                onClick={handleCloseTermsConditionModal}
+            />
+        </div>
+    );
+    /*  */
+
+    /* For Privacy policy */
+    const [showPrivacyPolicyModal, setShowPrivacyPolicyModal] = useState<boolean>(false);
+
+    const handleViewPrivacyPolicy = () => {
+        setShowPrivacyPolicyModal(true);
+    }
+
+    const handleClosePrivacyPolicyModal = () => {
+        setShowPrivacyPolicyModal(false);
+    }
+
+    const privacyPolicyModalHeader = (
+        <h5 className="modal-title">
+            <i className="bi bi-shield-check me-2"></i>
+            Privacy Policy
+        </h5>
+    )
+
+    const privacyPolicyModalFooter = (
+        <div className="custom_modal_footer">
+            <Button
+                label="Ok"
+                className="custom_btn secondary"
+                onClick={handleClosePrivacyPolicyModal}
+            />
+        </div>
+    );
+    /*  */
 
     return (
         <>
@@ -655,7 +714,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
 
                                     {/* Terms and conditions agreement */}
                                     <div className="col-12">
-                                        <div className="page_form_group">
+                                        <div className="page_form_group mb-0">
                                             <div className="form_check_area">
                                                 <Checkbox
                                                     inputId="isAgree"
@@ -665,7 +724,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     onChange={e => setIsAgree(e.checked ?? false)}
                                                     checked={isAgree}
                                                 />
-                                                
+                                                <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
+                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>&nbsp;&&nbsp;
+                                                    <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
+                                                </label>
                                             </div>
                                         </div>
                                     </div>
@@ -820,6 +882,223 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                     ) : null}
                 </div>
             </Dialog>
+
+            {/* Terms condition modal */}
+            <Dialog
+                visible={showTermsConditionModal}
+                header={termsConditionModalHeader}
+                footer={termsConditionModalFooter}
+                headerClassName="content_modal_header"
+                className={`custom_modal_dialog content_modal modal_dialog_lg`}
+                onHide={handleCloseTermsConditionModal}
+                contentClassName="content_modal_content"
+                closable={false}
+            >
+                <div className="custom_modal_body p-0">
+                    <div className="content_modal_body">
+                        <div className="content_group">
+                            <h6 className="content_head">Liability Release Waiver</h6>
+                            <h6 className="content_head">Kover Drive Cricket</h6>
+                            <h6 className="content_head">Liability Release Waiver</h6>
+                        </div>
+
+                        <div className="content_group">
+                            <p className="content_desc">
+                                This liability waiver applies to all cricket-related activities, including but not limited to training sessions, practices, tournaments, and matches conducted at Kover Drive Cricket (hereinafter referred to as 'Kover Drive'), whether at this facility or at any alternate location organized by Kover Drive.
+                            </p>
+                        </div>
+
+                        <div className="content_group">
+                            <p className="content_desc">
+                                In consideration of the privilege to participate, the undersigned hereby:
+                            </p>
+                        </div>
+
+                        <div className="content_group">
+                            <ul className="content_list">
+                                <li>
+                                    Agrees that, prior to engaging in any cricket activity, I will inspect the facilities and equipment. If I identify any potential hazards, I commit to promptly notifying Kover Drive management.
+                                </li>
+
+                                <li>
+                                    Understands and acknowledges that I am voluntarily participating in cricket activities that involve known and unknown risks of injury, which may include serious injuries, permanent disabilities, and even fatality.
+                                </li>
+
+                                <li>
+                                    Recognizes that such risks may result from my own actions, omissions, or negligence, as well as the actions, omissions, or negligence of others, including but not limited to Kover Drive, the rules of play, premises conditions, or equipment usage. I assume all such risks and accept personal responsibility for any injuries or damages that may arise.
+                                </li>
+
+                                <li>
+                                    Unconditionally releases, waives, indemnifies, and agrees not to pursue legal action against the officers, directors, administrators, agents, coaches, staff, volunteers, sponsors, advertisers, and any affiliated individuals or entities associated with Kover Drive Cricket.
+                                </li>
+
+                                <li>
+                                    As a player or coach signing this liability waiver, I acknowledge that I am responsible for any individuals accompanying me. Kover Drive Cricket is not liable for any incidents involving these individuals.
+                                </li>
+
+                                <li>
+                                    Acknowledges that as a parent or individual adult signing this document, I understand the risks involved and assume full responsibility for any incidents that may occur. I also confirm that I have my own insurance coverage. Kover Drive Cricket is not liable for any injuries or damages that may arise.
+                                </li>
+
+                                <li>
+                                    Accepts full responsibility for all medical expenses incurred, regardless of insurance coverage. In the event of an emergency, accident, or illness, I authorize ambulance transportation to a hospital and grant permission to physicians, athletic trainers, first-aid personnel, and medical professionals to perform necessary diagnostic, treatment, or operative procedures, including x-rays.
+                                </li>
+
+                                <li>
+                                    Acknowledge that this waiver applies to all future cricket sessions I attend at Kover Drive Cricket, without the need to sign a new waiver for each session. This waiver remains in effect until I notify Kover Drive Cricket in writing of any changes.
+                                </li>
+
+                                <li>
+                                    Understands that no assurances have been given regarding the outcomes of medical examinations or treatments. I assume full responsibility for any and all medical costs and the decision to continue participation despite any existing injuries.
+                                </li>
+
+                                <li>
+                                    <b>Facility Rules:</b> Strictly indoor shoes must be worn at all times. No metal spikes or soccer studs are allowed in the facility.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="content_group pt-3">
+                            <h6 className="content_head">Cancellation Policy:</h6>
+                            <p className="content_desc">
+                                Cancellations and changes to all reservations (drop-in/court bookings) follow the policy outlined below:
+                            </p>
+
+                            <ul className="content_list">
+                                <li className="mb-2">
+                                    <b>24 hours or more: </b>Full refund provided.
+                                </li>
+                                <li className="mb-2">
+                                    <b>24-12 hours: </b>50% refund credited to the account.
+                                </li>
+                                <li>
+                                    <b>Less than 12 hours: </b>No refund.
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className="content_group mb-0">
+                            <p className="content_desc mb-0">
+                                I have thoroughly read and understand the terms and conditions outlined in Kover Drive Cricket’s liability waiver.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </Dialog>
+            {/*  */}
+
+            {/* Privacy Policy modal */}
+            <Dialog
+                visible={showPrivacyPolicyModal}
+                header={privacyPolicyModalHeader}
+                footer={privacyPolicyModalFooter}
+                headerClassName="content_modal_header"
+                className={`custom_modal_dialog content_modal modal_dialog_lg`}
+                onHide={handleClosePrivacyPolicyModal}
+                contentClassName="content_modal_content"
+                closable={false}
+            >
+                <div className="custom_modal_body p-0">
+                    <div className="content_modal_body">
+                        <div className="content_group">
+                            <p className="content_desc">
+                                At Kover Drive, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy outlines how we collect, use, and safeguard your data when you interact with our services. By using our services, you agree to the practices described in this Privacy Policy.
+                            </p>
+                        </div>
+
+                        <div className="content_group pb-1">
+                            <h6 className="content_head">1. Information We Collect</h6>
+                            <p className="content_desc">
+                                We may collect the following personal information:
+                            </p>
+                            <ul className="content_list mb-0">
+                                <li className="mb-2"><b>Contact Information: </b>Name, phone number, email address.</li>
+                                <li className="mb-2"><b>Booking Details: </b>Date, time, and type of booking.</li>
+                                <li className="mb-2"><b>Payment Information: </b>Securely processed billing and payment details.</li>
+                                <li className="mb-2"><b>Usage Data: </b>Information on how you use our website and booking system.</li>
+                                <li className="mb-2"><b>Technical Information: </b>IP address, browser type, and device information.</li>
+                            </ul>
+                        </div>
+
+                        <div className="content_group pb-1">
+                            <h6 className="content_head">2. How We Use Your Information</h6>
+                            <p className="content_desc">
+                                Your information is used to:
+                            </p>
+                            <ul className="content_list mb-0">
+                                <li className="mb-2">Facilitate bookings and provide access to our indoor cricket facility.</li>
+                                <li className="mb-2">Communicate with you about bookings, promotions, and updates.</li>
+                                <li className="mb-2">Process payments and refunds securely.</li>
+                                <li className="mb-2">Improve our services and enhance customer experience.</li>
+                                <li className="mb-2">Maintain security and prevent fraud.</li>
+                            </ul>
+                        </div>
+
+                        <div className="content_group pb-1">
+                            <h6 className="content_head">3. Sharing Your Information</h6>
+                            <p className="content_desc">
+                                We do not sell or share your personal data, except in these cases:
+                            </p>
+                            <ul className="content_list mb-0">
+                                <li className="mb-2"><b>Service Providers: </b>We use third-party services to manage bookings and payments.</li>
+                                <li className="mb-2"><b>Legal Requirements: </b>We may disclose information if required by law.</li>
+                            </ul>
+                        </div>
+
+                        <div className="content_group pb-1">
+                            <h6 className="content_head">4. Data Security and Retention</h6>
+                            <p className="content_desc mb-2">
+                                Your personal information is securely stored and protected using industry-standard security measures. We retain your data only as long as necessary for operational and legal purposes.
+                            </p>
+                        </div>
+
+                        <div className="content_group pb-1">
+                            <h6 className="content_head">5. Your Rights</h6>
+                            <p className="content_desc">
+                                You have the right to:
+                            </p>
+                            <ul className="content_list">
+                                <li className="mb-2">Access, update, or request deletion of your personal data.</li>
+                                <li className="mb-2">Opt out of marketing communications.</li>
+                                <li className="mb-2">Request a copy or transfer of your data.</li>
+                            </ul>
+                            <p className="content_desc mb-0">
+                                To exercise these rights, contact us at <Link className="content_link" to={`mailto:koverdrivelondonon@gmail.com`}><b>koverdrivelondonon@gmail.com</b></Link>.
+                            </p>
+                        </div>
+
+                        <div className="content_group pb-1">
+                            <h6 className="content_head">6. Cookies and Tracking</h6>
+                            <p className="content_desc mb-2">
+                                We use cookies and tracking technologies to enhance your experience. You can manage cookie preferences through your browser settings.
+                            </p>
+                        </div>
+
+                        <div className="content_group pb-1">
+                            <h6 className="content_head">7. Policy Updates</h6>
+                            <p className="content_desc mb-2">
+                                We may update this Privacy Policy periodically. Any changes will be posted on our website.
+                            </p>
+                        </div>
+
+                        <div className="content_group pb-1 mb-0">
+                            <h6 className="content_head">8. Contact Us</h6>
+                            <p className="content_desc ">
+                                For any privacy-related inquiries, contact:
+                            </p>
+                            <h6 className="content_head">
+                                Kover Drive Indoor Cricket:&nbsp;
+                                <Link className="content_link" to={`mailto:koverdrivelondonon@gmail.com`}>koverdrivelondonon@gmail.com</Link>
+                            </h6>
+
+                            <p className="content_desc mt-3 mb-0">
+                                By using our services, you acknowledge that you have read and understood this Privacy Policy.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </Dialog>
+            {/*  */}
         </>
     )
 }

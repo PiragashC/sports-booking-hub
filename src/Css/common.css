@@ -547,3 +547,91 @@ body {
     font-size: var(--font-size-md);
     margin-bottom: 15px;
 }
+
+.phone_input {
+    height: 45px !important;
+    border: 1px solid #E9EDF0 !important;
+    background-color: #FCFDFF !important;
+    border-radius: 8px !important;
+}
+
+.phone_input:focus {
+    border-color: var(--color-secondary) !important;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary) !important;
+}
+
+.react-tel-input .flag-dropdown {
+    position: absolute;
+    height: 43px;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 1px;
+    background-color: transparent !important;
+    border: none !important;
+    border-radius: 8px 0 0 8px !important;
+}
+
+.react-tel-input .selected-flag {
+    background-color: #EEE;
+    border-radius: 8px 0 0 8px !important;
+}
+
+
+.custom_phone_input_dropdown {
+    background: #ffffff !important;
+    color: #4b5563 !important;
+    border: 0 none;
+    border-radius: 6px !important;
+    box-shadow: 0px 10px 30px var(--color-overlay-shadow-secondary) !important;
+    margin-top: 1px !important;
+}
+
+.react-tel-input .country-list .country.highlight {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.react-tel-input .country-list .country{
+    font-size: 14px !important;
+    padding: 8px 16px;
+    border-radius: 5px;
+    margin-bottom: 4px;
+}
+
+.react-tel-input .country-list {
+    padding: 0 5px 5px 5px !important;
+}
+
+.react-tel-input .country-list .search-emoji {
+    display: none;
+}
+
+.react-tel-input .country-list .search {
+    padding-left: 0;
+    background-color: #FFF;
+    padding-top: 5px;
+}
+
+.react-tel-input .country-list .search-box {
+    width: 100%;
+    border-color: #F2F7FF;
+    padding: 12px 16px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    font-size: 15px !important;
+    color: #000;
+    background-color: #F2F7FF;
+    border-radius: 8px;
+    transition: ease0.5s;
+    margin: 0;
+}
+
+.react-tel-input .country-list .search-box::placeholder {
+    color: #b9b9b9;
+}
+
+.react-tel-input .country-list .search {
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 5px;
+}
