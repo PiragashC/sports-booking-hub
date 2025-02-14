@@ -1,0 +1,47 @@
+/* ⦁	For XXL Screen (768p(1366 x 768) above - 1080p , 1920 x 1080) */
+@media (min-width: 1399.99px) {}
+
+/* ⦁	For XL Screen (Laptop - HD Ready Display) */
+@media only screen and (min-width: 1199.9px) and (max-width: 1399.98px) {}
+
+/* ⦁	For LG (Large) Screen  */
+@media only screen and (min-width: 992px) and (max-width: 1199px) {}
+
+/* ⦁	For MD (Medium) Screen (ipad) */
+@media only screen and (min-width: 768px) and (max-width: 991px) {}
+
+/* ⦁	For SM (Small) Screen (Tab) */
+@media (min-width: 576px) and (max-width: 767px) {}
+
+/* ⦁	For Mobile Screen */
+@media (max-width: 575px) {
+    .auth_card_header h3 {
+        font-size: 30px !important;
+    }
+
+    .auth_form_button,
+    .auth_form_input.p-inputtext,
+    .auth_form_input.is_password .p-inputtext {
+        font-size: 15px !important;
+    }
+
+    .auth_card_body {
+        padding: 25px;
+    }
+
+    .auth_card_img_area {
+        margin-bottom: 25px;
+        border-radius: 25px;
+    }
+
+    .auth_card_img_area img {
+        width: 70%;
+        height: 70%;
+    }
+}
+
+@media (max-width: 991px) {
+    .auth_card_header h3 {
+        font-size: 35px;
+    }
+}
