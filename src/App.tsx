@@ -12,6 +12,7 @@ import ContactUs from './Pages/ContactUs/ContactUs';
 import AppLayout from './Layout/App/AppLayout';
 import Booking from './Pages/Booking/Booking';
 import BookingCopy from './Pages/Booking/Booking copy';
+import AdminLogin from './admin/AdminLogin/AdminLogin';
 
 function App() {
   const value = {
@@ -32,6 +33,7 @@ function App() {
             <Route path='/' element={<AppLayout />}>
               <Route path="booking" element={<BookingCopy />} />
             </Route>
+            <Route path="/admin-login" element={<AdminLogin />} />
           </Routes>
         </ErrorBoundary>
       </BrowserRouter>
