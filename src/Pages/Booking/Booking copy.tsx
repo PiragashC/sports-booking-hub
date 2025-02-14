@@ -88,7 +88,7 @@ const BookingCopy: React.FC = () => {
         })) : []);
         setSelectedLaneData(response && Array.isArray(response) && response[0] ? { id: response[0]?.laneId, name: response[0]?.laneName } : null);
     }
-    console.log(fromDate, toDate, "rgrbgrf");
+
     const fetchBookingsForCalenderView = async () => {
         const response = await apiRequest({
             method: "get",
@@ -255,7 +255,7 @@ const BookingCopy: React.FC = () => {
         }
     }
 
-    useEffect(() => { if (fromDate && toDate && selectedLaneData) fetchBookingsForCalenderView() }, [fromDate, toDate, selectedLaneData]);
+    useEffect(() => { if (fromDate && toDate && selectedLaneData) fetchBookingsForCalenderView() }, [fromDate, toDate, selectedLaneData, token]);
 
     useEffect(() => { fetchAllLanes() }, []);
 
