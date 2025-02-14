@@ -546,10 +546,10 @@ const BookingCopy: React.FC = () => {
                                             Booking Title: {dayWiseBookingDetails?.bookingTitle || "----"}
                                         </span>
                                         <span>
-                                            Booking Charge: {dayWiseBookingDetails?.bookingCharge}
+                                            Booking Charge: ${dayWiseBookingDetails?.bookingPrice}
                                         </span>
                                         <span>
-                                            Status: {dayWiseBookingDetails?.status}
+                                            Status: {dayWiseBookingDetails?.bookingStatus}
                                         </span>
                                     </>
                                 ) : (

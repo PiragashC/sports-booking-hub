@@ -7,49 +7,88 @@ import { Toast } from 'primereact/toast';
 import { Password } from 'primereact/password';
 import { Button } from "primereact/button";
 import { Fade, Slide } from "react-awesome-reveal";
+import { useAuthRedirect } from "../../middleware/middleware";
+import { useDispatch } from "react-redux";
+import apiRequest from "../../Utils/apiRequest";
+import { showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
+import { setLogin } from "../../state";
+
+interface SignInInfo {
+    email: string;
+    password: string;
+}
+
 
 const AdminLogin: React.FC = () => {
-    const toast = useRef<Toast>(null);
-    const navigate = useNavigate();
+    useAuthRedirect();
+    const toast = useRef<Toast | null>(null);
+    const dispatch = useDispatch();
+    const [require, setRequire] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
-    const [email, setEmail] = useState<string>('');
-    const [emailError, setEmailError] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
-    const [passwordError, setPasswordError] = useState<string>('');
 
-    const [loginError, setLoginError] = useState<string>('');
+    const initialSignInInfo: SignInInfo = {
+        email: "",
+        password: "",
+    };
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const [signInInfo, setSignInInfo] = useState<SignInInfo>(initialSignInInfo);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setSignInInfo((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const login = async (loginInfo: SignInInfo) => {
         setLoading(true);
-
         try {
-            setTimeout(() => {
-                setLoading(false);
-                if (toast.current) {
-                    toast.current.show({
-                        severity: 'success',
-                        summary: 'Success',
-                        detail: 'You have successfully logged in.',
-                        life: 3000,
-                    });
-                }
+            const response = await apiRequest<any>({
+                method: "post",
+                url: "/auth/login",
+                data: loginInfo,
+            });
+
+            if (response?.accessToken) {
+                showSuccessToast(
+                    toast,
+                    "Login Successful",
+                    "You have been logged in successfully"
+                );
+
                 setTimeout(() => {
-                    navigate(`/booking`);
-                }, 2000);
-            }, 500);
-        } catch (error) {
-            setLoading(false);
-            if (toast.current) {
-                toast.current.show({
-                    severity: 'error',
-                    summary: 'Failed',
-                    detail: 'An error occurred while logging in.',
-                    life: 3000
-                });
+                    dispatch(
+                        setLogin({
+                            user: response.userDto || null,
+                            token: response.accessToken,
+                        })
+                    );
+                }, 1000);
+            } else {
+                showErrorToast(
+                    toast,
+                    "Failed to Log In",
+                    "Retry with correct login credentials"
+                );
+                setLoading(false);
             }
+        } catch (error) {
+            console.error("Login error:", error);
+            showErrorToast(toast, "Login Error", "An unexpected error occurred.");
+            setLoading(false);
         }
-    }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!signInInfo.email || !signInInfo.password) {
+            setRequire(true);
+            showErrorToast(toast, "Error in Submission", "Please fill all required fields!");
+            return;
+        }
+
+        login(signInInfo);
+        setSignInInfo(initialSignInInfo);
+        setRequire(false);
+    };
 
     return (
         <>
@@ -77,44 +116,50 @@ const AdminLogin: React.FC = () => {
                                                 <div className="input_icon_group">
                                                     <i className="bi bi-envelope-fill"></i>
                                                     <InputText
-                                                        value={email}
+                                                        value={signInInfo.email}
                                                         className="auth_form_input"
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                                                        onChange={handleInputChange}
                                                         placeholder="Email"
                                                         type="email"
                                                         required
+                                                        name="email"
                                                         keyfilter={'email'}
                                                     />
                                                 </div>
-                                                {emailError && (<small className="auth_form_error">{emailError}</small>)}
+                                                {require && !signInInfo.email && (<small className="auth_form_error">This field is required</small>)}
+                                                <small className="auth_form_error">{!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signInInfo.email) &&
+                                                    signInInfo.email
+                                                    ? "Enter a valid email"
+                                                    : ""}</small>
                                             </div>
 
                                             <div className="auth_form_group">
                                                 <div className="input_icon_group">
                                                     <i className="bi bi-lock-fill"></i>
                                                     <Password
-                                                        value={password}
+                                                        value={signInInfo.password}
                                                         className="auth_form_input is_password"
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                                                        onChange={handleInputChange}
                                                         placeholder="Password"
                                                         feedback={false}
                                                         tabIndex={1}
                                                         toggleMask
+                                                        name="password"
                                                     />
                                                 </div>
-                                                {passwordError && (<small className="auth_form_error">{passwordError}</small>)}
+                                                {require && !signInInfo.password &&  (<small className="auth_form_error">This field is required</small>)}
                                             </div>
 
-                                            <div className="auth_form_group">
+                                            {/* <div className="auth_form_group">
                                                 {loginError && (<span className="error_message_label">{loginError}</span>)}
-                                            </div>
+                                            </div> */}
 
                                             <div className="auth_btn_group">
                                                 <Button
                                                     label="LOGIN"
                                                     loading={loading}
                                                     className="auth_form_button"
-                                                    onClick={handleLogin}
+                                                    onClick={handleSubmit}
                                                 />
                                             </div>
                                         </div>

@@ -15,7 +15,7 @@ const StripePayment: React.FC<StripePaymentProps> = ({ stripePromise, clientSecr
   const options: StripeElementsOptions = { clientSecret };
 
   // Timer state
-  const [timeLeft, setTimeLeft] = useState(1 * 60); // 15 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
   const [isPaused, setIsPaused] = useState(false); // To pause timer when user clicks "Pay Now"
 
   useEffect(() => {

@@ -11,8 +11,8 @@ export const lanes: Lane[] = [
 ]
 
 export interface BookingResponse {
-    status?: string;
-    bookingCharge?: string;
+    bookingStatus?: string;
+    bookingPrice?: string;
     bookingTitle?: string;
     bookingId: string;
     userName?: string;

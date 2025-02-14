@@ -422,7 +422,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                     {bookingStep === 1 ? (
                         <>
                             <div className="booking_greeting">
-                                <h4>Welcome to...&nbsp;
+                                <h4>Welcome to&nbsp;
                                     <span>Kover <span>Drive</span></span>
                                 </h4>
                                 <h5>To start, please enter your email address.</h5>
@@ -706,7 +706,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                             name="telephoneNumber"
                                             value={bookingFormData?.telephoneNumber}
                                             onChange={(value: string) => { setBookingFormData({ ...bookingFormData, telephoneNumber: value }) }}
-                                            error=""
+                                            error={(isRequired && !bookingFormData?.telephoneNumber) ? "Phone number is required!" : ""}
                                             formGroupClassName="mb-sm-0"
                                             setIsValidNumber={setIsValidNumber}
                                         />
