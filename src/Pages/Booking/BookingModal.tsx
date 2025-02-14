@@ -82,7 +82,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const [bookingId, setBookingId] = useState<string>("");
     const [enableTimeOutComponent, setEnableTimeOutComponent] = useState<boolean>(false);
 
-
     useEffect(() => {
         if (isOpen) {
             setTimeListData(timeList);
@@ -236,30 +235,68 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
 
     const endTimeOptions = getValidEndTimes(bookingFormData.fromTime);
 
+    // const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
+    //     if (e && e?.value) {
+    //         const today = new Date();
+    //         today.setHours(0, 0, 0, 0);
+
+    //         const selectedDates = e.value.map(date => {
+    //             const normalizedDate = new Date(date);
+    //             normalizedDate.setHours(0, 0, 0, 0);
+    //             return normalizedDate;
+    //         });
+
+    //         const isTodaySelected = selectedDates.some(date => date.getTime() === today.getTime());
+
+    //         let finalDates = selectedDates;
+
+    //         if (isTodaySelected) {
+    //             finalDates = [today];
+    //         } else {
+    //             finalDates = selectedDates;
+    //         }
+
+    //         const formattedDates = finalDates.map(date => {
+    //             return date.toISOString().split("T")[0];
+    //         });
+
+    //         setLanesListData([]);
+    //         setBookingLanes([]);
+    //         setBookingFormData({
+    //             ...bookingFormData,
+    //             selectedLanesDtos: [],
+    //             bookingDatesDtos: formattedDates
+    //         });
+
+    //         setBookingDates(finalDates);
+    //     }
+    // };
+
     const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
         if (e && e?.value) {
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-
-            const selectedDates = e.value.map(date => {
-                const normalizedDate = new Date(date);
-                normalizedDate.setHours(0, 0, 0, 0);
-                return normalizedDate;
+    
+            let selectedDates = e.value.map(date => {
+                return new Date(date.getFullYear(), date.getMonth(), date.getDate());
             });
-
+    
             const isTodaySelected = selectedDates.some(date => date.getTime() === today.getTime());
-
-            let finalDates = selectedDates;
-
+    
+            // If today is selected, only today should be set; otherwise, remove today from the selection
+            let finalDates: Date[];
             if (isTodaySelected) {
                 finalDates = [today];
             } else {
-                finalDates = selectedDates;
+                finalDates = selectedDates.filter(date => date.getTime() !== today.getTime());
             }
-
-            const formattedDates = finalDates.map(date => {
-                return date.toISOString().split("T")[0];
-            });
+    
+            // Format the dates correctly for form submission
+            const formattedDates = finalDates.map(date => 
+                new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+                    .toISOString()
+                    .split("T")[0]
+            );
 
             setLanesListData([]);
             setBookingLanes([]);
@@ -268,12 +305,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                 selectedLanesDtos: [],
                 bookingDatesDtos: formattedDates
             });
-
+    
             setBookingDates(finalDates);
         }
     };
-
-
+    
+    
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
