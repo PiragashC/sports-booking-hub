@@ -707,12 +707,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     className="form_checkbox"
                                                     checked={isAgree?.privacy && isAgree?.terms}
                                                 />
-                                                <label htmlFor="isAgreeTerms" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
-                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>
+                                                <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
+                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>&nbsp;&&nbsp;
+                                                    <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
                                                 </label>
                                             </div>
 
-                                            <div className="form_check_area pt-2">
+                                            {/* <div className="form_check_area pt-2">
                                                 <Checkbox
                                                     inputId="isAgreePrivacy"
                                                     name="isAgreePrivacy"
@@ -724,7 +725,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                 <label htmlFor="isAgreePrivacy" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
                                                     <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
                                                 </label>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
 
