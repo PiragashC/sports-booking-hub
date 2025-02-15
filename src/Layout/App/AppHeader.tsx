@@ -33,7 +33,7 @@ const AppHeader: React.FC = () => {
             <header className="app_header">
                 <nav className="app_nav">
                     <div className="app_nav_area">
-                        <Link to={'/booking'} className="app_nav_logo_link">
+                        <Link to={'/'} className="app_nav_logo_link">
                             <img src="/kover_drive_logo.png" alt="Kover Drive" />
                         </Link>
 
