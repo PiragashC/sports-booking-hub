@@ -335,8 +335,12 @@
 }
 
 .p-multiselect.p-multiselect-chip .p-multiselect-token:hover {
-    background: #8a53d71a !important;
-    color: #8953D7 !important;
+    background: var(--color-primary-light) !important;
+    color: var(--color-primary) !important;
+}
+
+.p-multiselect.p-multiselect-chip .p-multiselect-token .p-multiselect-token-icon:focus{
+    outline: none;
 }
 
 /*  */

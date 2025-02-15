@@ -57,7 +57,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const [bookingPrice, setBookingPrice] = useState<number>(0);
     const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
-    const [isAgree, setIsAgree] = useState<boolean>(false);
+    const [isAgreeTerms, setIsAgreeTerms] = useState<boolean>(false);
+    const [isAgreePrivacy, setIsAgreePrivacy] = useState<boolean>(false);
 
     const initialBookingFormData = {
         email: '',
@@ -98,7 +99,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         setBookingPrice(0);
         setBookingDates(null);
         setBookingLanes([]);
-        setIsAgree(false);
+        setIsAgreePrivacy(false);
+        setIsAgreeTerms(false);
         setBookingFormData(initialBookingFormData);
         setIsRequired(false);
         setIsValidNumber(true);
@@ -215,7 +217,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const handleConfirmBooking = async (e: React.FormEvent) => {
         setIsRequired(true);
         e.preventDefault();
-        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgree || !bookingFormData?.firstName || !bookingFormData?.lastName || !bookingFormData?.telephoneNumber || !isValidNumber) {
+        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgreeTerms || !isAgreePrivacy || !bookingFormData?.firstName || !bookingFormData?.lastName || !bookingFormData?.telephoneNumber || !isValidNumber) {
             return;
         }
 
@@ -360,7 +362,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                 onClick={bookingStep === 1 ? handleStartBooking : bookingStep === 2 ? handleConfirmBooking : undefined}
                 loading={loading}
                 className="custom_btn primary"
-                disabled={bookingStep === 2 ? !isAgree : false}
+                disabled={bookingStep === 2 ? (!isAgreeTerms || !isAgreePrivacy) : false}
             />
         </div>
     );
@@ -717,15 +719,28 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                         <div className="page_form_group mb-0">
                                             <div className="form_check_area">
                                                 <Checkbox
-                                                    inputId="isAgree"
-                                                    name="isAgree"
-                                                    value={isAgree}
+                                                    inputId="isAgreeTerms"
+                                                    name="isAgreeTerms"
+                                                    value={isAgreeTerms}
                                                     className="form_checkbox"
-                                                    onChange={e => setIsAgree(e.checked ?? false)}
-                                                    checked={isAgree}
+                                                    onChange={e => setIsAgreeTerms(e.checked ?? false)}
+                                                    checked={isAgreeTerms}
                                                 />
-                                                <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
-                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>&nbsp;&&nbsp;
+                                                <label htmlFor="isAgreeTerms" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
+                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>
+                                                </label>
+                                            </div>
+
+                                            <div className="form_check_area pt-2">
+                                                <Checkbox
+                                                    inputId="isAgreePrivacy"
+                                                    name="isAgreePrivacy"
+                                                    value={isAgreePrivacy}
+                                                    className="form_checkbox"
+                                                    onChange={e => setIsAgreePrivacy(e.checked ?? false)}
+                                                    checked={isAgreePrivacy}
+                                                />
+                                                <label htmlFor="isAgreePrivacy" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
                                                     <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
                                                 </label>
                                             </div>
@@ -841,9 +856,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     {bookingPrice === 0 ? "Calculating..." : `$ ${String(bookingPrice).padStart(2, '0')}`}
                                                 </h3>
 
-                                                <p className="form_info">
+                                                {/* <p className="form_info">
                                                     There is no charge for this booking, however we still need a valid credit card in order to secure it and prevent abuse. Rest assured that your credit card will not be charged.
-                                                </p>
+                                                </p> */}
                                                 <hr />
                                                 <label htmlFor='bookingCancellation' className={`custom_form_label`}>Facility Disclaimer</label>
                                                 <p className="form_info mt-2">
