@@ -707,8 +707,21 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     className="form_checkbox"
                                                     checked={isAgree?.privacy && isAgree?.terms}
                                                 />
-                                                <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
-                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>&nbsp;&&nbsp;
+                                                <label htmlFor="isAgreeTerms" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
+                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>
+                                                </label>
+                                            </div>
+
+                                            <div className="form_check_area pt-2">
+                                                <Checkbox
+                                                    inputId="isAgreePrivacy"
+                                                    name="isAgreePrivacy"
+                                                    value={isAgreePrivacy}
+                                                    className="form_checkbox"
+                                                    onChange={e => setIsAgreePrivacy(e.checked ?? false)}
+                                                    checked={isAgreePrivacy}
+                                                />
+                                                <label htmlFor="isAgreePrivacy" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
                                                     <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
                                                 </label>
                                             </div>
