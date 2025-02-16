@@ -338,7 +338,7 @@ const BookingCopy: React.FC = () => {
                                             type="button"
                                             aria-label="Prev"
                                             onClick={handleNavigatePrevDay}
-                                            disabled={date.getDate() <= today.getDate()}>
+                                            disabled={token ? false : date.getDate() <= today.getDate()}>
                                             <i className="bi bi-chevron-left"></i>
                                             <Ripple />
                                         </button>
@@ -372,7 +372,7 @@ const BookingCopy: React.FC = () => {
                                         dateFormat="DD, MM dd, yy"
                                         inputClassName="date_selection_input"
                                         view="date"
-                                        minDate={today}
+                                        minDate={token ? undefined : today}
                                         showIcon
                                         iconPos='left'
                                         readOnlyInput
@@ -387,7 +387,7 @@ const BookingCopy: React.FC = () => {
                                             type="button"
                                             aria-label="Prev"
                                             onClick={handleNavigatePrevMonth}
-                                            disabled={month.getMonth() === currentMonth && month.getFullYear() === currentYear}>
+                                            disabled={token ? false : month.getMonth() === currentMonth && month.getFullYear() === currentYear}>
                                             <i className="bi bi-chevron-left"></i>
                                             <Ripple />
                                         </button>
@@ -420,7 +420,7 @@ const BookingCopy: React.FC = () => {
                                         }}
                                         view="month"
                                         dateFormat="MM yy"
-                                        minDate={today}
+                                        minDate={token ? undefined : today}
                                         readOnlyInput
                                         inputClassName="date_selection_input"
                                         showIcon
