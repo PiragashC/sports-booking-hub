@@ -19,6 +19,8 @@ import apiRequest from "../../Utils/apiRequest";
 import { formatDate, getMonthDateRange, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Button } from "primereact/button";
 import { useSelector } from "react-redux";
+import { ProgressSpinner } from 'primereact/progressspinner';
+
 
 const BookingCopy: React.FC = () => {
     const toastRef = useRef<Toast>(null);
@@ -47,6 +49,7 @@ const BookingCopy: React.FC = () => {
     const [calenderBookings, setCalenderBookings] = useState<any[]>([]);
     const [monthViewEvents, setMonthViewEvents] = useState<any[]>([]);
     const monthViewModeRef = useRef(null);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const handleNewBooking = () => {
         setShowBookingModal(true);
@@ -90,6 +93,7 @@ const BookingCopy: React.FC = () => {
     }
 
     const fetchBookingsForCalenderView = async () => {
+        setLoading(true);
         const response = await apiRequest({
             method: "get",
             url: "/booking/get-all-for-calender",
@@ -150,6 +154,7 @@ const BookingCopy: React.FC = () => {
                 setMonthViewEvents([]);
             }
         }
+        setLoading(false);
     }
 
     const handleNavigatePrevDay = () => {
@@ -256,241 +261,280 @@ const BookingCopy: React.FC = () => {
         }
     }
 
+    const allPendingToFailure = async () => {
+        const response = await apiRequest({
+            method: "put",
+            url: "/booking/change-status",
+            data: {}
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            fetchBookingsForCalenderView()
+        }
+    }
+
+    useEffect(() => { allPendingToFailure() }, []);
+
     useEffect(() => { if (fromDate && toDate && selectedLaneData) fetchBookingsForCalenderView() }, [fromDate, toDate, selectedLaneData, token]);
 
     useEffect(() => { fetchAllLanes() }, []);
 
     return (
         <>
+
             <Toast ref={toastRef} />
 
-            <div className="page_content">
-                <div className="page_header_area">
-                    <div className="view_option_switch_area">
-                        <button
-                            className={`view_option_switch is_btn p-ripple ${bookingViewMode === 'Day' && 'active'}`}
-                            type="button"
-                            aria-label="Day"
-                            onClick={() => handleSwitchViewMode('Day')}
-                        >
-                            Day
-                            <Ripple />
-                        </button>
 
-                        <button
-                            className={`view_option_switch is_btn p-ripple ${bookingViewMode === 'Month' && 'active'}`}
-                            type="button"
-                            aria-label="Month"
-                            onClick={() => handleSwitchViewMode('Month')}
-                        >
-                            Month
-                            <Ripple />
-                        </button>
+            {loading ?
+                (
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height: "100vh",
+                            width: "100vw",
+                            position: "fixed",
+                            top: 0,
+                            left: 0,
+                            backgroundColor: "rgba(255, 255, 255, 0.8)",
+                            zIndex: 9999,
+                        }}
+                    >
+                        <ProgressSpinner strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s" />
                     </div>
-
-
-                    {bookingViewMode === 'Day' ? (
-                        <>
-                            <div className="nav_btn_switch_area">
+                ) :
+                (
+                    <div className="page_content">
+                        <div className="page_header_area">
+                            <div className="view_option_switch_area">
                                 <button
-                                    className="nav_btn_switch is_btn p-ripple"
+                                    className={`view_option_switch is_btn p-ripple ${bookingViewMode === 'Day' && 'active'}`}
                                     type="button"
-                                    aria-label="Prev"
-                                    onClick={handleNavigatePrevDay}
-                                    disabled={date.getDate() <= today.getDate()}>
-                                    <i className="bi bi-chevron-left"></i>
+                                    aria-label="Day"
+                                    onClick={() => handleSwitchViewMode('Day')}
+                                >
+                                    Day
                                     <Ripple />
                                 </button>
 
                                 <button
-                                    className="nav_btn_switch is_btn p-ripple"
+                                    className={`view_option_switch is_btn p-ripple ${bookingViewMode === 'Month' && 'active'}`}
                                     type="button"
-                                    aria-label="Next"
-                                    onClick={handleNavigateNextDay}>
-                                    <i className="bi bi-chevron-right"></i>
-                                    <Ripple />
-                                </button>
-                            </div>
-
-                            <Calendar
-                                key="day-calendar"
-                                ref={calendarRef}
-                                value={date}
-                                selectionMode="single"
-                                onChange={(e) => {
-                                    if (e.value) {
-                                        setDate(e.value as Date);
-                                        setFromDate(new Date(e.value.getTime() - e.value.getTimezoneOffset() * 60000)
-                                            .toISOString().split("T")[0]);
-                                        setToDate(new Date(e.value.getTime() - e.value.getTimezoneOffset() * 60000)
-                                            .toISOString().split("T")[0]);
-                                    } else {
-                                        setFromDate("");
-                                    }
-                                }}
-                                dateFormat="DD, MM dd, yy"
-                                inputClassName="date_selection_input"
-                                view="date"
-                                minDate={today}
-                                showIcon
-                                iconPos='left'
-                                readOnlyInput
-                                icon='bi bi-calendar-event'
-                            />
-                        </>
-                    ) : bookingViewMode === 'Month' ? (
-                        <>
-                            <div className="nav_btn_switch_area">
-                                <button
-                                    className="nav_btn_switch is_btn p-ripple"
-                                    type="button"
-                                    aria-label="Prev"
-                                    onClick={handleNavigatePrevMonth}
-                                    disabled={month.getMonth() === currentMonth && month.getFullYear() === currentYear}>
-                                    <i className="bi bi-chevron-left"></i>
-                                    <Ripple />
-                                </button>
-
-                                <button
-                                    className="nav_btn_switch is_btn p-ripple"
-                                    type="button"
-                                    aria-label="Next"
-                                    onClick={handleNavigateNextMonth}>
-                                    <i className="bi bi-chevron-right"></i>
+                                    aria-label="Month"
+                                    onClick={() => handleSwitchViewMode('Month')}
+                                >
+                                    Month
                                     <Ripple />
                                 </button>
                             </div>
 
-                            <Calendar
-                                key="month-calendar"
-                                ref={calendarRef}
-                                value={month}
-                                selectionMode="single"
-                                onChange={(e) => {
-                                    if (e.value) {
-                                        const { from, to } = getMonthDateRange(new Date(e.value));
-                                        setMonth(e.value as Date);
-                                        setFromDate(from);
-                                        setToDate(to);
-                                    } else {
-                                        setFromDate("");
-                                        setToDate("");
-                                    }
-                                }}
-                                view="month"
-                                dateFormat="MM yy"
-                                minDate={today}
-                                readOnlyInput
-                                inputClassName="date_selection_input"
-                                showIcon
-                                iconPos="left"
-                                icon="bi bi-calendar2"
-                            />
 
-                        </>
-                    ) : null}
+                            {bookingViewMode === 'Day' ? (
+                                <>
+                                    <div className="nav_btn_switch_area">
+                                        <button
+                                            className="nav_btn_switch is_btn p-ripple"
+                                            type="button"
+                                            aria-label="Prev"
+                                            onClick={handleNavigatePrevDay}
+                                            disabled={date.getDate() <= today.getDate()}>
+                                            <i className="bi bi-chevron-left"></i>
+                                            <Ripple />
+                                        </button>
 
-                </div>
+                                        <button
+                                            className="nav_btn_switch is_btn p-ripple"
+                                            type="button"
+                                            aria-label="Next"
+                                            onClick={handleNavigateNextDay}>
+                                            <i className="bi bi-chevron-right"></i>
+                                            <Ripple />
+                                        </button>
+                                    </div>
 
-                <div className="page_sub_header_area">
-                    {Array.isArray(lanesData) && lanesData?.length > 0 && (
-                        <div className="page_tabs_area">
-                            {lanesData?.map((lane) => (
-                                <button
-                                    key={lane?.id}
-                                    className={`page_tab_btn ${lane?.id === selectedLaneData?.id && 'active'} p-ripple`}
-                                    type="button"
-                                    onClick={() => handleChangeLane(lane)}>
-                                    {lane?.name}
-                                    <Ripple pt={{ root: { style: { background: 'rgba(0, 128, 0, 0.2)' } } }} />
-                                </button>
-                            ))}
+                                    <Calendar
+                                        key="day-calendar"
+                                        ref={calendarRef}
+                                        value={date}
+                                        selectionMode="single"
+                                        onChange={(e) => {
+                                            if (e.value) {
+                                                setDate(e.value as Date);
+                                                setFromDate(new Date(e.value.getTime() - e.value.getTimezoneOffset() * 60000)
+                                                    .toISOString().split("T")[0]);
+                                                setToDate(new Date(e.value.getTime() - e.value.getTimezoneOffset() * 60000)
+                                                    .toISOString().split("T")[0]);
+                                            } else {
+                                                setFromDate("");
+                                            }
+                                        }}
+                                        dateFormat="DD, MM dd, yy"
+                                        inputClassName="date_selection_input"
+                                        view="date"
+                                        minDate={today}
+                                        showIcon
+                                        iconPos='left'
+                                        readOnlyInput
+                                        icon='bi bi-calendar-event'
+                                    />
+                                </>
+                            ) : bookingViewMode === 'Month' ? (
+                                <>
+                                    <div className="nav_btn_switch_area">
+                                        <button
+                                            className="nav_btn_switch is_btn p-ripple"
+                                            type="button"
+                                            aria-label="Prev"
+                                            onClick={handleNavigatePrevMonth}
+                                            disabled={month.getMonth() === currentMonth && month.getFullYear() === currentYear}>
+                                            <i className="bi bi-chevron-left"></i>
+                                            <Ripple />
+                                        </button>
+
+                                        <button
+                                            className="nav_btn_switch is_btn p-ripple"
+                                            type="button"
+                                            aria-label="Next"
+                                            onClick={handleNavigateNextMonth}>
+                                            <i className="bi bi-chevron-right"></i>
+                                            <Ripple />
+                                        </button>
+                                    </div>
+
+                                    <Calendar
+                                        key="month-calendar"
+                                        ref={calendarRef}
+                                        value={month}
+                                        selectionMode="single"
+                                        onChange={(e) => {
+                                            if (e.value) {
+                                                const { from, to } = getMonthDateRange(new Date(e.value));
+                                                setMonth(e.value as Date);
+                                                setFromDate(from);
+                                                setToDate(to);
+                                            } else {
+                                                setFromDate("");
+                                                setToDate("");
+                                            }
+                                        }}
+                                        view="month"
+                                        dateFormat="MM yy"
+                                        minDate={today}
+                                        readOnlyInput
+                                        inputClassName="date_selection_input"
+                                        showIcon
+                                        iconPos="left"
+                                        icon="bi bi-calendar2"
+                                    />
+
+                                </>
+                            ) : null}
+
                         </div>
-                    )}
 
-                    <button
-                        className="new_data_button is_btn p-ripple"
-                        aria-label="New booking"
-                        onClick={handleNewBooking}>
-                        <i className="bi bi-calendar-plus"></i>
-                        <span>New booking</span>
-                        <Ripple />
-                    </button>
-                </div>
+                        <div className="page_sub_header_area">
+                            {Array.isArray(lanesData) && lanesData?.length > 0 && (
+                                <div className="page_tabs_area">
+                                    {lanesData?.map((lane) => (
+                                        <button
+                                            key={lane?.id}
+                                            className={`page_tab_btn ${lane?.id === selectedLaneData?.id && 'active'} p-ripple`}
+                                            type="button"
+                                            onClick={() => handleChangeLane(lane)}>
+                                            {lane?.name}
+                                            <Ripple pt={{ root: { style: { background: 'rgba(0, 128, 0, 0.2)' } } }} />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
 
-                <article className="page_card">
-                    {bookingViewMode === 'Day' ? (
-                        <div className="booking_time_line_view day_mode">
-                            <FullCalendar
-                                key={`day_view_${date.getTime()}`} // Force re-render when date changes
-                                ref={dayViewModeRef}
-                                plugins={[timeGridPlugin, interactionPlugin]}
-                                initialView="timeGridDay"
-                                initialDate={date} // Set selected date
-                                headerToolbar={false}
-                                slotMinTime="08:00:00"
-                                slotMaxTime="23:00:00"
-                                allDaySlot={false}
-                                events={dayViewEvents}
-                                nowIndicator={true}
-                                eventClick={handleViewDayWiseBookingDetail}
-                                eventClassNames={"day_view_event"}
-                                height={"auto"}
-                                eventContent={(eventInfo) => {
-                                    const { title, start, end } = eventInfo.event;
-                                    const formattedStartTime = start ? format(new Date(start), "hh:mm a") : "";
-                                    const formattedEndTime = end ? format(new Date(end), "hh:mm a") : "";
-                                    return (
-                                        <div className="booking_event p-ripple">
-                                            <i className="bi bi-person-fill"></i>
-                                            <div className="booking_event_detail">
-                                                <div className="booking_title">{title}</div>
-                                                <div className="booking_time">
-                                                    {formattedStartTime} - {formattedEndTime}
+                            <button
+                                className="new_data_button is_btn p-ripple"
+                                aria-label="New booking"
+                                onClick={handleNewBooking}>
+                                <i className="bi bi-calendar-plus"></i>
+                                <span>New booking</span>
+                                <Ripple />
+                            </button>
+                        </div>
+
+                        <article className="page_card">
+                            {bookingViewMode === 'Day' ? (
+                                <div className="booking_time_line_view day_mode">
+                                    <FullCalendar
+                                        key={`day_view_${date.getTime()}`} // Force re-render when date changes
+                                        ref={dayViewModeRef}
+                                        plugins={[timeGridPlugin, interactionPlugin]}
+                                        initialView="timeGridDay"
+                                        initialDate={date} // Set selected date
+                                        headerToolbar={false}
+                                        slotMinTime="08:00:00"
+                                        slotMaxTime="23:00:00"
+                                        allDaySlot={false}
+                                        events={dayViewEvents}
+                                        nowIndicator={true}
+                                        eventClick={handleViewDayWiseBookingDetail}
+                                        eventClassNames={"day_view_event"}
+                                        height={"auto"}
+                                        eventContent={(eventInfo) => {
+                                            const { title, start, end } = eventInfo.event;
+                                            const formattedStartTime = start ? format(new Date(start), "hh:mm a") : "";
+                                            const formattedEndTime = end ? format(new Date(end), "hh:mm a") : "";
+                                            return (
+                                                <div className="booking_event p-ripple">
+                                                    <i className="bi bi-person-fill"></i>
+                                                    <div className="booking_event_detail">
+                                                        <div className="booking_title">{title}</div>
+                                                        <div className="booking_time">
+                                                            {formattedStartTime} - {formattedEndTime}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    );
-                                }}
-                            />
-                        </div>
-                    ) : bookingViewMode === 'Month' ? (
-                        <div className="booking_time_line_view day_mode">
-                            <FullCalendar
-                                key={month.getMonth() + monthViewEvents.length}
-                                plugins={[dayGridPlugin, interactionPlugin]}
-                                initialView="dayGridMonth"
-                                initialDate={month}
-                                events={monthViewEvents}
-                                headerToolbar={false}
-                                eventClassNames={'month_view_event'}
-                                height={'auto'}
-                                dayMaxEvents={2}
-                                // dayMaxEventRows={true}
-                                moreLinkClick="popover"
-                                moreLinkText="View More"
-                                eventClick={handleViewDayWiseBookingDetail}
-                                eventContent={(eventInfo) => {
-                                    const { title, start, end } = eventInfo.event;
-                                    const formattedStartTime = start ? format(new Date(start), "hh:mm a") : "";
-                                    const formattedEndTime = end ? format(new Date(end), "hh:mm a") : "";
-                                    return (
-                                        <div className="booking_event p-ripple">
-                                            <i className="bi bi-person-fill"></i>
-                                            <div className="booking_event_detail">
-                                                <div className="booking_title">{title}</div>
-                                                <div className="booking_time">
-                                                    {formattedStartTime} - {formattedEndTime}
+                                            );
+                                        }}
+                                    />
+                                </div>
+                            ) : bookingViewMode === 'Month' ? (
+                                <div className="booking_time_line_view day_mode">
+                                    <FullCalendar
+                                        key={month.getMonth() + monthViewEvents.length}
+                                        plugins={[dayGridPlugin, interactionPlugin]}
+                                        initialView="dayGridMonth"
+                                        initialDate={month}
+                                        events={monthViewEvents}
+                                        headerToolbar={false}
+                                        eventClassNames={'month_view_event'}
+                                        height={'auto'}
+                                        dayMaxEvents={2}
+                                        // dayMaxEventRows={true}
+                                        moreLinkClick="popover"
+                                        moreLinkText="View More"
+                                        eventClick={handleViewDayWiseBookingDetail}
+                                        eventContent={(eventInfo) => {
+                                            const { title, start, end } = eventInfo.event;
+                                            const formattedStartTime = start ? format(new Date(start), "hh:mm a") : "";
+                                            const formattedEndTime = end ? format(new Date(end), "hh:mm a") : "";
+                                            return (
+                                                <div className="booking_event p-ripple">
+                                                    <i className="bi bi-person-fill"></i>
+                                                    <div className="booking_event_detail">
+                                                        <div className="booking_title">{title}</div>
+                                                        <div className="booking_time">
+                                                            {formattedStartTime} - {formattedEndTime}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    );
-                                }}
-                            />
-                        </div>
-                    ) : null}
-                </article>
-            </div>
+                                            );
+                                        }}
+                                    />
+                                </div>
+                            ) : null}
+                        </article>
+                    </div>
+                )
+            }
+
 
             <BookingModal
                 isOpen={showBookingModal}

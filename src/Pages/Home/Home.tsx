@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import './Home.css';
 import './Home-responsive.css';
@@ -9,10 +9,16 @@ import { goToTop } from "../../Components/GoToTop";
 import { Features, features } from "./HomeData";
 import TextInput from "../../Components/TextInput";
 import TextArea from "../../Components/TextArea";
+import apiRequest from "../../Utils/apiRequest";
+import { removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
+import { Toast } from "primereact/toast";
+
 
 const Home: React.FC = () => {
+    const toastRef = useRef<Toast>(null);
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
     const [featuresData, setFeaturesData] = useState<Features[]>([]);
 
@@ -25,32 +31,42 @@ const Home: React.FC = () => {
         goToTop();
     }
 
-    const [name, setName] = useState<string>('');
-    const [email, setEmail] = useState<string>('');
-    const [subject, setSubject] = useState<string>('');
-    const [message, setMessage] = useState<string>('');
+    const intialReachUsForm = {
+        name: '',
+        email: '',
+        subject: '',
+        message: ''
+    }
+    const [reachUsForm, setReachUsForm] = useState<typeof intialReachUsForm>(intialReachUsForm);
+    const [isRequired, setIsRequired] = useState<boolean>(false);
 
-    const [nameError, setNameError] = useState<string>('');
-    const [emailError, setEmailError] = useState<string>('');
-    const [subjectError, setSubjectError] = useState<string>('');
-    const [messageError, setMessageError] = useState<string>('');
 
-    const handleClearFormFields = () => {
-        setName('');
-        setEmail('');
-        setSubject('');
-        setMessage('');
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setReachUsForm((prev) => ({ ...prev, [name]: value }));
     }
 
-    const handleClearFormErrors = () => {
-        setNameError('');
-        setEmailError('');
-        setSubjectError('');
-        setMessageError('');
-    }
-
-    const handleSubmitContactForm = (e: React.FormEvent) => {
+    const handleSubmitContactForm = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsRequired(false);
+        if (!reachUsForm?.email || !emailRegex.test(reachUsForm.email) || !reachUsForm?.name || !reachUsForm?.message || !reachUsForm?.subject) {
+            setIsRequired(true);
+            return
+        }
+        setLoading(true);
+        const response: any = await apiRequest({
+            method: "post",
+            url: "/booking/reach-us",
+            data: removeEmptyValues(reachUsForm),
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            showSuccessToast(toastRef, "Contact message sent successfully", "");
+            setReachUsForm(intialReachUsForm);
+        } else {
+            showErrorToast(toastRef, "Failed to send contact message. Please try again.", response?.error);
+        }
+        setLoading(false);
     }
 
 
@@ -63,6 +79,7 @@ const Home: React.FC = () => {
 
     return (
         <>
+            <Toast ref={toastRef} />
             {/* Hero section */}
             <section className="home_hero_section page_init_section overflow-hidden" id="home">
                 <div className="container-md">
@@ -243,7 +260,7 @@ const Home: React.FC = () => {
                             <div className="section_body">
                                 <Slide direction="up" triggerOnce>
                                     <h3 className="section_title text-center">
-                                        <span>Get is touch</span> with us
+                                        <span>Get in touch</span> with us
                                     </h3>
                                 </Slide>
 
@@ -345,10 +362,10 @@ const Home: React.FC = () => {
                                                                                 labelHtmlFor="name"
                                                                                 required={true}
                                                                                 inputType="text"
-                                                                                value={name}
+                                                                                value={reachUsForm?.name}
                                                                                 placeholder="Your name"
-                                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                                                                                error={nameError}
+                                                                                onChange={handleInputChange}
+                                                                                error={(isRequired && !reachUsForm.name) ? "Name is required!" : ""}
                                                                                 name="name"
                                                                             />
                                                                         </div>
@@ -360,10 +377,10 @@ const Home: React.FC = () => {
                                                                                 labelHtmlFor="email"
                                                                                 required={true}
                                                                                 inputType="email"
-                                                                                value={email}
+                                                                                value={reachUsForm.email}
                                                                                 placeholder="Your email"
-                                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                                                                                error={emailError}
+                                                                                onChange={handleInputChange}
+                                                                                error={(isRequired && !reachUsForm.email) ? "Email is required!" : (!emailRegex.test(reachUsForm?.email) && reachUsForm?.email) ? "Please enter valid email!" : ""}
                                                                                 name="email"
                                                                             />
                                                                         </div>
@@ -375,10 +392,10 @@ const Home: React.FC = () => {
                                                                                 labelHtmlFor="subject"
                                                                                 required={true}
                                                                                 inputType="text"
-                                                                                value={subject}
+                                                                                value={reachUsForm.subject}
                                                                                 placeholder="Subject"
-                                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSubject(e.target.value)}
-                                                                                error={subjectError}
+                                                                                onChange={handleInputChange}
+                                                                                error={(isRequired && !reachUsForm.subject) ? "Subject is required!" : ""}
                                                                                 name="subject"
                                                                             />
                                                                         </div>
@@ -389,10 +406,11 @@ const Home: React.FC = () => {
                                                                                 label="Message"
                                                                                 labelHtmlFor="message"
                                                                                 required={true}
-                                                                                value={message}
+                                                                                value={reachUsForm.message}
                                                                                 placeholder="Your message"
-                                                                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setMessage(e.target.value)}
-                                                                                error={messageError}
+                                                                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReachUsForm({ ...reachUsForm, message: e.target.value })}
+                                                                                error={(isRequired && !reachUsForm.message) ? "Message is required!" : ""}
+
                                                                             />
                                                                         </div>
 
