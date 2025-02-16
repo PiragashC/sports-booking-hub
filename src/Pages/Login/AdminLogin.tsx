@@ -40,46 +40,35 @@ const AdminLogin: React.FC = () => {
 
     const login = async (loginInfo: SignInInfo) => {
         setLoading(true);
-        try {
-            const response = await apiRequest<any>({
-                method: "post",
-                url: "/auth/login",
-                data: loginInfo,
-            });
+        const response = await apiRequest<any>({
+            method: "post",
+            url: "/auth/login",
+            data: loginInfo,
+        });
 
-            if (response?.accessToken && !response.error) {
-                showSuccessToast(
-                    toast,
-                    "Login Successful",
-                    "You have been logged in successfully"
-                );
+        if (response?.accessToken && !response.error) {
+            showSuccessToast(
+                toast,
+                "Login Successful",
+                "You have been logged in successfully"
+            );
 
-                setTimeout(() => {
-                    dispatch(
-                        setLogin({
-                            user: response.userDto || null,
-                            token: response.accessToken,
-                        })
-                    );
-                }, 1000);
-            } else {
-                // showErrorToast(
-                //     toast,
-                //     "Failed to Log In",
-                //     "Retry with correct login credentials"
-                // );
-                showErrorToast(
-                    toast,
-                    "Failed to Log In",
-                    response?.error
+            setTimeout(() => {
+                dispatch(
+                    setLogin({
+                        user: response.userDto || null,
+                        token: response.accessToken,
+                    })
                 );
-                setLoading(false);
-            }
-        } catch (error) {
-            console.error("Login error:", error);
-            showErrorToast(toast, "Login Error", "An unexpected error occurred.");
-            setLoading(false);
+            }, 1000);
+        } else {
+            showErrorToast(
+                toast,
+                "Failed to Log In",
+                response?.error
+            );
         }
+        setLoading(false);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -158,11 +147,7 @@ const AdminLogin: React.FC = () => {
                                                         name="password"
                                                     />
                                                 </div>
-                                                {require && !signInInfo.password && (
-                                                    <small className="auth_form_error">
-                                                        This field is required
-                                                    </small>
-                                                )}
+                                                {require && !signInInfo.password && (<small className="auth_form_error">This field is required</small>)}
                                             </div>
 
                                             {/* <div className="auth_form_group">

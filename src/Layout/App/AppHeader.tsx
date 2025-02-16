@@ -27,6 +27,7 @@ const AppHeader: React.FC = () => {
             accept: () => { dispatch(setLogout()); },
         });
     }
+
     return (
         <>
             <ConfirmDialog />

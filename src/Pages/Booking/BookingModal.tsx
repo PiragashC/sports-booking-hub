@@ -24,6 +24,7 @@ import { removeEmptyValues, showSuccessToast, showErrorToast } from "../../Utils
 import { loadStripe, PaymentIntent, Stripe } from "@stripe/stripe-js";
 import StripePayment from "../../Components/Stripe/StripePayment";
 import { Toast } from "primereact/toast";
+import { useSelector } from "react-redux";
 
 interface BookingFormData {
     email: string;
@@ -47,8 +48,8 @@ interface BookingModalProps {
 }
 
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, fetchBookingsForCalenderView }) => {
+    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
     const [loading, setLoading] = useState<boolean>(false);
-    const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
     const [bookingStep, setBookingStep] = useState<number>(1);
     const [timeListData, setTimeListData] = useState<TimeList[]>([]);
     const [lanesListData, setLanesListData] = useState<Lane[]>([]);
@@ -57,6 +58,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const [bookingPrice, setBookingPrice] = useState<number>(0);
     const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
+    const [laneError, setLaneError] = useState<boolean>(false);
     const [isAgree, setIsAgree] = useState<{ terms: boolean, privacy: boolean }>({ terms: false, privacy: false });
 
     const initialBookingFormData = {
@@ -382,6 +384,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     };
 
     const fetchLanes = async () => {
+        setLaneError(false);
         setLanesListData([]);
 
         const response = await apiRequest({
@@ -400,6 +403,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
             id: laneObj?.laneId || 0,
             name: laneObj?.laneName || ""
         })) : []);
+        setLaneError(true);
         fetchBookingsForCalenderView && fetchBookingsForCalenderView();
     };
 
@@ -556,7 +560,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     placeholder="Select date(s)"
                                                     className="multi_date_input_area w-100"
                                                     inputClassName="multi_date_input"
-                                                    minDate={new Date()}
+                                                    minDate={token ? undefined : new Date()}
                                                 // minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
                                                 />
                                                 {bookingDates && bookingDates?.length > 0 && (
@@ -670,7 +674,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                 disabled={lanesListData?.length === 0}
                                             />
 
-                                            {(lanesListData?.length === 0 && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) && (
+                                            {(laneError && lanesListData?.length === 0 && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) && (
                                                 <small className="form_error_msg">No lanes available for your date and time!</small>
                                             )}
 
@@ -840,7 +844,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                             <div className="price_info_area">
                                                 <label htmlFor='bookingPrice' className={`custom_form_label`}>Booking price</label>
                                                 <h3 className="price_text">
-                                                    {bookingPrice === 0 ? "Calculating..." : `$ ${String(bookingPrice).padStart(2, '0')}`}
+                                                    {bookingPrice === 0 ? "Calculating..." : `$ ${bookingPrice.toFixed(2)} (Tax included.)`}
                                                 </h3>
 
                                                 {/* <p className="form_info">
