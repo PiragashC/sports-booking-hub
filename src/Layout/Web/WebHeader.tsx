@@ -54,7 +54,7 @@ const WebHeader: React.FC = () => {
                     <div className="web_sub_header_area">
                         <Link to={`https://maps.app.goo.gl/uMLQimJ1LNyDjt5d9`} target="_blank" className="sub_header_link">
                             <i className="bi bi-geo-alt-fill me-2"></i>
-                            Oxbury Mall, 1295 Oxford St E, London, ON N5Y 4W4
+                            Oxbury Mall, 1299 Oxford St E, London, ON N5Y 4W4
                         </Link>
 
                         <div className="web_sub_header_sub">
