@@ -844,12 +844,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                             <div className="price_info_area">
                                                 <label htmlFor='bookingPrice' className={`custom_form_label`}>Booking price</label>
                                                 <h3 className="price_text">
-                                                    {bookingPrice === 0 ? "Calculating..." : `$ ${bookingPrice.toFixed(2)} (Tax included.)`}
+                                                    {bookingPrice === 0 ? "Calculating..." : `$ ${bookingPrice.toFixed(2)}`}
                                                 </h3>
 
-                                                {/* <p className="form_info">
-                                                    There is no charge for this booking, however we still need a valid credit card in order to secure it and prevent abuse. Rest assured that your credit card will not be charged.
-                                                </p> */}
+                                                {bookingPrice && bookingPrice !== 0 && <span className="form_info">
+                                                    (Tax included.)
+                                                </span>}
                                                 <hr />
                                                 <label htmlFor='bookingCancellation' className={`custom_form_label`}>Facility Disclaimer</label>
                                                 <p className="form_info mt-2">

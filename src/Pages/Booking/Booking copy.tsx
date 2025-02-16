@@ -49,7 +49,7 @@ const BookingCopy: React.FC = () => {
     const [calenderBookings, setCalenderBookings] = useState<any[]>([]);
     const [monthViewEvents, setMonthViewEvents] = useState<any[]>([]);
     const monthViewModeRef = useRef(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
 
     const handleNewBooking = () => {
         setShowBookingModal(true);
