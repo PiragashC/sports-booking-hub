@@ -110,10 +110,9 @@
     }
 
     .web_sub_header_sub {
-        gap: 10px;
         flex-direction: column;
         justify-content: center;
-        row-gap: 0px;
+        row-gap: 0px !important;
     }
 
     .sub_header_link {
