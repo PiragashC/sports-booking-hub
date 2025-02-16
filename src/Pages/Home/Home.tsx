@@ -13,7 +13,7 @@ import TextArea from "../../Components/TextArea";
 const Home: React.FC = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
-
+    const [isScrolled, setIsScrolled] = useState<boolean>(false);
     const [featuresData, setFeaturesData] = useState<Features[]>([]);
 
     useEffect(() => {
@@ -61,10 +61,26 @@ const Home: React.FC = () => {
         }
     };
 
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 0) {
+                setIsScrolled(true);
+            } else {
+                setIsScrolled(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
     return (
         <>
             {/* Hero section */}
-            <section className="home_hero_section page_init_section overflow-hidden" id="home">
+            <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home">
                 <div className="container-md">
                     <div className="row">
                         <div className="col-12">
@@ -87,7 +103,7 @@ const Home: React.FC = () => {
                                     </p>
                                 </Slide>
 
-                                <Zoom delay={200} duration={1500} triggerOnce>
+                                <Zoom delay={200} duration={1500} triggerOnce className="w-100">
                                     <div className="home_hero_buttons">
                                         <Button
                                             label="Book Cricket Lane"
@@ -105,7 +121,7 @@ const Home: React.FC = () => {
                             </article>
                         </div>
 
-                        <div className="col-12 col-xl-5 mx-auto">
+                        <div className="col-12 col-xl-5 col-md-8 col-sm-8 mx-auto">
                             <Slide direction="up" triggerOnce delay={100}>
                                 <article className="home_hero_card">
                                     <div className="home_hero_card_header">
@@ -166,6 +182,17 @@ const Home: React.FC = () => {
                                             Contact Us today to learn more about our programs, schedule a visit, or book a session. We can’t wait to see you on the field!
                                         </p>
                                     </Fade>
+
+                                    <Slide direction="up" delay={200} duration={1500} triggerOnce>
+                                        <div className="home_hero_buttons justify-content-start">
+                                            <Button
+                                                icon={`ri ri-customer-service-fill`}
+                                                label="Contact us"
+                                                className="custom_button secondary custom"
+                                                onClick={() => scrollToSection("contact")}
+                                            />
+                                        </div>
+                                    </Slide>
                                 </div>
                             </div>
                         </div>
@@ -204,7 +231,7 @@ const Home: React.FC = () => {
                                     {featuresData && featuresData?.length > 0 && (
                                         <div className="row features_row">
                                             {featuresData?.map((feature, index) => (
-                                                <div key={feature?.id} className="col-12 col-xl-4 col-md-6 features_col">
+                                                <div key={feature?.id} className="col-12 col-xl-4 col-md-6 col-sm-8 mx-auto features_col">
                                                     <Slide direction="up" delay={index * 50} triggerOnce className="feature_card_area h-100">
                                                         <article className="feature_card">
                                                             <div className="feature_card_header">
@@ -254,8 +281,8 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <div className="section_content">
-                                    <div className="row">
-                                        <div className="col-12 col-md-4">
+                                    <div className="row contact_us_row">
+                                        <div className="col-12 col-md-12 col-sm-8 mx-auto col-lg-4">
                                             <Zoom triggerOnce className="h-100">
                                                 <article className="contact_us_card">
                                                     <div className="contact_card_icon">
@@ -273,7 +300,7 @@ const Home: React.FC = () => {
                                             </Zoom>
                                         </div>
 
-                                        <div className="col-12 col-md-4">
+                                        <div className="col-12 col-md-6 col-sm-8 mx-auto col-lg-4">
                                             <Zoom triggerOnce delay={100} className="h-100">
                                                 <article className="contact_us_card high_lighted">
                                                     <div className="contact_card_icon">
@@ -295,7 +322,7 @@ const Home: React.FC = () => {
                                             </Zoom>
                                         </div>
 
-                                        <div className="col-12 col-md-4">
+                                        <div className="col-12 col-md-6 col-sm-8 mx-auto col-lg-4">
                                             <Zoom triggerOnce delay={200} className="h-100">
                                                 <article className="contact_us_card">
                                                     <div className="contact_card_icon">

@@ -12,12 +12,14 @@ const WebFooter: React.FC = () => {
 
     return (
         <>
+            
+
             <footer className="footer_section">
                 <div className="main_footer">
                     <div className="container-md">
                         <div className="row">
                             <div className="col-12 col-xl-4 col-lg-4">
-                                <div className="footer_content_area">
+                                <div className="footer_content_area footer_company">
                                     <button type="button" className="footer_logo_link"
                                         onClick={() => scrollToSection("home")}>
                                         <img src="/kover_drive_logo_grayscale.png" alt="Kover Drive" />

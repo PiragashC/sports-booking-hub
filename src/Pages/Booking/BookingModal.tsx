@@ -614,7 +614,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                         optionLabel="label"
                                                         valueTemplate={selectedStartTimeTemplate}
                                                         placeholder="Start time"
-                                                        className="form_dropdown w-100"
+                                                        className="form_dropdown w-100 mb-3 mb-sm-0"
                                                         showClear
                                                     />
                                                 </div>
@@ -744,6 +744,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
                                                 </label>
                                             </div>
+
+                                            <p className="note_text">
+                                                <i className="bi bi-info-circle me-1"></i>
+                                                Please click on <b>'Terms and Conditions'</b> and <b>'Privacy Policy'</b> and read them clearly, accept them by clicking the checkbox and proceed with your booking.
+                                            </p>
                                         </div>
                                     </div>
 

@@ -32,7 +32,7 @@ const AppHeader: React.FC = () => {
             <ConfirmDialog />
             <header className="app_header">
                 <nav className="app_nav">
-                    <div className="app_nav_area">
+                    <div className={`app_nav_area ${token && 'justify-content-between'}`}>
                         <Link to={'/booking'} className="app_nav_logo_link">
                             <img src="/kover_drive_logo.png" alt="Kover Drive" />
                         </Link>
@@ -40,16 +40,17 @@ const AppHeader: React.FC = () => {
                         <div className="head_title">
                             Kover Drive&nbsp;<span>- Booking</span>
                         </div>
-                        {token && <>
-                            <div className="flex-grow-1"></div>
 
+                        {token && <>
                             <div className="d-flex">
                                 <Button
-                                    label={`Log Out`}
+                                    icon={`ri-logout-circle-line`}
+                                    label={`Logout`}
                                     onClick={handleLogOut}
                                     loading={false}
                                     severity="danger"
                                     disabled={false}
+                                    className='logout_btn'
                                 />
                             </div>
                         </>}

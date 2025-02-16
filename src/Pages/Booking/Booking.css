@@ -88,7 +88,7 @@
     margin-bottom: 0;
 }
 
-.form_info span{
+.form_info span {
     color: rgba(0, 0, 0, 0.8);
     font-weight: 500;
 }
@@ -122,30 +122,38 @@
     border-radius: 13px;
 }
 
-.booking_time_line_view.day_mode .fc-timeGridDay-view .fc-scrollgrid thead tr {
+.booking_time_line_view .fc-scrollgrid thead tr {
     background-color: var(--color-secondary) !important;
     border-bottom: 2px solid #FFF;
 }
 
-.booking_time_line_view.day_mode .fc-timeGridDay-view .fc-scrollgrid thead tr th th {
+.booking_time_line_view .fc-scrollgrid thead tr th th {
     padding: 6px;
 }
 
-.booking_time_line_view.day_mode .fc-timeGridDay-view .fc-scrollgrid thead tr th a {
+.booking_time_line_view .fc-scrollgrid thead tr th a {
     color: #FFF !important;
     text-decoration: none;
     font-weight: 500 !important;
 
 }
 
-.booking_time_line_view.day_mode .fc-theme-standard .fc-scrollgrid {
+.booking_time_line_view .fc-theme-standard .fc-scrollgrid {
     border-radius: 13px !important;
 }
 
-.booking_time_line_view.day_mode .fc .fc-timegrid-slot-label-cushion {
+.booking_time_line_view .fc .fc-timegrid-slot-label-cushion {
     font-size: var(--font-size-md);
 }
 
+.fc .fc-daygrid-day-number{
+    text-decoration: none;
+    font-size: var(--font-size-md);
+    color: var(--color-secondary);
+}
+.booking_event i{
+    color: var(--color-primary);
+}
 /*  */
 
 
@@ -227,6 +235,34 @@
     opacity: 0.7;
 }
 
-.fc .fc-daygrid-day-frame{
+.fc .fc-daygrid-day-frame {
     height: 103px !important;
 }
+
+.note_text {
+    font-size: 13.5px;
+    margin-bottom: 0;
+    color: rgba(0, 0, 0, 0.5);
+    font-style: italic;
+    line-height: 1.5em;
+    margin-top: 15px;
+    border-radius: 6px;
+    background-color: #f5f5f5;
+    padding: 10px;
+}
+
+
+.booking_time_line_view .fc-col-header-cell {
+    background-color: var(--color-secondary);
+    color: #FFF;
+}
+
+
+.booking_time_line_view .fc .fc-col-header-cell-cushion{
+    text-decoration: none;
+    color: #FFF;
+    font-weight: 500 !important;
+    font-size: var(--font-size-base);
+}
+
+.fc-scrollgrid-sync-inner{}
