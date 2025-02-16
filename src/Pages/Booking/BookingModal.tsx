@@ -57,8 +57,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const [bookingPrice, setBookingPrice] = useState<number>(0);
     const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
-    const [isAgreeTerms, setIsAgreeTerms] = useState<boolean>(false);
-    const [isAgreePrivacy, setIsAgreePrivacy] = useState<boolean>(false);
+    const [isAgree, setIsAgree] = useState<{ terms: boolean, privacy: boolean }>({ terms: false, privacy: false });
 
     const initialBookingFormData = {
         email: '',
@@ -82,12 +81,26 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const [clientSecret, setClientSecret] = useState<string>("");
     const [bookingId, setBookingId] = useState<string>("");
     const [enableTimeOutComponent, setEnableTimeOutComponent] = useState<boolean>(false);
+    /* For Terms and conditions */
+    const [showTermsConditionModal, setShowTermsConditionModal] = useState<boolean>(false);
+    /* For Privacy policy */
+    const [showPrivacyPolicyModal, setShowPrivacyPolicyModal] = useState<boolean>(false);
 
     useEffect(() => {
         if (isOpen) {
             setTimeListData(timeList);
         }
     }, [isOpen]);
+
+    const checkIsBookingIdInLocal = () => {
+        const bookingIdString = localStorage.getItem("bookingId");
+
+        if (bookingIdString) {
+            const bookingId = JSON.parse(bookingIdString);
+            changeBookingStatus("FAILURE", bookingId);
+        }
+    }
+
 
     const handleClose = () => {
         setLoading(false);
@@ -99,8 +112,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         setBookingPrice(0);
         setBookingDates(null);
         setBookingLanes([]);
-        setIsAgreePrivacy(false);
-        setIsAgreeTerms(false);
+        setIsAgree({ terms: false, privacy: false });
         setBookingFormData(initialBookingFormData);
         setIsRequired(false);
         setIsValidNumber(true);
@@ -108,20 +120,21 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         setClientSecret("");
         setBookingId("");
         setEnableTimeOutComponent(false);
+        localStorage.removeItem("bookingId");
     }
 
-    const changeBookingStatus = async (status: string) => {
+    const changeBookingStatus = async (status: string, localBookingId?: string) => {
         const response = await apiRequest({
             method: "put",
             url: "/booking",
             params: {
-                bookingId,
+                bookingId: localBookingId || bookingId,
                 status
             }
         });
 
         console.log(response);
-        if (response) {
+        if (response && !response.error) {
             if (status === "SUCCESS") {
                 showSuccessToast(toastRef, "Booking Confirmed", "Your payment was successful, and your reservation is confirmed! A confirmation email has been sent to you.");
                 handleClose();
@@ -132,7 +145,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
 
         } else {
             if (status === "SUCCESS") {
-                showErrorToast(toastRef, "Payment Successful, But Confirmation Pending", "Your payment was successful, but we couldn't finalize your reservation. Your booking is marked as pending. Please contact support for confirmation.");
+                // showErrorToast(toastRef, "Payment Successful, But Confirmation Pending", "Your payment was successful, but we couldn't finalize your reservation. Your booking is marked as pending. Please contact support for confirmation.");
+                showErrorToast(toastRef, "Payment Successful, But Confirmation Pending", response?.error);
             }
         }
     }
@@ -140,12 +154,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const onPaymentComplete = (paymentIntent: PaymentIntent | undefined) => {
         console.log(paymentIntent);
         changeBookingStatus("SUCCESS");
+        localStorage.removeItem("bookingId");
     }
 
     const handleCloseBookingModal = () => {
         handleClose();
         if (bookingStep === 3) {
             changeBookingStatus("FAILURE");
+            localStorage.removeItem("bookingId");
         }
     }
 
@@ -173,9 +189,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         });
 
         console.log(response);
-        if (response?.bookingId) {
+        if (response?.bookingId && !response?.error) {
             showSuccessToast(toastRef, "Booking Pending Payment", "Your booking has been successfully created! Please complete the payment to confirm your reservation.")
             setBookingId(response.bookingId);
+            localStorage.setItem("bookingId", JSON.stringify(response.bookingId));
 
             const [configResponse, intentResponse] = await Promise.all([
                 apiRequest<{ stripe_PUBLISHABLE_KEY: string }>({
@@ -202,14 +219,17 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                 setStripePromise(null);
                 setClientSecret("");
                 setLoading(false);
-                showErrorToast(toastRef, "Payment Setup Failed", "We couldn't initialize the payment process. Please try again or contact support if the issue persists.");
+                // showErrorToast(toastRef, "Payment Setup Failed", "We couldn't initialize the payment process. Please try again or contact support if the issue persists.");
+                showErrorToast(toastRef, "Payment Setup Failed", response?.error);
+                localStorage.removeItem("bookingId");
             }
 
 
 
         } else {
             setLoading(false);
-            showErrorToast(toastRef, " Booking Failed", "We couldn’t process your booking due to a technical issue. Please try again later or contact support if the issue persists.");
+            // showErrorToast(toastRef, " Booking Failed", "We couldn’t process your booking due to a technical issue. Please try again later or contact support if the issue persists.");
+            showErrorToast(toastRef, " Booking Failed", response?.error);
         }
         fetchBookingsForCalenderView && fetchBookingsForCalenderView();
     };
@@ -217,7 +237,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const handleConfirmBooking = async (e: React.FormEvent) => {
         setIsRequired(true);
         e.preventDefault();
-        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgreeTerms || !isAgreePrivacy || !bookingFormData?.firstName || !bookingFormData?.lastName || !bookingFormData?.telephoneNumber || !isValidNumber) {
+        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgree?.terms || !isAgree?.privacy || !bookingFormData?.firstName || !bookingFormData?.lastName || !bookingFormData?.telephoneNumber || !isValidNumber) {
             return;
         }
 
@@ -236,43 +256,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     };
 
     const endTimeOptions = getValidEndTimes(bookingFormData.fromTime);
-
-    // const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
-    //     if (e && e?.value) {
-    //         const today = new Date();
-    //         today.setHours(0, 0, 0, 0);
-
-    //         const selectedDates = e.value.map(date => {
-    //             const normalizedDate = new Date(date);
-    //             normalizedDate.setHours(0, 0, 0, 0);
-    //             return normalizedDate;
-    //         });
-
-    //         const isTodaySelected = selectedDates.some(date => date.getTime() === today.getTime());
-
-    //         let finalDates = selectedDates;
-
-    //         if (isTodaySelected) {
-    //             finalDates = [today];
-    //         } else {
-    //             finalDates = selectedDates;
-    //         }
-
-    //         const formattedDates = finalDates.map(date => {
-    //             return date.toISOString().split("T")[0];
-    //         });
-
-    //         setLanesListData([]);
-    //         setBookingLanes([]);
-    //         setBookingFormData({
-    //             ...bookingFormData,
-    //             selectedLanesDtos: [],
-    //             bookingDatesDtos: formattedDates
-    //         });
-
-    //         setBookingDates(finalDates);
-    //     }
-    // };
 
     const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
         if (e && e?.value) {
@@ -362,7 +345,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                 onClick={bookingStep === 1 ? handleStartBooking : bookingStep === 2 ? handleConfirmBooking : undefined}
                 loading={loading}
                 className="custom_btn primary"
-                disabled={bookingStep === 2 ? (!isAgreeTerms || !isAgreePrivacy) : false}
+                disabled={bookingStep === 2 ? (!isAgree?.terms || !isAgree?.privacy) : false}
             />
         </div>
     );
@@ -438,24 +421,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         setBookingPrice(response && response?.bookingPrice ? Number(response.bookingPrice) : 0);
     }
 
-    useEffect(() => {
-        if (bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchLanes();
-    }, [bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
-
-    useEffect(() => {
-        if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
-    }, [bookingFormData?.selectedLanesDtos, bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
-
-
-    /* For Terms and conditions */
-    const [showTermsConditionModal, setShowTermsConditionModal] = useState<boolean>(false);
-
     const handleViewTermsCondition = () => {
         setShowTermsConditionModal(true);
     }
 
     const handleCloseTermsConditionModal = () => {
         setShowTermsConditionModal(false);
+        setIsAgree({ ...isAgree, terms: true });
     }
 
     const termsConditionModalHeader = (
@@ -475,16 +447,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         </div>
     );
     /*  */
-
-    /* For Privacy policy */
-    const [showPrivacyPolicyModal, setShowPrivacyPolicyModal] = useState<boolean>(false);
-
     const handleViewPrivacyPolicy = () => {
         setShowPrivacyPolicyModal(true);
     }
 
     const handleClosePrivacyPolicyModal = () => {
         setShowPrivacyPolicyModal(false);
+        setIsAgree({ ...isAgree, privacy: true });
     }
 
     const privacyPolicyModalHeader = (
@@ -503,6 +472,19 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
             />
         </div>
     );
+
+
+    useEffect(() => {
+        if (bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchLanes();
+    }, [bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
+
+    useEffect(() => {
+        if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
+    }, [bookingFormData?.selectedLanesDtos, bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
+
+    useEffect(() => { checkIsBookingIdInLocal() }, []);
+
+
     /*  */
 
     return (
@@ -650,12 +632,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                     {(isRequired && (!bookingFormData?.fromTime || !bookingFormData?.fromTime)) && (
                                         <small className="form_error_msg">Booking time range required!</small>
                                     )}
-                                    <div className="col-12">
+                                    {/* <div className="col-12">
                                         <div className="message_label danger mb-4">
                                             <i className="bi bi-exclamation-triangle-fill me-2"></i>
                                             Your booking doesn't meet the advance-notice requirements. Bookings are not allowed to be made less than 1 hour in advance.
                                         </div>
-                                    </div>
+                                    </div> */}
 
 
 
@@ -719,19 +701,24 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                         <div className="page_form_group mb-0">
                                             <div className="form_check_area">
                                                 <Checkbox
-                                                    inputId="isAgreeTerms"
-                                                    name="isAgreeTerms"
-                                                    value={isAgreeTerms}
+                                                    inputId="isAgree"
+                                                    name="isAgree"
+                                                    value={isAgree?.privacy && isAgree?.terms}
                                                     className="form_checkbox"
-                                                    onChange={e => setIsAgreeTerms(e.checked ?? false)}
-                                                    checked={isAgreeTerms}
+                                                    checked={isAgree?.privacy && isAgree?.terms}
                                                 />
-                                                <label htmlFor="isAgreeTerms" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
-                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>
+                                                <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
+                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>&nbsp;&&nbsp;
+                                                    <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
                                                 </label>
                                             </div>
 
-                                            <div className="form_check_area pt-2">
+                                            <p className="note_text">
+                                                <i className="bi bi-info-circle me-1"></i>
+                                                Please click on <b>'Terms and Conditions'</b> and <b>'Privacy Policy'</b> and read them clearly, accept them by clicking on the 'Ok' button and proceed with your booking.
+                                            </p>
+
+                                            {/* <div className="form_check_area pt-2">
                                                 <Checkbox
                                                     inputId="isAgreePrivacy"
                                                     name="isAgreePrivacy"
@@ -743,12 +730,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                 <label htmlFor="isAgreePrivacy" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
                                                     <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
                                                 </label>
-                                            </div>
-
-                                            <p className="note_text">
-                                                <i className="bi bi-info-circle me-1"></i>
-                                                Please click on <b>'Terms and Conditions'</b> and <b>'Privacy Policy'</b> and read them clearly, accept them by clicking the checkbox and proceed with your booking.
-                                            </p>
+                                            </div> */}
                                         </div>
                                     </div>
 

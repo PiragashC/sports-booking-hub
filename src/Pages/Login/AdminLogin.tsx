@@ -47,7 +47,7 @@ const AdminLogin: React.FC = () => {
                 data: loginInfo,
             });
 
-            if (response?.accessToken) {
+            if (response?.accessToken && !response.error) {
                 showSuccessToast(
                     toast,
                     "Login Successful",
@@ -63,10 +63,15 @@ const AdminLogin: React.FC = () => {
                     );
                 }, 1000);
             } else {
+                // showErrorToast(
+                //     toast,
+                //     "Failed to Log In",
+                //     "Retry with correct login credentials"
+                // );
                 showErrorToast(
                     toast,
                     "Failed to Log In",
-                    "Retry with correct login credentials"
+                    response?.error
                 );
                 setLoading(false);
             }

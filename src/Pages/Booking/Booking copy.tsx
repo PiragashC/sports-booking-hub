@@ -246,12 +246,13 @@ const BookingCopy: React.FC = () => {
             token
         });
         console.log(response);
-        if (response) {
+        if (response && !response?.error) {
             showSuccessToast(toastRef, "Success", "Booking deleted successfully. The space is now available.");
             setShowBookingDetailsModal(false);
             fetchBookingsForCalenderView();
         } else {
-            showErrorToast(toastRef, "Error", "Failed to delete booking. Please try again.");
+            // showErrorToast(toastRef, "Error", "Failed to delete booking. Please try again.");
+            showErrorToast(toastRef, "Failed to delete booking. Please try again.", response?.error);
         }
     }
 

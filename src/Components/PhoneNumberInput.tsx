@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PhoneInput, { CountryData } from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -14,7 +14,7 @@ interface PhoneInputProps {
     onChange?: (value: string) => void;
     error?: string;
     formGroupClassName?: string;
-    setIsValidNumber?: React.Dispatch<React.SetStateAction<boolean>>
+    setIsValidNumber?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const PhoneNumberInput: React.FC<PhoneInputProps> = ({
@@ -31,28 +31,32 @@ const PhoneNumberInput: React.FC<PhoneInputProps> = ({
 }) => {
     const [countryCode, setCountryCode] = useState<CountryCode | undefined>();
 
-
     // Handle phone number change
     const handleChange = (phone: string, country: CountryData) => {
-        setCountryCode(country.countryCode as CountryCode);
+        // Lock the country code to the selected country
+        // setCountryCode(country.countryCode as CountryCode);
         if (onChange) {
             onChange(phone);
-            !phone && setIsValidNumber && setIsValidNumber(true);
         }
     };
 
     // Validate phone number format
-    const isValidPhoneNumber = () => {
-        if (!value || !countryCode) return false;
+    useEffect(() => {
+        if (setIsValidNumber) {
+            const isValid = isValidPhoneNumber(value, countryCode);
+            setIsValidNumber(isValid);
+        }
+    }, [value, countryCode, setIsValidNumber]);
+
+    const isValidPhoneNumber = (phoneValue: string | undefined, code: CountryCode | undefined) => {
+        if (!phoneValue ) return false;
 
         // Ensure value starts with '+' for proper parsing
-        const formattedValue = value.startsWith("+") ? value : `+${value}`;
+        const formattedValue = phoneValue.startsWith("+") ? phoneValue : `+${phoneValue}`;
 
-        const parsed = parsePhoneNumberFromString(formattedValue, countryCode as CountryCode);
-        setIsValidNumber && setIsValidNumber(parsed?.isValid() || false);
+        const parsed = parsePhoneNumberFromString(formattedValue, code);
         return parsed?.isValid() || false;
     };
-
 
     return (
         <div className={`page_form_group ${formGroupClassName || ""}`}>
@@ -66,7 +70,7 @@ const PhoneNumberInput: React.FC<PhoneInputProps> = ({
             )}
 
             <PhoneInput
-                country={countryCode || ""}
+                // country={countryCode} // Lock the country to the selected one
                 value={value}
                 onChange={handleChange}
                 disableDropdown={false}
@@ -76,16 +80,16 @@ const PhoneNumberInput: React.FC<PhoneInputProps> = ({
                     name,
                     required,
                     autoComplete: "off",
-                    disabled: !countryCode, // Disable input if no country is selected
                 }}
                 containerClass="custom_phone_input"
                 dropdownClass="custom_phone_input_dropdown"
                 searchPlaceholder="Search"
                 inputClass={`phone_input ${error ? "invalid" : ""}`}
+                preferredCountries={["ca", "us"]} // Optional: Prioritize Canada and US in the dropdown
             />
 
             {error && <small className="form_error_msg">{error}</small>}
-            {!isValidPhoneNumber() && value && (
+            {!isValidPhoneNumber(value, countryCode) && value && (
                 <small className="form_error_msg">Invalid phone number</small>
             )}
         </div>

@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from "axios";
 
 interface ApiRequestOptions<T = any> {
     method: "get" | "post" | "put" | "delete" | "patch";
@@ -18,7 +18,7 @@ const apiRequest = async <T = any>({
     headers = {},
     contentType,
     token,
-}: ApiRequestOptions<T>): Promise<T> => {
+}: ApiRequestOptions<T>): Promise<any> => {
     try {
         const baseUrl = process.env.REACT_APP_BASEURL || "";
         if (!baseUrl) {
@@ -37,12 +37,13 @@ const apiRequest = async <T = any>({
             },
         };
 
-        const response: AxiosResponse<T> = await axios(config);
+        const response: AxiosResponse = await axios(config);
         return response.data;
     } catch (error) {
         const axiosError = error as AxiosError;
         console.error("API Request Error:", axiosError.response?.data || axiosError.message);
-        throw axiosError.response?.data || new Error("API request failed.");
+        // throw axiosError.response?.data || new Error("API request failed.");
+        return { error: axiosError.response?.data || axiosError.message || "API request failed." };
     }
 };
 
