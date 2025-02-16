@@ -60,7 +60,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
     const [laneError, setLaneError] = useState<boolean>(false);
     const [isAgree, setIsAgree] = useState<{ terms: boolean, privacy: boolean }>({ terms: false, privacy: false });
-
+//test
     const initialBookingFormData = {
         email: '',
         fromTime: '',
