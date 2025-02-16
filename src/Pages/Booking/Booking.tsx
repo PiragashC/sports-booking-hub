@@ -429,6 +429,7 @@ const Booking: React.FC = () => {
                                 onChange={(e) => setDate(e.value as Date)}
                                 dateFormat="DD, MM dd, yy"
                                 inputClassName="date_selection_input"
+                                className="date_picker_input"
                                 view="date"
                                 minDate={today}
                                 showIcon
@@ -465,6 +466,7 @@ const Booking: React.FC = () => {
                                 ref={calendarRef}
                                 value={month}
                                 selectionMode="single"
+                                className="date_picker_input"
                                 onChange={(e) => setMonth(e.value as Date)}
                                 view="month"
                                 dateFormat="MM yy"
@@ -545,7 +547,7 @@ const Booking: React.FC = () => {
                             />
                         </div>
                     ) : bookingViewMode === 'Month' ? (
-                        <div className="booking_time_line_view day_mode">
+                        <div className="booking_time_line_view month_mode">
                             <FullCalendar
                                 key={`month_view_${month.getMonth() + 1}`}
                                 // plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}

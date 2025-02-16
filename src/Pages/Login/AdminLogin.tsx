@@ -120,11 +120,17 @@ const AdminLogin: React.FC = () => {
                                                         keyfilter={'email'}
                                                     />
                                                 </div>
-                                                {require && !signInInfo.email && (<small className="auth_form_error">This field is required</small>)}
-                                                <small className="auth_form_error">{!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signInInfo.email) &&
-                                                    signInInfo.email
-                                                    ? "Enter a valid email"
-                                                    : ""}</small>
+                                                {require && !signInInfo.email && (
+                                                    <small className="auth_form_error">
+                                                        This field is required
+                                                    </small>
+                                                )}
+                                                
+                                                {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signInInfo.email) && signInInfo.email && (
+                                                    <small className="auth_form_error">
+                                                        Enter a valid email
+                                                    </small>
+                                                )}
                                             </div>
 
                                             <div className="auth_form_group">

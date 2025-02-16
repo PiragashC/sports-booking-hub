@@ -8,13 +8,157 @@
 @media only screen and (min-width: 992px) and (max-width: 1199px) {}
 
 /* For MD (Medium) Screen (ipad) */
-@media only screen and (min-width: 768px) and (max-width: 991px) {}
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+    .home_hero_content h1 {
+        font-size: 40px;
+    }
+
+    .home_hero_content h2 {
+        font-size: 25px;
+    }
+
+    .section_title {
+        font-size: 32px !important;
+    }
+
+    .section_image_area {
+        margin-top: 60px !important;
+        width: 70% !important;
+    }
+
+    .contact_us_card {
+        padding: 25px 20px;
+    }
+
+    .contact_card_link_group a {
+        font-size: var(--font-size-md);
+    }
+}
 
 /* For SM (Small) Screen (Tab) */
-@media (min-width: 576px) and (max-width: 767px) {}
+@media (min-width: 576px) and (max-width: 767px) {
+    .home_hero_content h1 {
+        font-size: 40px;
+    }
+
+    .home_hero_content h2 {
+        font-size: 25px;
+    }
+
+    .section_title {
+        font-size: 32px !important;
+    }
+
+    .section_image_area {
+        margin-top: 60px !important;
+        width: 70% !important;
+    }
+
+    .contact_us_card {
+        padding: 25px 20px;
+    }
+
+    .contact_card_link_group a {
+        font-size: var(--font-size-md);
+    }
+}
 
 /* For Mobile Screen */
-@media (max-width: 575px) {}
+@media (max-width: 575px) {
+    .home_hero_content h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+
+    .home_hero_content {
+        padding: 0 10px;
+    }
+
+    .home_hero_content h2 {
+        font-size: 22px;
+    }
+
+    .home_hero_content p {
+        font-size: var(--font-size-md);
+        margin-bottom: 10px;
+        max-width: 100%;
+    }
+
+    .home_hero_buttons {
+        gap: 10px;
+    }
+
+    .home_hero_buttons {
+        width: 100%;
+    }
+
+    .custom_button.p-button {
+        width: 100%;
+        min-width: auto;
+        font-size: var(--font-size-sm);
+    }
+
+    .custom_button.p-button.custom {
+        width: auto;
+        min-width: 150px !important;
+        font-size: var(--font-size-sm);
+    }
+
+    .home_hero_card_header h4,
+    .home_hero_card_footer h3 {
+        font-size: var(--font-size-lg);
+    }
+
+    .feature_card .feature_title {
+        font-size: 17px;
+    }
+
+    .feature_icon_area {
+        width: 55px;
+        height: 55px;
+    }
+
+    .contact_card_icon {
+        width: 60px;
+        height: 60px;
+    }
+
+    .contact_card_icon i {
+        font-size: 28px;
+    }
+
+    .feature_card_header {
+        padding: 8px;
+    }
+
+    .contact_card_link_group a {
+        font-size: var(--font-size-md);
+    }
+
+    .contact_card_head {
+        font-size: 20px;
+    }
+
+    .contact_form {
+        padding: 30px 20px;
+    }
+
+    .contact_form_head {
+        font-size: 22px;
+    }
+
+    .map_container {
+        border-bottom-right-radius: 0;
+        border-bottom-left-radius: 0;
+        min-height: 350px !important;
+        border-right: none;
+        border-bottom: 1px solid #DDD;
+    }
+
+    .contact_us_card {
+        row-gap: 10px;
+    }
+}
 
 /* For custom */
 @media (max-width: 991.5px) {}

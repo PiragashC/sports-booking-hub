@@ -6,10 +6,11 @@ import { goToTop } from "../../Components/GoToTop";
 const WebHeader: React.FC = () => {
     const navigate = useNavigate();
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
+    const [menuToggled, setMenuToggled] = useState<boolean>(false);
 
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 80) {
+            if (window.scrollY > 0) {
                 setIsScrolled(true);
             } else {
                 setIsScrolled(false);
@@ -23,12 +24,28 @@ const WebHeader: React.FC = () => {
         };
     }, []);
 
+    // const scrollToSection = (id: string) => {
+    //     const element = document.getElementById(id);
+    //     if (element) {
+    //         element.scrollIntoView({ behavior: "smooth", block: "start" });
+    //     }
+    // };
+
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "start" });
+            const offset = 20;
+            const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({
+                top: elementPosition - offset,
+                behavior: "smooth",
+            });
         }
     };
+
+    const handleToggleMenu = () => {
+        setMenuToggled(!menuToggled);
+    }
 
     return (
         <>
@@ -59,6 +76,7 @@ const WebHeader: React.FC = () => {
                     </div>
                 </div>
             </div>
+
             <header className={`web_header ${isScrolled && 'scrolled'}`}>
                 <div className="web_navbar">
                     <div className="container-md">
@@ -71,30 +89,47 @@ const WebHeader: React.FC = () => {
                                 </button>
                             </div>
 
-                            <ul className="web_nav_link_list">
+                            <ul className={`web_nav_link_list ${menuToggled && 'show'}`}>
                                 <li className="web_nav_link_item">
                                     <button type="button" className="web_nav_link"
-                                        onClick={() => scrollToSection("about")}>
+                                        onClick={() => {
+                                            scrollToSection("about");
+                                            setMenuToggled(false);
+                                        }}>
                                         About
                                     </button>
                                 </li>
 
                                 <li className="web_nav_link_item">
                                     <button type="button" className="web_nav_link"
-                                        onClick={() => scrollToSection("features")}>
+                                        onClick={() => {
+                                            scrollToSection("features");
+                                            setMenuToggled(false);
+                                        }}>
                                         Features
                                     </button>
                                 </li>
 
                                 <li className="web_nav_link_item">
                                     <button type="button" className="web_nav_link"
-                                        onClick={() => scrollToSection("contact")}>
+                                        onClick={() => {
+                                            scrollToSection("contact");
+                                            setMenuToggled(false);
+                                        }}>
                                         Contact us
                                     </button>
                                 </li>
                             </ul>
 
                             <div className="web_nav_btn_area">
+                                <button className={`toggle_btn ${menuToggled && ' toggled'} p-ripple`}
+                                    onClick={handleToggleMenu}>
+                                    {menuToggled ? (
+                                        <i className="ri-close-large-fill"></i>
+                                    ) : (
+                                        <i className="ri-menu-fill"></i>
+                                    )}
+                                </button>
                                 <button className="web_nav_btn p-ripple"
                                     onClick={() => {
                                         navigate(`/booking`);
@@ -108,6 +143,8 @@ const WebHeader: React.FC = () => {
                     </div>
                 </div>
             </header>
+
+            <div className={`menu_backdrop ${menuToggled && ' show'}`} onClick={() => setMenuToggled(false)}></div>
         </>
     )
 }

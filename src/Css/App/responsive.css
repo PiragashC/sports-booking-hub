@@ -14,7 +14,93 @@
 @media (min-width: 576px) and (max-width: 767px) {}
 
 /* For Mobile Screen */
-@media (max-width: 575px) {}
+@media (max-width: 575px) {
+    .app_header .app_nav .app_nav_area {
+        padding: 0 15px;
+        gap: 10px;
+    }
+
+    .head_title {
+        font-size: 18px;
+        margin-bottom: 0;
+    }
+
+    .app_header {
+        height: 65px;
+    }
+
+    .page_content {
+        padding: 80px 15px 15px;
+    }
+
+    .view_option_switch {
+        height: 40px;
+        font-size: var(--font-size-sm);
+    }
+
+    .page_tabs_area {
+        gap: 8px;
+    }
+
+    .nav_btn_switch {
+        height: 40px;
+    }
+
+    .page_sub_header_area {
+        padding-bottom: 10px;
+    }
+
+    .page_tab_btn {
+        height: 35px;
+        font-size: var(--font-size-sm);
+        min-width: 110px;
+    }
+
+    .new_data_button {
+        align-self: flex-end;
+        font-size: var(--font-size-sm);
+    }
+
+    .booking_time_line_view.day_mode .fc .fc-timegrid-slot-label-cushion {
+        font-size: var(--font-size-sm);
+    }
+
+    .booking_time_line_view.day_mode .fc-timeGridDay-view .fc-scrollgrid thead tr th a {
+        font-size: var(--font-size-sm);
+    }
+
+    .p-datepicker-trigger,
+    .date_selection_input.p-inputtext {
+        height: 40px;
+    }
+
+    .p-calendar.p-inputwrapper {
+        width: 100%;
+    }
+
+    .p-dialog .p-dialog-footer .custom_modal_footer .p-button {
+        height: 40px;
+        font-size: var(--font-size-sm) !important;
+    }
+
+    .logout_btn{
+        height: 35px;
+        padding: 6px 10px !important;
+        font-size: var(--font-size-sm);
+    }
+}
 
 /* For custom */
-@media (max-width: 991.5px) {}
+@media (max-width: 991.5px) {
+    .page_sub_header_area {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page_tabs_area {
+        border-bottom: 1px solid var(--color-secondary);
+        padding-bottom: 10px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+    }
+}

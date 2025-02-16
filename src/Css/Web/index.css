@@ -6,6 +6,7 @@
     position: relative;
     width: 100%;
     padding: 120px 0 100px;
+    transition: padding ease 0.3s;
 }
 
 .page_section {
@@ -26,7 +27,7 @@
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
-    transition: ease 0.3s;
+    transition: top ease 0.3s, ease 0.3s;;
     z-index: 999;
 }
 
@@ -38,7 +39,7 @@
     height: 40px;
     width: 100%;
     top: 0;
-    z-index: 2;
+    z-index: 998;
     left: 0;
     color: #EEE;
 }
@@ -160,7 +161,7 @@
 .web_nav_btn_area {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     position: relative;
 }
 
@@ -249,7 +250,7 @@
     border-radius: 40px;
     background-color: #EEE;
     overflow: hidden;
-    width: 80%;
+    width: 85%;
     height: 100%;
     margin: auto;
     border: 4px solid #FFF;
@@ -341,6 +342,7 @@
     list-style: none;
     gap: 10px;
     padding: 20px 0 0 0 !important;
+    margin-bottom: 0;
 }
 
 .footer_link_item {
@@ -409,4 +411,37 @@
 .footer_social_link:hover {
     background-color: var(--color-primary);
     color: #FFF;
+}
+
+.toggle_btn {
+    border: none;
+    outline: none;
+    position: relative;
+    border-radius: 6px;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0.3);
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: ease 0.3s;
+    color: var(--color-secondary);
+    display: none;
+}
+
+.toggle_btn.toggled i {
+    transform: rotateX(180deg);
+}
+
+
+.toggle_btn i {
+    line-height: 0;
+    font-size: 20px;
+    display: block;
+    transition: ease 0.5s;
+}
+
+.toggle_btn:focus {
+    outline: none;
+    border: none;
 }

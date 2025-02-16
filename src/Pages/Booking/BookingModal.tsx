@@ -600,7 +600,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                         optionLabel="label"
                                                         valueTemplate={selectedStartTimeTemplate}
                                                         placeholder="Start time"
-                                                        className="form_dropdown w-100"
+                                                        className="form_dropdown w-100 mb-3 mb-sm-0"
                                                         showClear
                                                     />
                                                 </div>
@@ -716,6 +716,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
                                                 </label>
                                             </div>
+
+                                            <p className="note_text">
+                                                <i className="bi bi-info-circle me-1"></i>
+                                                Please click on <b>'Terms and Conditions'</b> and <b>'Privacy Policy'</b> and read them clearly, accept them by clicking on the 'Ok' button and proceed with your booking.
+                                            </p>
 
                                             {/* <div className="form_check_area pt-2">
                                                 <Checkbox
@@ -871,7 +876,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                 changeBookingStatus={changeBookingStatus}
                                 handleClose={() => { setEnableTimeOutComponent(true); }}
                             /> : <div>
-                                <p>Oops! time out for your booking</p>
+
+                                <div className="message_label danger mb-4">
+                                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                                    Oops! Your booking time has expired.
+                                </div>
+
                                 <Button
                                     label="Start new slot for booking"
                                     className="custom_btn secondary"
@@ -900,7 +910,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                         <div className="content_group">
                             <h6 className="content_head">Liability Release Waiver</h6>
                             <h6 className="content_head">Kover Drive Cricket</h6>
-                            <h6 className="content_head">Liability Release Waiver</h6>
                         </div>
 
                         <div className="content_group">

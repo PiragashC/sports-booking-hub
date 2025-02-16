@@ -68,8 +68,15 @@
 .app_footer_area {
     display: flex;
     align-items: center;
+    justify-content: center;
     height: 100%;
     padding: 0 20px;
+    width: 100%;
+}
+
+.app_footer_area  .sub_footer_desc{
+    color: rgba(0, 0, 0, 0.6);
+    text-align: center;
 }
 
 .page_content {

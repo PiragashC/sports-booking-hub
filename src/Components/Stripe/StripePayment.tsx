@@ -44,7 +44,11 @@ const StripePayment: React.FC<StripePaymentProps> = ({ stripePromise, clientSecr
 
   return (
     <>
-      <div className="timer">Time Left: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</div>
+      <div className="timer">
+        <i className="bi bi-clock-fill me-2"></i>
+        Time Left:&nbsp;<span>{Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}</span>
+      </div>
+
       <Elements stripe={stripePromise} options={options}>
         <CheckoutForm
           onPaymentComplete={onPaymentComplete}

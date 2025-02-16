@@ -1,10 +1,11 @@
 .home_hero_section {
-    /* background-image: url(../../../public/web_assets/bg_img.jpg);
-    background-position: left;
-    background-size: cover; */
     background: rgb(221, 248, 221);
     background: linear-gradient(0deg, rgba(221, 248, 221, 1) 0%, rgba(219, 231, 247, 1) 100%);
-    min-height: 100dvh;
+    background-image: url(../../../public/web_assets/home/hero_bg.jpg);
+    background-position: center bottom;
+    background-attachment: fixed;
+    background-size: cover;
+    min-height: 100vh;
     display: flex;
     align-items: center;
 }
@@ -63,8 +64,9 @@
 
 .home_hero_content p {
     font-size: var(--font-size-base);
-    margin-bottom: 15px;
     font-weight: 400;
+    max-width: 80%;
+    margin: 5px auto 15px auto;
 }
 
 .home_hero_buttons {
@@ -79,8 +81,7 @@
     min-width: 180px;
     height: 45px;
     font-size: var(--font-size-md);
-
-
+    text-wrap: nowrap;
 }
 
 .custom_button.p-button.primary {
@@ -249,6 +250,7 @@
     color: #000;
     font-weight: 500;
     transition: ease 0.3s;
+    word-break: break-all;
 }
 
 .contact_card_link_group a:hover {
@@ -425,4 +427,8 @@
 .home_hero_card_footer h3 span {
     font-size: var(--font-size-lg);
     font-weight: 400;
+}
+
+.contact_us_row {
+    row-gap: 20px;
 }
