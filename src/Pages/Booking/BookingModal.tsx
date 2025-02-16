@@ -60,7 +60,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
     const [laneError, setLaneError] = useState<boolean>(false);
     const [isAgree, setIsAgree] = useState<{ terms: boolean, privacy: boolean }>({ terms: false, privacy: false });
-//test
+    //test
     const initialBookingFormData = {
         email: '',
         fromTime: '',
@@ -560,7 +560,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                                     placeholder="Select date(s)"
                                                     className="multi_date_input_area w-100"
                                                     inputClassName="multi_date_input"
-                                                    minDate={token ? undefined : new Date()}
+                                                    minDate={new Date()}
                                                 // minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
                                                 />
                                                 {bookingDates && bookingDates?.length > 0 && (

@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 interface ApiRequestOptions<T = any> {
     method: "get" | "post" | "put" | "delete" | "patch";
@@ -40,10 +40,11 @@ const apiRequest = async <T = any>({
         const response: AxiosResponse = await axios(config);
         return response.data;
     } catch (error) {
-        const axiosError = error as AxiosError;
-        console.error("API Request Error:", axiosError.response?.data || axiosError.message);
+        const axiosError = error as any;
+        console.log(axiosError)
+        console.error("API Request Error:", axiosError.response?.data?.errors[0] || axiosError.message);
         // throw axiosError.response?.data || new Error("API request failed.");
-        return { error: axiosError.response?.data || axiosError.message || "API request failed." };
+        return { error: axiosError.response?.data?.errors[0] || axiosError.message || "API request failed." };
     }
 };
 
