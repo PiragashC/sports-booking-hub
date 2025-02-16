@@ -146,14 +146,16 @@
     font-size: var(--font-size-md);
 }
 
-.fc .fc-daygrid-day-number{
+.fc .fc-daygrid-day-number {
     text-decoration: none;
     font-size: var(--font-size-md);
     color: var(--color-secondary);
 }
-.booking_event i{
+
+.booking_event i {
     color: var(--color-primary);
 }
+
 /*  */
 
 
@@ -258,11 +260,32 @@
 }
 
 
-.booking_time_line_view .fc .fc-col-header-cell-cushion{
+.booking_time_line_view .fc .fc-col-header-cell-cushion {
     text-decoration: none;
     color: #FFF;
     font-weight: 500 !important;
     font-size: var(--font-size-base);
 }
 
-.fc-scrollgrid-sync-inner{}
+.fc-scrollgrid-sync-inner {}
+
+
+.timer {
+    border-radius: 8px;
+    padding: 8px 16px;
+    background-color: var(--color-primary-light);
+    font-weight: 500;
+    font-size: var(--font-size-md);
+    color: var(--color-primary);
+    margin-bottom: 15px;
+    border-left: 2px solid var(--color-primary);
+}
+
+.timer span {
+    color: #000;
+}
+
+.timer i {
+    line-height: 0;
+    color: var(--color-primary);
+}

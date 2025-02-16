@@ -872,7 +872,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                 changeBookingStatus={changeBookingStatus}
                                 handleClose={() => { setEnableTimeOutComponent(true); }}
                             /> : <div>
-                                <p>Oops! time out for your booking</p>
+
+                                <div className="message_label danger mb-4">
+                                    <i className="bi bi-exclamation-triangle-fill me-2"></i>
+                                    Oops! Your booking time has expired.
+                                </div>
+
                                 <Button
                                     label="Start new slot for booking"
                                     className="custom_btn secondary"
@@ -901,7 +906,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                         <div className="content_group">
                             <h6 className="content_head">Liability Release Waiver</h6>
                             <h6 className="content_head">Kover Drive Cricket</h6>
-                            <h6 className="content_head">Liability Release Waiver</h6>
                         </div>
 
                         <div className="content_group">
