@@ -151,7 +151,7 @@ const Home: React.FC = () => {
                                     </div>
 
                                     <div className="home_hero_card_footer">
-                                        <h3>$40/hr
+                                        <h3>$45/hr
                                             <span> + Tax</span>
                                         </h3>
                                     </div>
@@ -310,7 +310,7 @@ const Home: React.FC = () => {
                                                     </h4>
                                                     <div className="contact_card_link_group">
                                                         <Link to={`https://maps.app.goo.gl/uMLQimJ1LNyDjt5d9`} target="_blank">
-                                                            Oxbury Mall, 1295 Oxford St E, London, ON N5Y 4W4
+                                                            Oxbury Mall, 1299 Oxford St E, London, ON N5Y 4W4
                                                         </Link>
                                                     </div>
                                                 </article>
@@ -368,7 +368,7 @@ const Home: React.FC = () => {
                                                                 <iframe
                                                                     title="Kover Drive"
                                                                     className="map_container"
-                                                                    src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d2917.63706236852!2d-81.2173319!3d43.0069763!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882eed9ebad477ad%3A0x89bf171e2ad32cf9!2s1295%20Oxford%20St%20E%2C%20London%2C%20ON%20N5Y%204W4%2C%20Canada!5e0!3m2!1sen!2slk!4v1739603582874!5m2!1sen!2slk"
+                                                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2917.6494829276908!2d-81.2110879!3d43.006714800000005!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x882eed006ba619d1%3A0xe9205b592e1f63be!2sKover%20Drive%20Sports!5e0!3m2!1sen!2slk!4v1739845810056!5m2!1sen!2slk"
                                                                     allowFullScreen
                                                                     loading="lazy"
                                                                     referrerPolicy="no-referrer-when-downgrade"
