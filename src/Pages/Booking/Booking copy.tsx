@@ -279,6 +279,8 @@ const BookingCopy: React.FC = () => {
 
     useEffect(() => { fetchAllLanes() }, []);
 
+    console.log(fromDate)
+
     return (
         <>
 
