@@ -88,7 +88,7 @@ const WebFooter: React.FC = () => {
                                             <div className="footer_link_group">
                                                 <i className="bi bi-geo-alt-fill"></i>
                                                 <Link to={`https://maps.app.goo.gl/uMLQimJ1LNyDjt5d9`} target="_blank" className="footer_link">
-                                                    Oxbury Mall, 1295 Oxford St E, London, ON N5Y 4W4
+                                                    Oxbury Mall, 1299 Oxford St E, London, ON N5Y 4W4
                                                 </Link>
                                             </div>
                                         </li>
