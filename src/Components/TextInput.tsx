@@ -19,9 +19,27 @@ interface TextInputProps {
     inputReadOnly?: boolean;
     inputAutoFocus?: boolean;
     inputType?: InputType;
+    inputClassName?: string;
 }
 
-const TextInput: React.FC<TextInputProps> = ({ id, label, labelHtmlFor, placeholder, required, value, keyFilter, onChange, error, formGroupClassName, inputDisabled, inputReadOnly, inputAutoFocus, inputType, name }) => {
+const TextInput: React.FC<TextInputProps> = ({
+    id,
+    label,
+    labelHtmlFor,
+    placeholder,
+    required,
+    value,
+    keyFilter,
+    onChange,
+    error,
+    formGroupClassName,
+    inputDisabled,
+    inputReadOnly,
+    inputAutoFocus,
+    inputType,
+    name,
+    inputClassName
+}) => {
 
     return (
         <div className={`page_form_group ${formGroupClassName}`}>
@@ -34,7 +52,7 @@ const TextInput: React.FC<TextInputProps> = ({ id, label, labelHtmlFor, placehol
                 name={name}
                 value={value}
                 onChange={onChange}
-                className="custom_form_input"
+                className={`custom_form_input ${inputClassName}`}
                 placeholder={placeholder}
                 keyfilter={keyFilter}
                 disabled={inputDisabled}
@@ -42,8 +60,7 @@ const TextInput: React.FC<TextInputProps> = ({ id, label, labelHtmlFor, placehol
                 autoComplete="off"
                 autoFocus={inputAutoFocus}
                 type={inputType}
-
-            // invalid={error ? true : false}
+                // invalid={error ? true : false}
             />
 
             {error && <small className="form_error_msg">{error}</small>}

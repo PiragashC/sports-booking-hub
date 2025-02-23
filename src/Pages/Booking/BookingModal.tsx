@@ -757,6 +757,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                 <hr className="form_divider" />
 
                                 <h5 className="form_title">Your details ({bookingFormData?.email})</h5>
+                                
                                 <div className="row">
                                     {/* First name */}
                                     <div className="col-12 col-sm-6">

@@ -14,6 +14,11 @@ import Booking from './Pages/Booking/Booking';
 import BookingCopy from './Pages/Booking/Booking copy';
 import AdminLogin from './Pages/Login/AdminLogin';
 
+import AdminLayout from './Layout/Admin/AdminLayout';
+import Dashboard from './Pages/Admin/Dashboard/Dashboard';
+import BookingManagement from './Pages/Admin/BookingManagement/BookingManagement';
+import LaneManagement from './Pages/Admin/LaneManagement/LaneManagement';
+
 function App() {
   const value = {
     ripple: true,
@@ -35,6 +40,13 @@ function App() {
             </Route>
 
             <Route path="/login/admin" element={<AdminLogin />} />
+
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="booking-management" element={<BookingManagement />} />
+              <Route path="lane-management" element={<LaneManagement />} />
+            </Route>
           </Routes>
         </ErrorBoundary>
       </BrowserRouter>

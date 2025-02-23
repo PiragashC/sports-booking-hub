@@ -16,6 +16,8 @@ import "./Css/Web/index.css";
 import "./Css/Web/responsive.css";
 import "./Css/App/index.css";
 import "./Css/App/responsive.css";
+import "./Css/Admin/index.css";
+import "./Css/Admin/responsive.css";
 import "./Css/primereact.css";
 
 import { authReducer } from "./state";
