@@ -38,6 +38,7 @@ interface BookingFormData {
     organization?: string;
     selectedLanesDtos: string[];
     bookingDatesDtos: string[];
+    bookingType: string;
 }
 
 interface BookingModalProps {
@@ -72,7 +73,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         telephoneNumber: '',
         organization: '',
         selectedLanesDtos: [],
-        bookingDatesDtos: []
+        bookingDatesDtos: [],
+        bookingType: 'Online'
     }
     const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
     const [isRequired, setIsRequired] = useState<boolean>(false);
@@ -757,7 +759,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                 <hr className="form_divider" />
 
                                 <h5 className="form_title">Your details ({bookingFormData?.email})</h5>
-                                
+
                                 <div className="row">
                                     {/* First name */}
                                     <div className="col-12 col-sm-6">

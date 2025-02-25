@@ -23,6 +23,9 @@ import { Dialog } from "primereact/dialog";
 import { timeList, TimeList } from "../../../Utils/SiteData";
 import TextInput from "../../../Components/TextInput";
 import PhoneNumberInput from "../../../Components/PhoneNumberInput";
+import apiRequest from "../../../Utils/apiRequest";
+import { useSelector } from "react-redux";
+import { formatDate } from "../../../Utils/commonLogic";
 
 interface BookingFormData {
     email: string;
@@ -39,7 +42,17 @@ interface BookingFormData {
 }
 
 const BookingManagement: React.FC = () => {
+    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
     const today = new Date();
+    const { from, to } = { from: formatDate(today), to: formatDate(today) };
+    const [fromDate, setFromDate] = useState<string>(from);
+    const [toDate, setToDate] = useState<string>(to);
+    const [paginationParams, setPaginationParams] = useState({
+        page: 1,
+        size: 10
+    });
+    const [bookingLoading, setBookingLoading] = useState<boolean>(true);
+    const [bookingTypes, setBookingTypes] = useState<string[]>([]);
     const toastRef = useRef<Toast>(null);
     const dateRangeRef = useRef(null);
     const [loading, setLoading] = useState<boolean>(false);
@@ -47,7 +60,7 @@ const BookingManagement: React.FC = () => {
     const [isRequired, setIsRequired] = useState<boolean>(false);
 
     const [dates, setDates] = useState<Nullable<(Date | null)[]>>([today]);
-    const [bookingState, setBookingState] = useState<'All' | 'Online' | 'Offline'>('All');
+    const [bookingState, setBookingState] = useState<string>('');
     const [lanesData, setLanesData] = useState<Lane[]>([]);
     const [selectedLane, setSelectedLane] = useState<Lane | null>(null);
     const [statuses] = useState<string[]>(['Success', 'Pending', 'Failed']);
@@ -59,7 +72,7 @@ const BookingManagement: React.FC = () => {
     const [selectedBookingData, setSelectedBookingData] = useState<Bookings | null>(null);
     const [bookingStep, setBookingStep] = useState<number>(1);
 
-
+    console.log(dates, "fgbrefadsa");
     /* Booking fields */
     const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
     const [lanesListData, setLanesListData] = useState<Lane[]>([]);
@@ -96,7 +109,7 @@ const BookingManagement: React.FC = () => {
         }
     }, [showBookingModal]);
 
-    const handleSwitchBookingState = (state: 'All' | 'Online' | 'Offline') => {
+    const handleSwitchBookingState = (state: string) => {
         setBookingState(state);
     }
 
@@ -387,6 +400,48 @@ const BookingManagement: React.FC = () => {
         )
     }
 
+    const fetchAllBookingTypes = async () => {
+        const response = await apiRequest({
+            method: "get",
+            url: "/booking/get-booking-type",
+            token
+        });
+        if (response && !response?.error) {
+            // setBookingTypes(response?.data);
+            // setBookingState()
+        } else {
+            setBookingTypes(['All', "Online", "Offline"]);
+            setBookingState("All");
+        }
+    }
+
+    const fetchBookingsForFilters = async () => {
+        setBookingLoading(true);
+        const response = await apiRequest({
+            method: "get",
+            url: "/booking/get-all-booking-details",
+            token,
+            params: {
+                fromDate,
+                toDate,
+                page: paginationParams.page,
+                size: paginationParams.size,
+                ...(bookingState && { type: bookingState })
+            }
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            setBookingsData(response?.data);
+        } else {
+            // setBookingsData([]);
+        }
+        setBookingLoading(false);
+    };
+
+    useEffect(() => { fetchAllBookingTypes(); }, []);
+
+    useEffect(() => { if (fromDate && toDate && paginationParams.page && paginationParams.size) fetchBookingsForFilters(); }, [fromDate, toDate, paginationParams]);
+
     return (
         <>
             <div>
@@ -408,30 +463,22 @@ const BookingManagement: React.FC = () => {
                         <div className="col-12 col-xxl-4 col-xl-4">
                             <div className="filter_option_group">
                                 <div className="filter_tab_group">
-                                    <button
-                                        className={`filter_tab p-ripple ${bookingState === 'All' && 'active'}`}
-                                        type="button"
-                                        onClick={() => handleSwitchBookingState('All')}>
-                                        All
-                                        <Ripple />
-                                    </button>
-
-                                    <button
-                                        className={`filter_tab p-ripple ${bookingState === 'Online' && 'active'}`}
-                                        type="button"
-                                        onClick={() => handleSwitchBookingState('Online')}>
-                                        Online
-                                        <Ripple />
-                                    </button>
-
-                                    <button
-                                        className={`filter_tab p-ripple ${bookingState === 'Offline' && 'active'}`}
-                                        type="button"
-                                        onClick={() => handleSwitchBookingState('Offline')}>
-                                        Offline
-                                        <Ripple />
-                                    </button>
+                                    {bookingTypes &&
+                                        Array.isArray(bookingTypes) &&
+                                        bookingTypes.length > 0 &&
+                                        bookingTypes.map((bookingType) => (
+                                            <button
+                                                key={bookingType}
+                                                className={`filter_tab p-ripple ${bookingState === bookingType ? 'active' : ''}`}
+                                                type="button"
+                                                onClick={() => handleSwitchBookingState(bookingType)}
+                                            >
+                                                {bookingType}
+                                                <Ripple />
+                                            </button>
+                                        ))}
                                 </div>
+
                             </div>
                         </div>
                         <div className="col-12 col-xxl-3 col-xl-4">
@@ -440,7 +487,23 @@ const BookingManagement: React.FC = () => {
                                     key="day-calendar"
                                     ref={dateRangeRef}
                                     value={dates}
-                                    onChange={(e) => setDates(e.value)}
+                                    onChange={(e) => {
+                                        if (e.value && Array.isArray(e.value) && e.value[0]) {
+                                            const fromDateValue = e.value[0]
+                                                ? new Date(e.value[0].getTime() - e.value[0].getTimezoneOffset() * 60000)
+                                                    .toISOString().split("T")[0]
+                                                : "";
+
+                                            const toDateValue = e.value[1]
+                                                ? new Date(e.value[1].getTime() - e.value[1].getTimezoneOffset() * 60000)
+                                                    .toISOString().split("T")[0]
+                                                : fromDateValue;
+
+                                            setDates(e.value);
+                                            setFromDate(fromDateValue);
+                                            setToDate(toDateValue);
+                                        }
+                                    }}
                                     selectionMode="range"
                                     inputClassName="date_selection_input"
                                     className="date_picker_input"
@@ -487,74 +550,76 @@ const BookingManagement: React.FC = () => {
                 </div>
 
                 <div className="page_content_section pb-0">
-                    {bookingsData && bookingsData?.length > 0 ? (
-                        <>
-                            <DataTable
-                                value={bookingsData}
-                                paginator
-                                size="small"
-                                rows={10}
-                                rowsPerPageOptions={[5, 10, 25, 50]}
-                                tableStyle={{ minWidth: '50rem' }}
-                                paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                                currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                                className="page_table p-0 p-sm-1 pb-sm-0"
-                                rowHover
-                                rowClassName={getRowClassName}
-                            >
-                                <Column
-                                    header="Booking no."
-                                    field="bookingNumber"
-                                    body={(rowData: Bookings) => (
-                                        <span className="text_bold text_no_wrap">
-                                            {rowData?.bookingNumber ? rowData?.bookingNumber : '---'}
-                                        </span>
-                                    )}
-                                    style={{ width: '15%' }}
-                                ></Column>
+                    {bookingLoading ? <>Loading...</> :
+                        bookingsData && Array.isArray(bookingsData) && bookingsData?.length > 0 ? (
+                            <>
+                                <DataTable
+                                    value={bookingsData}
+                                    paginator
+                                    size="small"
+                                    rows={10}
+                                    rowsPerPageOptions={[5, 10, 25, 50]}
+                                    tableStyle={{ minWidth: '50rem' }}
+                                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                                    currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                                    className="page_table p-0 p-sm-1 pb-sm-0"
+                                    rowHover
+                                    rowClassName={getRowClassName}
+                                >
+                                    <Column
+                                        header="Booking no."
+                                        field="bookingNumber"
+                                        body={(rowData: Bookings) => (
+                                            <span className="text_bold text_no_wrap">
+                                                {rowData?.bookingNumber ? rowData?.bookingNumber : '---'}
+                                            </span>
+                                        )}
+                                        style={{ width: '15%' }}
+                                    ></Column>
 
-                                <Column
-                                    header="Date"
-                                    field="date"
-                                    body={(rowData: Bookings) => (
-                                        <span className="text_no_wrap">
-                                            {rowData?.date ? rowData?.date : '---'}
-                                        </span>
-                                    )}
-                                    style={{ width: '15%' }}
-                                ></Column>
+                                    <Column
+                                        header="Date"
+                                        field="date"
+                                        body={(rowData: Bookings) => (
+                                            <span className="text_no_wrap">
+                                                {rowData?.date ? rowData?.date : '---'}
+                                            </span>
+                                        )}
+                                        style={{ width: '15%' }}
+                                    ></Column>
 
-                                <Column
-                                    header="Time"
-                                    body={(rowData: Bookings) => (
-                                        <span className="text_no_wrap">
-                                            {(rowData?.fromTime && rowData?.toTime) ?
-                                                (formatTime(rowData?.fromTime) + ' - ' + formatTime(rowData?.toTime))
-                                                : '---'}
-                                        </span>
-                                    )}
-                                    style={{ width: '20%' }}
-                                ></Column>
+                                    <Column
+                                        header="Time"
+                                        body={(rowData: Bookings) => (
+                                            <span className="text_no_wrap">
+                                                {(rowData?.fromTime && rowData?.toTime) ?
+                                                    (formatTime(rowData?.fromTime) + ' - ' + formatTime(rowData?.toTime))
+                                                    : '---'}
+                                            </span>
+                                        )}
+                                        style={{ width: '20%' }}
+                                    ></Column>
 
-                                <Column
-                                    header="Status"
-                                    field="status"
-                                    alignHeader={'center'}
-                                    body={statusDisplayBody}
-                                    style={{ width: '15%' }}
-                                ></Column>
+                                    <Column
+                                        header="Status"
+                                        field="status"
+                                        alignHeader={'center'}
+                                        body={statusDisplayBody}
+                                        style={{ width: '15%' }}
+                                    ></Column>
 
-                                <Column
-                                    alignHeader="center"
-                                    body={tableActionBody}
-                                    style={{ width: '10%' }}
-                                ></Column>
-                            </DataTable>
-                        </>
-                    ) : (
-                        <>
-                        </>
-                    )}
+                                    <Column
+                                        alignHeader="center"
+                                        body={tableActionBody}
+                                        style={{ width: '10%' }}
+                                    ></Column>
+                                </DataTable>
+                            </>
+                        ) : (
+                            <>
+                                No Bookings found!
+                            </>
+                        )}
                 </div>
             </div>
 

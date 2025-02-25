@@ -5,8 +5,10 @@ export interface Bookings {
     fromTime?: string;
     toTime?: string;
     laneName: string;
-    status?: 'Success' | 'Pending' | 'Failed';
+    status?: string;
     bookingNumber?: string;
+    email?: string;
+    telephoneNumber?: string;
 }
 
 export const bookings: Bookings[] = [
