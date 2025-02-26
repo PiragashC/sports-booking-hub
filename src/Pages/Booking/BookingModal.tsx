@@ -20,7 +20,7 @@ import { Lane } from "./BookingData";
 
 import PhoneNumberInput from "../../Components/PhoneNumberInput";
 import apiRequest from "../../Utils/apiRequest";
-import { removeEmptyValues, showSuccessToast, showErrorToast } from "../../Utils/commonLogic";
+import { removeEmptyValues, showSuccessToast, showErrorToast, formatDateToISO } from "../../Utils/commonLogic";
 import { loadStripe, PaymentIntent, Stripe } from "@stripe/stripe-js";
 import StripePayment from "../../Components/Stripe/StripePayment";
 import { Toast } from "primereact/toast";
@@ -282,9 +282,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
 
             // Format the dates correctly for form submission
             const formattedDates = finalDates.map(date =>
-                new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-                    .toISOString()
-                    .split("T")[0]
+                formatDateToISO(date)
             );
 
             setLanesListData([]);

@@ -7,14 +7,14 @@ import { Toast } from "primereact/toast";
 import { Calendar } from "primereact/calendar";
 import { FormEvent, Nullable } from "primereact/ts-helpers";
 import { Dropdown, DropdownChangeEvent, DropdownProps } from 'primereact/dropdown';
-import { DataTable } from 'primereact/datatable';
+import { DataTable, DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tooltip } from "primereact/tooltip";
 import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
 import { Checkbox } from "primereact/checkbox";
 
 import { goToTop } from "../../../Components/GoToTop";
-import { formatTime } from "../../../Utils/Common";
+import { formatTime } from "../../../Utils/commonLogic";
 
 import { Bookings, bookings, Lane, lanes } from "../SampleData";
 import { confirmDialog } from "primereact/confirmdialog";
@@ -25,7 +25,8 @@ import TextInput from "../../../Components/TextInput";
 import PhoneNumberInput from "../../../Components/PhoneNumberInput";
 import apiRequest from "../../../Utils/apiRequest";
 import { useSelector } from "react-redux";
-import { formatDate } from "../../../Utils/commonLogic";
+import { formatDate, formatDateToISO } from "../../../Utils/commonLogic";
+import { fetchLanes } from "../../../Utils/commonService";
 
 interface BookingFormData {
     email: string;
@@ -47,11 +48,14 @@ const BookingManagement: React.FC = () => {
     const { from, to } = { from: formatDate(today), to: formatDate(today) };
     const [fromDate, setFromDate] = useState<string>(from);
     const [toDate, setToDate] = useState<string>(to);
-    const [paginationParams, setPaginationParams] = useState({
+    const [paginationParams, setPaginationParams] = useState<{ first: number, page: number; size: number }>({
+        first: 0,
         page: 1,
-        size: 10
+        size: 10,
     });
     const [bookingLoading, setBookingLoading] = useState<boolean>(true);
+    const [totalRecords, setTotalRecords] = useState<number>(0);
+    const [rowPerPage, setRowsPerPage] = useState<number[]>([5]);
     const [bookingTypes, setBookingTypes] = useState<string[]>([]);
     const toastRef = useRef<Toast>(null);
     const dateRangeRef = useRef(null);
@@ -63,7 +67,7 @@ const BookingManagement: React.FC = () => {
     const [bookingState, setBookingState] = useState<string>('');
     const [lanesData, setLanesData] = useState<Lane[]>([]);
     const [selectedLane, setSelectedLane] = useState<Lane | null>(null);
-    const [statuses] = useState<string[]>(['Success', 'Pending', 'Failed']);
+    const [bookingStatuses, setBookingStatuses] = useState<string[]>([]);
     const [status, setStatus] = useState<string | null>(null);
     const [showBookingModal, setShowBookingModal] = useState<boolean>(false);
     const [showBookingViewModal, setShowBookingViewModal] = useState<boolean>(false);
@@ -72,7 +76,6 @@ const BookingManagement: React.FC = () => {
     const [selectedBookingData, setSelectedBookingData] = useState<Bookings | null>(null);
     const [bookingStep, setBookingStep] = useState<number>(1);
 
-    console.log(dates, "fgbrefadsa");
     /* Booking fields */
     const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
     const [lanesListData, setLanesListData] = useState<Lane[]>([]);
@@ -100,7 +103,7 @@ const BookingManagement: React.FC = () => {
 
     useEffect(() => {
         setLanesData(lanes);
-        setBookingsData(bookings);
+
     }, []);
 
     useEffect(() => {
@@ -324,9 +327,7 @@ const BookingManagement: React.FC = () => {
 
             // Format the dates correctly for form submission
             const formattedDates = finalDates.map(date =>
-                new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-                    .toISOString()
-                    .split("T")[0]
+                formatDateToISO(date)
             );
 
             setLanesListData([]);
@@ -400,6 +401,21 @@ const BookingManagement: React.FC = () => {
         )
     }
 
+    const onPage = (event: DataTableStateEvent) => {
+        setPaginationParams((prev) => ({
+            ...prev,
+            first: event.first,
+            page: event && event?.page ? event.page + 1 : 1,
+            size: event.rows,
+        }));
+    };
+
+
+    const fetchAllLanes = async () => {
+        const lanes = await fetchLanes();
+        // setLanesData(lanes);
+    }
+
     const fetchAllBookingTypes = async () => {
         const response = await apiRequest({
             method: "get",
@@ -415,6 +431,19 @@ const BookingManagement: React.FC = () => {
         }
     }
 
+    const fetchAllBookingStatus = async () => {
+        const response = await apiRequest({
+            method: "get",
+            url: "/booking/get-booking-status",
+            token
+        });
+        if (response && !response?.error) {
+            // setBookingStatuses(response?.data);
+        } else {
+            setBookingStatuses(['Success', 'Pending', 'Failed']);
+        }
+    }
+
     const fetchBookingsForFilters = async () => {
         setBookingLoading(true);
         const response = await apiRequest({
@@ -426,7 +455,9 @@ const BookingManagement: React.FC = () => {
                 toDate,
                 page: paginationParams.page,
                 size: paginationParams.size,
-                ...(bookingState && { type: bookingState })
+                ...(bookingState && { type: bookingState }),
+                ...(selectedLane && { laneId: selectedLane.id }),
+                ...(status && { status })
             }
         });
         console.log(response);
@@ -434,13 +465,17 @@ const BookingManagement: React.FC = () => {
             setBookingsData(response?.data);
         } else {
             // setBookingsData([]);
+            setBookingsData(bookings?.data);
+            setTotalRecords(bookings?.totalItems);
+            const newRowPerPage = ([5, 10, 25, 50].filter(x => x < Number(bookings?.totalItems)));
+            setRowsPerPage([...newRowPerPage, Number(bookings?.totalItems)])
         }
         setBookingLoading(false);
     };
 
-    useEffect(() => { fetchAllBookingTypes(); }, []);
+    useEffect(() => { fetchAllBookingTypes(); fetchAllLanes(); fetchAllBookingStatus(); }, []);
 
-    useEffect(() => { if (fromDate && toDate && paginationParams.page && paginationParams.size) fetchBookingsForFilters(); }, [fromDate, toDate, paginationParams]);
+    useEffect(() => { if (fromDate && toDate && paginationParams.page && paginationParams.size) fetchBookingsForFilters(); }, [fromDate, toDate, paginationParams, bookingState, selectedLane, status]);
 
     return (
         <>
@@ -489,15 +524,8 @@ const BookingManagement: React.FC = () => {
                                     value={dates}
                                     onChange={(e) => {
                                         if (e.value && Array.isArray(e.value) && e.value[0]) {
-                                            const fromDateValue = e.value[0]
-                                                ? new Date(e.value[0].getTime() - e.value[0].getTimezoneOffset() * 60000)
-                                                    .toISOString().split("T")[0]
-                                                : "";
-
-                                            const toDateValue = e.value[1]
-                                                ? new Date(e.value[1].getTime() - e.value[1].getTimezoneOffset() * 60000)
-                                                    .toISOString().split("T")[0]
-                                                : fromDateValue;
+                                            const fromDateValue = formatDateToISO(e.value[0]);
+                                            const toDateValue = e.value[1] ? formatDateToISO(e.value[1]) : fromDateValue;
 
                                             setDates(e.value);
                                             setFromDate(fromDateValue);
@@ -537,7 +565,7 @@ const BookingManagement: React.FC = () => {
                                 <Dropdown
                                     value={status}
                                     onChange={(e: DropdownChangeEvent) => setStatus(e.value)}
-                                    options={statuses}
+                                    options={bookingStatuses}
                                     itemTemplate={statusOptionTemplate}
                                     valueTemplate={statusValueTemplate}
                                     placeholder="Select status"
@@ -550,76 +578,70 @@ const BookingManagement: React.FC = () => {
                 </div>
 
                 <div className="page_content_section pb-0">
-                    {bookingLoading ? <>Loading...</> :
-                        bookingsData && Array.isArray(bookingsData) && bookingsData?.length > 0 ? (
-                            <>
-                                <DataTable
-                                    value={bookingsData}
-                                    paginator
-                                    size="small"
-                                    rows={10}
-                                    rowsPerPageOptions={[5, 10, 25, 50]}
-                                    tableStyle={{ minWidth: '50rem' }}
-                                    paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                                    currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                                    className="page_table p-0 p-sm-1 pb-sm-0"
-                                    rowHover
-                                    rowClassName={getRowClassName}
-                                >
-                                    <Column
-                                        header="Booking no."
-                                        field="bookingNumber"
-                                        body={(rowData: Bookings) => (
-                                            <span className="text_bold text_no_wrap">
-                                                {rowData?.bookingNumber ? rowData?.bookingNumber : '---'}
-                                            </span>
-                                        )}
-                                        style={{ width: '15%' }}
-                                    ></Column>
+                    <div className="card">
+                        <DataTable
+                            value={bookingsData}
+                            lazy
+                            paginator
+                            rows={paginationParams.size}
+                            first={paginationParams.first}
+                            totalRecords={totalRecords}
+                            onPage={onPage}
+                            loading={bookingLoading}
+                            size="small"
+                            rowsPerPageOptions={rowPerPage}
+                            tableStyle={{ minWidth: "50rem" }}
+                            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                            currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                            className="page_table p-0 p-sm-1 pb-sm-0"
+                            rowClassName={getRowClassName}
+                            rowHover
+                            emptyMessage="No Bookings found!"
+                        >
 
-                                    <Column
-                                        header="Date"
-                                        field="date"
-                                        body={(rowData: Bookings) => (
-                                            <span className="text_no_wrap">
-                                                {rowData?.date ? rowData?.date : '---'}
-                                            </span>
-                                        )}
-                                        style={{ width: '15%' }}
-                                    ></Column>
+                            <Column
+                                header="Booking no."
+                                field="bookingNumber"
+                                body={(rowData: Bookings) => (
+                                    <span className="text_bold text_no_wrap">
+                                        {rowData?.bookingNumber || "---"}
+                                    </span>
+                                )}
+                                style={{ width: "15%" }}
+                            />
 
-                                    <Column
-                                        header="Time"
-                                        body={(rowData: Bookings) => (
-                                            <span className="text_no_wrap">
-                                                {(rowData?.fromTime && rowData?.toTime) ?
-                                                    (formatTime(rowData?.fromTime) + ' - ' + formatTime(rowData?.toTime))
-                                                    : '---'}
-                                            </span>
-                                        )}
-                                        style={{ width: '20%' }}
-                                    ></Column>
+                            <Column
+                                header="Date"
+                                field="date"
+                                body={(rowData: Bookings) => (
+                                    <span className="text_no_wrap">{rowData?.date || "---"}</span>
+                                )}
+                                style={{ width: "15%" }}
+                            />
 
-                                    <Column
-                                        header="Status"
-                                        field="status"
-                                        alignHeader={'center'}
-                                        body={statusDisplayBody}
-                                        style={{ width: '15%' }}
-                                    ></Column>
+                            <Column
+                                header="Time"
+                                body={(rowData: Bookings) => (
+                                    <span className="text_no_wrap">
+                                        {rowData?.fromTime && rowData?.toTime
+                                            ? `${formatTime(rowData.fromTime)} - ${formatTime(rowData.toTime)}`
+                                            : "---"}
+                                    </span>
+                                )}
+                                style={{ width: "20%" }}
+                            />
 
-                                    <Column
-                                        alignHeader="center"
-                                        body={tableActionBody}
-                                        style={{ width: '10%' }}
-                                    ></Column>
-                                </DataTable>
-                            </>
-                        ) : (
-                            <>
-                                No Bookings found!
-                            </>
-                        )}
+                            <Column
+                                header="Status"
+                                field="status"
+                                alignHeader="center"
+                                body={statusDisplayBody}
+                                style={{ width: "15%" }}
+                            />
+
+                            <Column alignHeader="center" body={tableActionBody} style={{ width: "10%" }} />
+                        </DataTable>
+                    </div>
                 </div>
             </div>
 

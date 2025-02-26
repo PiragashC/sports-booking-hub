@@ -1,7 +1,7 @@
 import React from "react";
 import { InputText } from "primereact/inputtext";
 import { KeyFilterType } from "primereact/keyfilter";
-import { InputType } from "../Utils/Common";
+import { InputType } from "../Utils/commonLogic";
 
 interface TextInputProps {
     id?: string;

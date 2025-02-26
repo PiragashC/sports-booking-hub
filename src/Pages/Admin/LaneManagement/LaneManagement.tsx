@@ -12,7 +12,7 @@ import { Column } from 'primereact/column';
 import { Tooltip } from "primereact/tooltip";
 
 import { goToTop } from "../../../Components/GoToTop";
-import { formatTime } from "../../../Utils/Common";
+import { formatTime } from "../../../Utils/commonLogic";
 
 import { Lane, lanes } from "../SampleData";
 import { confirmDialog } from "primereact/confirmdialog";
