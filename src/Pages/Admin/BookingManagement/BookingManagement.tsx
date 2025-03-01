@@ -14,7 +14,7 @@ import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
 import { Checkbox } from "primereact/checkbox";
 
 import { goToTop } from "../../../Components/GoToTop";
-import { formatTime } from "../../../Utils/commonLogic";
+import { formatTime, showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
 
 import { Bookings, bookings, Lane, lanes } from "../SampleData";
 import { confirmDialog } from "primereact/confirmdialog";
@@ -27,7 +27,10 @@ import apiRequest from "../../../Utils/apiRequest";
 import { useSelector } from "react-redux";
 import { formatDate, formatDateToISO } from "../../../Utils/commonLogic";
 import { fetchLanes } from "../../../Utils/commonService";
+import { Divider } from "primereact/divider";
+import BookingStep2 from "../../../Components/Booking/BookingStep2";
 
+type BookingType = "Online" | "Offline";
 interface BookingFormData {
     email: string;
     fromTime: string;
@@ -40,9 +43,28 @@ interface BookingFormData {
     organization?: string;
     selectedLanesDtos: string[];
     bookingDatesDtos: string[];
+    bookingType: BookingType;
+}
+
+interface BookingData {
+    id: string;
+    email: string;
+    fromTime: string;
+    toTime: string;
+    laneDtos: { laneName: string, laneId: string }[];
+    bookingDatesDtos: string[];
+    bookingTitle?: string;
+    firstName?: string;
+    lastName?: string;
+    telephoneNumber: string;
+    organization?: string;
+    bookingStatus: string;
+    bookingType: string;
+    bookingPrice: number;
 }
 
 const BookingManagement: React.FC = () => {
+    const bookingStep2Ref = useRef<{ handleConfirmBooking: (e?: React.FormEvent) => void } | null>(null);
     const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
     const today = new Date();
     const { from, to } = { from: formatDate(today), to: formatDate(today) };
@@ -73,7 +95,7 @@ const BookingManagement: React.FC = () => {
     const [showBookingViewModal, setShowBookingViewModal] = useState<boolean>(false);
 
     const [bookingsData, setBookingsData] = useState<Bookings[]>([]);
-    const [selectedBookingData, setSelectedBookingData] = useState<Bookings | null>(null);
+    const [selectedBookingData, setSelectedBookingData] = useState<BookingData | null>(null);
     const [bookingStep, setBookingStep] = useState<number>(1);
 
     /* Booking fields */
@@ -97,14 +119,10 @@ const BookingManagement: React.FC = () => {
         telephoneNumber: '',
         organization: '',
         selectedLanesDtos: [],
-        bookingDatesDtos: []
+        bookingDatesDtos: [],
+        bookingType: "Offline" as BookingType
     }
     const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
-
-    useEffect(() => {
-        setLanesData(lanes);
-
-    }, []);
 
     useEffect(() => {
         if (showBookingModal) {
@@ -123,7 +141,7 @@ const BookingManagement: React.FC = () => {
                     <i className="bi bi-check-circle-fill me-2 text_success"></i>
                 ) : option === 'Pending' ? (
                     <i className="bi bi-exclamation-circle-fill me-2 text_warning"></i>
-                ) : option === 'Failed' ? (
+                ) : option === 'Failure' ? (
                     <i className="bi bi-x-circle-fill me-2 text_danger"></i>
                 ) : null}
                 {option}
@@ -139,7 +157,7 @@ const BookingManagement: React.FC = () => {
                         <i className="bi bi-check-circle-fill me-2 text_success"></i>
                     ) : option === 'Pending' ? (
                         <i className="bi bi-exclamation-circle-fill me-2 text_warning"></i>
-                    ) : option === 'Failed' ? (
+                    ) : option === 'Failure' ? (
                         <i className="bi bi-x-circle-fill me-2 text_danger"></i>
                     ) : null}
                     {option}
@@ -193,17 +211,16 @@ const BookingManagement: React.FC = () => {
         });
     }
 
-    const deleteBooking = async (bookingId: string) => {
-    }
-
     const handleCloseBookingViewModal = () => {
         setShowBookingViewModal(false);
         setSelectedBookingData(null);
     }
 
     const handleViewBooking = (data: Bookings) => {
-        setSelectedBookingData(data || null);
-        setShowBookingViewModal(true);
+        if (data && data.id) {
+            setShowBookingViewModal(true);
+            getBookingById(data.id);
+        }
     }
 
     const getRowClassName = (options: { [key: string]: any }) => {
@@ -401,6 +418,21 @@ const BookingManagement: React.FC = () => {
         )
     }
 
+    const bookingViewModalHeader = () => {
+        return (
+            <div className="modal-header p-2">
+                <h1 className="modal-title fs-5" id="bookingDetailModalLabel">
+                    Booking Info
+                </h1>
+                <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowBookingViewModal(false)}
+                ></button>
+            </div>
+        )
+    }
+
     const onPage = (event: DataTableStateEvent) => {
         setPaginationParams((prev) => ({
             ...prev,
@@ -410,37 +442,65 @@ const BookingManagement: React.FC = () => {
         }));
     };
 
+    const getBookingById = async (bookingId: string) => {
+        const response = await apiRequest({
+            method: "get",
+            url: `/booking/get-by-id/${bookingId}`,
+            token
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            setSelectedBookingData(response);
+        } else {
+            setSelectedBookingData(null);
+        }
+    }
+
+    const deleteBooking = async (id: string) => {
+        const response = await apiRequest({
+            method: "delete",
+            url: "/booking/delete",
+            params: {
+                bookingId: id
+            },
+            token
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            showSuccessToast(toastRef, "Success", "Booking deleted successfully. The space is now available.");
+            fetchBookingsForFilters();
+        } else {
+            showErrorToast(toastRef, "Failed to delete booking. Please try again.", response?.error);
+        }
+    }
+
 
     const fetchAllLanes = async () => {
         const lanes = await fetchLanes();
-        // setLanesData(lanes);
+        setLanesData(lanes);
     }
 
     const fetchAllBookingTypes = async () => {
         const response = await apiRequest({
             method: "get",
-            url: "/booking/get-booking-type",
+            url: "/booking/booking-type",
             token
         });
         if (response && !response?.error) {
-            // setBookingTypes(response?.data);
-            // setBookingState()
-        } else {
-            setBookingTypes(['All', "Online", "Offline"]);
-            setBookingState("All");
+            setBookingTypes(response?.bookingType || []);
+            setBookingState(response?.bookingType ? response.bookingType[0] : "");
         }
     }
+
 
     const fetchAllBookingStatus = async () => {
         const response = await apiRequest({
             method: "get",
-            url: "/booking/get-booking-status",
+            url: "/booking/booking-status",
             token
         });
         if (response && !response?.error) {
-            // setBookingStatuses(response?.data);
-        } else {
-            setBookingStatuses(['Success', 'Pending', 'Failed']);
+            setBookingStatuses(response?.bookingStatus || []);
         }
     }
 
@@ -463,19 +523,22 @@ const BookingManagement: React.FC = () => {
         console.log(response);
         if (response && !response?.error) {
             setBookingsData(response?.data);
+            setTotalRecords(response?.totalItems);
+            const newRowPerPage = ([5, 10, 25, 50].filter(x => x < Number(response?.totalItems)));
+            setRowsPerPage([...newRowPerPage, Number(response?.totalItems)])
         } else {
-            // setBookingsData([]);
-            setBookingsData(bookings?.data);
-            setTotalRecords(bookings?.totalItems);
-            const newRowPerPage = ([5, 10, 25, 50].filter(x => x < Number(bookings?.totalItems)));
-            setRowsPerPage([...newRowPerPage, Number(bookings?.totalItems)])
+            setBookingsData([]);
         }
         setBookingLoading(false);
     };
 
+    const onSuccessFnCall = () => {
+        handleCloseBookingModal();
+    }
+
     useEffect(() => { fetchAllBookingTypes(); fetchAllLanes(); fetchAllBookingStatus(); }, []);
 
-    useEffect(() => { if (fromDate && toDate && paginationParams.page && paginationParams.size) fetchBookingsForFilters(); }, [fromDate, toDate, paginationParams, bookingState, selectedLane, status]);
+    useEffect(() => { if (fromDate && toDate && paginationParams.page && paginationParams.size && bookingState) fetchBookingsForFilters(); }, [fromDate, toDate, paginationParams, bookingState, selectedLane, status]);
 
     return (
         <>
@@ -657,272 +720,16 @@ const BookingManagement: React.FC = () => {
             >
                 <div className="custom_modal_body">
                     {bookingStep === 1 ? (
-                        <>
-                            <div className="booking_form_area">
-                                <h5 className="form_title">Booking details</h5>
-
-                                <div className="row">
-                                    {/* Date */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingDate' className={`custom_form_label is_required`}>Date</label>
-                                            <div className="multi_date_input_group">
-                                                <Calendar
-                                                    inputId="bookingDate"
-                                                    value={bookingDates}
-                                                    onChange={handleDateChange}
-                                                    selectionMode="multiple"
-                                                    readOnlyInput
-                                                    placeholder="Select date(s)"
-                                                    className="multi_date_input_area w-100"
-                                                    inputClassName="multi_date_input"
-                                                    minDate={new Date()}
-                                                />
-                                                {bookingDates && bookingDates?.length > 0 && (
-                                                    <i className="bi bi-x-lg data_clear_icon" onClick={handleClearBookingDates}></i>
-                                                )}
-                                            </div>
-                                            {(isRequired && bookingFormData?.bookingDatesDtos?.length === 0) && (
-                                                <small className="form_error_msg">Atleast single date needed for booking!</small>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Time */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingTime' className={`custom_form_label is_required`}>Time</label>
-
-                                            <div className="row">
-                                                {/* Start time */}
-                                                <div className="col-12 col-sm-6">
-                                                    <Dropdown
-                                                        id="startTime"
-                                                        value={bookingFormData?.fromTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => {
-                                                            setLanesListData([]);
-                                                            setBookingLanes([]);
-                                                            setBookingPrice(0);
-
-                                                            setBookingFormData((prev: BookingFormData) => ({
-                                                                ...prev,
-                                                                fromTime: e?.value || "",
-                                                                toTime: "",
-                                                                selectedLanesDtos: []
-                                                            }));
-                                                        }}
-                                                        options={timeListData}
-                                                        optionLabel="label"
-                                                        valueTemplate={selectedStartTimeTemplate}
-                                                        placeholder="Start time"
-                                                        className="form_dropdown w-100 mb-3 mb-sm-0"
-                                                        showClear
-                                                    />
-                                                </div>
-
-                                                {/* End time */}
-                                                <div className="col-12 col-sm-6">
-                                                    <Dropdown
-                                                        id="endTime"
-                                                        value={bookingFormData?.toTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => {
-                                                            setLanesListData([]);
-                                                            setBookingLanes([]);
-                                                            setBookingPrice(0);
-
-                                                            setBookingFormData((prev: BookingFormData) => ({
-                                                                ...prev,
-                                                                toTime: e?.value || "",
-                                                                selectedLanesDtos: []
-                                                            }));
-                                                        }}
-                                                        options={endTimeOptions}
-                                                        optionLabel="label"
-                                                        valueTemplate={selectedEndTimeTemplate}
-                                                        placeholder="End time"
-                                                        className="form_dropdown w-100"
-                                                        showClear
-                                                        disabled={!bookingFormData?.fromTime}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {(isRequired && (!bookingFormData?.fromTime || !bookingFormData?.fromTime)) && (
-                                        <small className="form_error_msg">Booking time range required!</small>
-                                    )}
-
-                                    {/* Lanes */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingLanes' className={`custom_form_label is_required`}>Spaces</label>
-                                            <MultiSelect
-                                                value={bookingLanes}
-                                                onChange={(e: MultiSelectChangeEvent) => {
-                                                    setBookingPrice(0);
-                                                    setBookingLanes(e.value);
-                                                    setBookingFormData({
-                                                        ...bookingFormData,
-                                                        selectedLanesDtos: Array.isArray(e.value) && e?.value?.length > 0
-                                                            ? e.value.map((v: any) => String(v?.id)).filter(Boolean)
-                                                            : [],
-                                                    });
-                                                }}
-                                                options={lanesListData}
-                                                display="chip"
-                                                optionLabel="name"
-                                                showClear
-                                                filter
-                                                filterPlaceholder="Search lanes"
-                                                placeholder="Select space"
-                                                maxSelectedLabels={4}
-                                                className="w-100"
-                                                emptyMessage="No spaces found!"
-                                                disabled={lanesListData?.length === 0}
-                                            />
-
-                                            {(laneError && lanesListData?.length === 0 && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) && (
-                                                <small className="form_error_msg">No lanes available for your date and time!</small>
-                                            )}
-
-                                            {(isRequired && bookingFormData?.selectedLanesDtos?.length === 0) && (
-                                                <small className="form_error_msg">Please select available lanes for booking!</small>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Booking title */}
-                                    <div className="col-12">
-                                        <TextInput
-                                            id="bookingTitle"
-                                            label="Booking title"
-                                            labelHtmlFor="bookingTitle"
-                                            required={false}
-                                            inputType="text"
-                                            value={bookingFormData?.bookingTitle}
-                                            placeholder="Enter a title for this booking"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setBookingFormData({ ...bookingFormData, bookingTitle: e.target.value }) }}
-                                            error={''}
-                                            formGroupClassName="mb-0"
-                                        />
-                                    </div>
-                                </div>
-
-                                <hr className="form_divider" />
-
-                                <h5 className="form_title">Customer details</h5>
-
-                                <div className="row">
-                                    {/* First name */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="firstName"
-                                            label="First name"
-                                            labelHtmlFor="firstName"
-                                            required={false}
-                                            inputType="text"
-                                            value={bookingFormData?.firstName}
-                                            name="firstName"
-                                            placeholder="eg: John"
-                                            onChange={handleChange}
-                                            error=""
-                                        />
-                                    </div>
-
-                                    {/* Last name */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="lastName"
-                                            label="Last name"
-                                            name="lastName"
-                                            labelHtmlFor="lastName"
-                                            required={false}
-                                            inputType="text"
-                                            value={bookingFormData?.lastName}
-                                            placeholder="eg: Doe"
-                                            onChange={handleChange}
-                                            error=""
-                                        />
-                                    </div>
-
-                                    {/* Phone number */}
-                                    <div className="col-12 col-sm-6">
-                                        <PhoneNumberInput
-                                            id="phoneNumber"
-                                            label="Phone number"
-                                            labelHtmlFor="phoneNumber"
-                                            required={false}
-                                            name="telephoneNumber"
-                                            value={bookingFormData?.telephoneNumber}
-                                            onChange={(value: string) => { setBookingFormData({ ...bookingFormData, telephoneNumber: value }) }}
-                                            error=""
-                                            formGroupClassName="mb-sm-0"
-                                            setIsValidNumber={setIsValidNumber}
-                                        />
-                                    </div>
-
-                                    {/* Email */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="bookingEmail"
-                                            name="email"
-                                            label="Email"
-                                            labelHtmlFor="bookingEmail"
-                                            required={false}
-                                            inputType="email"
-                                            keyFilter={'email'}
-                                            value={bookingFormData?.email}
-                                            placeholder="Your email address"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingFormData({ ...bookingFormData, email: e.target.value })}
-                                            error={(!emailRegex.test(bookingFormData?.email) && bookingFormData?.email) ? "Please enter valid email!" : ""}
-                                            inputAutoFocus={true}
-                                        />
-                                    </div>
-
-                                    {/* Organization */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="organization"
-                                            label="Organization"
-                                            labelHtmlFor="organization"
-                                            required={false}
-                                            inputType="text"
-                                            value={bookingFormData?.organization}
-                                            placeholder="Optional"
-                                            onChange={handleChange}
-                                            error={''}
-                                            formGroupClassName="mb-2"
-                                            name="organization"
-                                        />
-                                    </div>
-                                </div>
-
-                                {bookingFormData?.selectedLanesDtos?.length > 0 && (
-                                    <>
-                                        <hr className="form_divider" />
-
-                                        <h5 className="form_title">Payment</h5>
-
-                                        <div className="row">
-                                            <div className="col-12">
-                                                <div className="price_info_area">
-                                                    <label htmlFor='bookingPrice' className={`custom_form_label`}>Booking price</label>
-                                                    <h3 className="price_text">
-                                                        {bookingPrice === 0 ? "Calculating..." : `$ ${bookingPrice.toFixed(2)}`}
-                                                    </h3>
-
-                                                    {bookingPrice && bookingPrice !== 0 && (
-                                                        <span className="form_info">
-                                                            (Tax included.)
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </>
+                        <BookingStep2
+                            ref={bookingStep2Ref}
+                            bookingFormData={bookingFormData}
+                            setBookingFormData={setBookingFormData}
+                            isOpen={showBookingModal}
+                            toastRef={toastRef}
+                            setLoading={setLoading}
+                            fetchBookings={fetchBookingsForFilters}
+                            onSuccessFnCall={onSuccessFnCall}
+                        />
                     ) : bookingStep === 2 ? (
                         <>
                             <div className="payment_area">
@@ -930,6 +737,135 @@ const BookingManagement: React.FC = () => {
                             </div>
                         </>
                     ) : null}
+                </div>
+            </Dialog>
+            {/*  */}
+
+            {/* Booking view modal */}
+            <Dialog header={bookingViewModalHeader} visible={showBookingViewModal}
+                onHide={() => { if (!showBookingViewModal) return; setShowBookingViewModal(false); }}
+                className="custom-modal modal_dialog modal_dialog_md">
+                <div className="modal-body p-2">
+                    <div className="data-view-area">
+                        <h5 className="data-view-head">Booking Details</h5>
+                        <div className="row mt-4">
+                            <div className="col-12 col-lg-6">
+                                <div className="data-view mb-3">
+                                    <h6 className="data-view-title">Start time :</h6>
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.fromTime}
+                                    </h6>
+                                </div>
+                            </div>
+                            <div className="col-12 col-lg-6">
+                                <div className="data-view mb-3">
+                                    <h6 className="data-view-title">End time :</h6>
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.toTime}
+                                    </h6>
+                                </div>
+                            </div>
+                            <div className="col-12 col-lg-6">
+                                <div className="data-view mb-3">
+                                    <h6 className="data-view-title">Lanes :</h6>
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.laneDtos && Array.isArray(selectedBookingData?.laneDtos) && selectedBookingData?.laneDtos?.length > 0 ? selectedBookingData?.laneDtos?.map(ln => ln.laneName).join(', ') : "-------"}
+                                    </h6>
+                                </div>
+                            </div>
+                            <div className="col-12 col-lg-6">
+                                <div className="data-view mb-3 mb-lg-0">
+                                    <h6 className="data-view-title">
+                                        Dates :
+                                    </h6>
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.bookingDatesDtos && Array.isArray(selectedBookingData?.bookingDatesDtos) && selectedBookingData?.bookingDatesDtos?.length > 0 ? selectedBookingData?.bookingDatesDtos?.join(', ') : "-------"}
+                                    </h6>
+                                </div>
+                            </div>
+                            <div className="col-12 col-lg-6">
+                                <div className="data-view mb-0">
+                                    <h6 className="data-view-title">
+                                        Title :
+                                    </h6>
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.bookingTitle || "--------"}
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="data-view-sub mt-3">
+                            <div className="row">
+                                <div className="col-12 col-lg-6">
+                                    <div className="data-view mb-3">
+                                        <h6 className="data-view-title">Organization :</h6>
+                                        <h6 className="data-view-data">
+                                            {selectedBookingData?.organization || "-------"}
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div className="col-12 col-lg-6">
+                                    <div className="data-view mb-3">
+                                        <h6 className="data-view-title">Status :</h6>
+                                        <h6 className="data-view-data">
+                                            {selectedBookingData?.bookingStatus}
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div className="col-12 col-lg-6">
+                                    <div className="data-view mb-3 mb-lg-0">
+                                        <h6 className="data-view-title">Type :</h6>
+                                        <h6 className="data-view-data">
+                                            {selectedBookingData?.bookingType}
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div className="col-12 col-lg-6">
+                                    <div className="data-view mb-0">
+                                        <h6 className="data-view-title">Price :</h6>
+                                        <h6 className="data-view-data">
+                                            {selectedBookingData?.bookingPrice}
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Divider className="mt-4 mb-4" />
+                        <h5 className="data-view-head">Customer Details</h5>
+                        <div className="row mt-4">
+                            <div className="col-12 col-lg-6">
+                                <div className="data-view mb-3">
+                                    <h6 className="data-view-title">Name :</h6>
+                                    {selectedBookingData?.firstName ? <h6 className="data-view-data">
+                                        {selectedBookingData?.firstName + " " + selectedBookingData?.lastName}
+                                    </h6> : <h6 className="data-view-data">
+                                        --------
+                                    </h6>}
+                                </div>
+                            </div>
+                            <div className="col-12 col-lg-6">
+                                <div className="data-view mb-3">
+                                    <h6 className="data-view-title">
+                                        Email :
+                                    </h6>
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.email}
+                                    </h6>
+                                </div>
+                            </div>
+                            <div className="col-12 col-lg-6">
+                                <div className="data-view mb-0">
+                                    <h6 className="data-view-title">
+                                        Mobile Number :
+                                    </h6>
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.telephoneNumber || "--------"}
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </Dialog>
             {/*  */}
