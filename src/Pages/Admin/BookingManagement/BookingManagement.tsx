@@ -29,6 +29,7 @@ import { formatDate, formatDateToISO } from "../../../Utils/commonLogic";
 import { fetchLanes } from "../../../Utils/commonService";
 import { Divider } from "primereact/divider";
 import BookingStep2 from "../../../Components/Booking/BookingStep2";
+import SkeletonLoader, { SkeletonLayout } from "../../../Components/SkeletonLoader";
 
 type BookingType = "Online" | "Offline";
 interface BookingFormData {
@@ -125,6 +126,120 @@ const BookingManagement: React.FC = () => {
     }
     const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
 
+    const bookingSkeletonLayout: SkeletonLayout = {
+        type: "column",
+        items: [
+            { width: "150px", height: "20px", className: "mb-3" }, // Booking Details Heading
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Start Time
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // End Time
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Lanes
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Dates
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "20px", className: "mb-0 col-12 col-lg-6" }, // Title
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Organization
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Status
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Type
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Price
+                ],
+            },
+            { width: "100%", height: "1px", className: "mt-4 mb-4" }, // Divider
+
+            { width: "150px", height: "20px", className: "mb-3" }, // Customer Details Heading
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Customer Name
+                    { width: "45%", height: "20px", className: "mb-3 col-12 col-lg-6" }, // Email
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "20px", className: "mb-0 col-12 col-lg-6" }, // Mobile Number
+                ],
+            },
+        ],
+    };
+
+    const bookingFormSkeletonLayout: SkeletonLayout = {
+        type: "column",
+        items: [
+            { width: "150px", height: "20px", className: "mb-3" }, // Booking Details Heading
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Start Time
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // End Time
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Lanes
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Dates
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "40px", className: "mb-0 col-12 col-lg-6" }, // Title
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Organization
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Status
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Type
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Price
+                ],
+            },
+            { width: "100%", height: "1px", className: "mt-4 mb-4" }, // Divider
+
+            { width: "150px", height: "20px", className: "mb-3" }, // Customer Details Heading
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Customer Name
+                    { width: "45%", height: "40px", className: "mb-3 col-12 col-lg-6" }, // Email
+                ],
+            },
+            {
+                type: "row",
+                items: [
+                    { width: "45%", height: "40px", className: "mb-0 col-12 col-lg-6" }, // Mobile Number
+                ],
+            },
+        ],
+    };
+
     useEffect(() => {
         if (showBookingModal) {
             setTimeListData(timeList);
@@ -203,9 +318,10 @@ const BookingManagement: React.FC = () => {
 
     const handleEditBooking = (data: Bookings) => {
         if (data && data.id) {
+            setBookingFormData(initialBookingFormData);
             setShowBookingModal(true);
             setDataState('Edit');
-            getBookingById(data.id);
+            getBookingById(data.id, 'Edit');
             setEditId(data.id);
         }
     }
@@ -223,26 +339,23 @@ const BookingManagement: React.FC = () => {
             firstName: bookingFormData?.firstName,
             lastName: bookingFormData?.lastName,
             telephoneNumber: bookingFormData?.telephoneNumber,
-            organization: bookingFormData?.organization,
-            bookingStatus: "",
-            bookingType: "",
-            bookingPrice: 80.00
+            organization: bookingFormData?.organization
         }
         const response: any = await apiRequest({
             method: "put",
             url: "/booking/update",
             data: payload,
-          });
-      
-          console.log(response);
-          if(response && !response?.error){
+        });
+
+        console.log(response);
+        if (response && !response?.error) {
             showSuccessToast(toastRef, "Booking updated successfully!", "");
             handleCloseBookingModal();
             fetchBookingsForFilters();
-          }else{
+        } else {
             showErrorToast(toastRef, " Booking Update Failed", response?.error);
-          }
-          setLoading(false);
+        }
+        setLoading(false);
     }
 
     const handleUpdateBooking = async (e: React.FormEvent) => {
@@ -273,8 +386,9 @@ const BookingManagement: React.FC = () => {
     const handleViewBooking = (data: Bookings) => {
         setDataState('Add');
         if (data && data.id) {
+            setSelectedBookingData(null);
             setShowBookingViewModal(true);
-            getBookingById(data.id);
+            getBookingById(data.id, 'View');
         }
     }
 
@@ -497,7 +611,7 @@ const BookingManagement: React.FC = () => {
         }));
     };
 
-    const getBookingById = async (bookingId: string) => {
+    const getBookingById = async (bookingId: string, type: 'Edit' | 'View') => {
         const response = await apiRequest({
             method: "get",
             url: `/booking/get-by-id/${bookingId}`,
@@ -505,7 +619,7 @@ const BookingManagement: React.FC = () => {
         });
 
         if (response && !response?.error) {
-            if (dataState === "Edit") {
+            if (type === "Edit") {
                 setBookingFormData({
                     email: response?.email || '',
                     fromTime: response?.fromTime || '',
@@ -521,7 +635,7 @@ const BookingManagement: React.FC = () => {
                 })
                 setBookingDates(response?.bookingDatesDtos && Array.isArray(response?.bookingDatesDtos) ? response?.bookingDatesDtos.map((dateStr: string) => new Date(dateStr)) : []);
                 setSelectedBookingLanes(response?.laneDtos && Array.isArray(response?.laneDtos) && response?.laneDtos?.length > 0 ? response?.laneDtos?.map((lnObj: { laneId: string, laneName: string }) => { return { id: lnObj.laneId, name: lnObj.laneName } }) : []);
-            } else {
+            } else if (type === 'View') {
                 setSelectedBookingData(response);
             }
         } else {
@@ -794,33 +908,34 @@ const BookingManagement: React.FC = () => {
             >
                 <div className="custom_modal_body">
                     {bookingStep === 1 ? (
-                        <BookingStep2
-                            ref={bookingStep2Ref}
-                            isValidNumber={isValidNumber}
-                            setIsValidNumber={setIsValidNumber}
-                            timeListData={timeListData}
-                            setTimeListData={setTimeListData}
-                            bookingPrice={bookingPrice}
-                            setBookingPrice={setBookingPrice}
-                            isRequired={isRequired}
-                            setIsRequired={setIsRequired}
-                            bookingLanes={bookingLanes}
-                            setBookingLanes={setBookingLanes}
-                            lanesListData={lanesListData}
-                            setLanesListData={setLanesListData}
-                            bookingDates={bookingDates}
-                            setBookingDates={setBookingDates}
-                            bookingFormData={bookingFormData}
-                            setBookingFormData={setBookingFormData}
-                            isOpen={showBookingModal}
-                            toastRef={toastRef}
-                            setLoading={setLoading}
-                            fetchBookings={fetchBookingsForFilters}
-                            onSuccessFnCall={onSuccessFnCall}
-                            selectedBookingLanes={selectedBookingLanes}
-                            setSelectedBookingLanes={setSelectedBookingLanes}
-                            enableEditInterface={dataState === "Edit"}
-                        />
+                        bookingFormData && bookingFormData.bookingDatesDtos.length > 0 ?
+                            <BookingStep2
+                                ref={bookingStep2Ref}
+                                isValidNumber={isValidNumber}
+                                setIsValidNumber={setIsValidNumber}
+                                timeListData={timeListData}
+                                setTimeListData={setTimeListData}
+                                bookingPrice={bookingPrice}
+                                setBookingPrice={setBookingPrice}
+                                isRequired={isRequired}
+                                setIsRequired={setIsRequired}
+                                bookingLanes={bookingLanes}
+                                setBookingLanes={setBookingLanes}
+                                lanesListData={lanesListData}
+                                setLanesListData={setLanesListData}
+                                bookingDates={bookingDates}
+                                setBookingDates={setBookingDates}
+                                bookingFormData={bookingFormData}
+                                setBookingFormData={setBookingFormData}
+                                isOpen={showBookingModal}
+                                toastRef={toastRef}
+                                setLoading={setLoading}
+                                fetchBookings={fetchBookingsForFilters}
+                                onSuccessFnCall={onSuccessFnCall}
+                                selectedBookingLanes={selectedBookingLanes}
+                                setSelectedBookingLanes={setSelectedBookingLanes}
+                                enableEditInterface={dataState === "Edit"}
+                            /> : <SkeletonLoader layout={bookingFormSkeletonLayout} />
                     ) : bookingStep === 2 ? (
                         <>
                             <div className="payment_area">
@@ -836,128 +951,129 @@ const BookingManagement: React.FC = () => {
             <Dialog header={bookingViewModalHeader} visible={showBookingViewModal}
                 onHide={() => { if (!showBookingViewModal) return; setShowBookingViewModal(false); }}
                 className="custom-modal modal_dialog modal_dialog_md">
-                <div className="modal-body p-2">
-                    <div className="data-view-area">
-                        <h5 className="data-view-head">Booking Details</h5>
-                        <div className="row mt-4">
-                            <div className="col-12 col-lg-6">
-                                <div className="data-view mb-3">
-                                    <h6 className="data-view-title">Start time :</h6>
-                                    <h6 className="data-view-data">
-                                        {selectedBookingData?.fromTime}
-                                    </h6>
-                                </div>
-                            </div>
-                            <div className="col-12 col-lg-6">
-                                <div className="data-view mb-3">
-                                    <h6 className="data-view-title">End time :</h6>
-                                    <h6 className="data-view-data">
-                                        {selectedBookingData?.toTime}
-                                    </h6>
-                                </div>
-                            </div>
-                            <div className="col-12 col-lg-6">
-                                <div className="data-view mb-3">
-                                    <h6 className="data-view-title">Lanes :</h6>
-                                    <h6 className="data-view-data">
-                                        {selectedBookingData?.laneDtos && Array.isArray(selectedBookingData?.laneDtos) && selectedBookingData?.laneDtos?.length > 0 ? selectedBookingData?.laneDtos?.map(ln => ln.laneName).join(', ') : "-------"}
-                                    </h6>
-                                </div>
-                            </div>
-                            <div className="col-12 col-lg-6">
-                                <div className="data-view mb-3 mb-lg-0">
-                                    <h6 className="data-view-title">
-                                        Dates :
-                                    </h6>
-                                    <h6 className="data-view-data">
-                                        {selectedBookingData?.bookingDatesDtos && Array.isArray(selectedBookingData?.bookingDatesDtos) && selectedBookingData?.bookingDatesDtos?.length > 0 ? selectedBookingData?.bookingDatesDtos?.join(', ') : "-------"}
-                                    </h6>
-                                </div>
-                            </div>
-                            <div className="col-12 col-lg-6">
-                                <div className="data-view mb-0">
-                                    <h6 className="data-view-title">
-                                        Title :
-                                    </h6>
-                                    <h6 className="data-view-data">
-                                        {selectedBookingData?.bookingTitle || "--------"}
-                                    </h6>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="data-view-sub mt-3">
-                            <div className="row">
+                {selectedBookingData ?
+                    <div className="modal-body p-2">
+                        <div className="data-view-area">
+                            <h5 className="data-view-head">Booking Details</h5>
+                            <div className="row mt-4">
                                 <div className="col-12 col-lg-6">
                                     <div className="data-view mb-3">
-                                        <h6 className="data-view-title">Organization :</h6>
+                                        <h6 className="data-view-title">Start time :</h6>
                                         <h6 className="data-view-data">
-                                            {selectedBookingData?.organization || "-------"}
+                                            {selectedBookingData?.fromTime}
                                         </h6>
                                     </div>
                                 </div>
                                 <div className="col-12 col-lg-6">
                                     <div className="data-view mb-3">
-                                        <h6 className="data-view-title">Status :</h6>
+                                        <h6 className="data-view-title">End time :</h6>
                                         <h6 className="data-view-data">
-                                            {selectedBookingData?.bookingStatus}
+                                            {selectedBookingData?.toTime}
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div className="col-12 col-lg-6">
+                                    <div className="data-view mb-3">
+                                        <h6 className="data-view-title">Lanes :</h6>
+                                        <h6 className="data-view-data">
+                                            {selectedBookingData?.laneDtos && Array.isArray(selectedBookingData?.laneDtos) && selectedBookingData?.laneDtos?.length > 0 ? selectedBookingData?.laneDtos?.map(ln => ln.laneName).join(', ') : "-------"}
                                         </h6>
                                     </div>
                                 </div>
                                 <div className="col-12 col-lg-6">
                                     <div className="data-view mb-3 mb-lg-0">
-                                        <h6 className="data-view-title">Type :</h6>
+                                        <h6 className="data-view-title">
+                                            Dates :
+                                        </h6>
                                         <h6 className="data-view-data">
-                                            {selectedBookingData?.bookingType}
+                                            {selectedBookingData?.bookingDatesDtos && Array.isArray(selectedBookingData?.bookingDatesDtos) && selectedBookingData?.bookingDatesDtos?.length > 0 ? selectedBookingData?.bookingDatesDtos?.join(', ') : "-------"}
                                         </h6>
                                     </div>
                                 </div>
                                 <div className="col-12 col-lg-6">
                                     <div className="data-view mb-0">
-                                        <h6 className="data-view-title">Price :</h6>
+                                        <h6 className="data-view-title">
+                                            Title :
+                                        </h6>
                                         <h6 className="data-view-data">
-                                            {selectedBookingData?.bookingPrice}
+                                            {selectedBookingData?.bookingTitle || "--------"}
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="data-view-sub mt-3">
+                                <div className="row">
+                                    <div className="col-12 col-lg-6">
+                                        <div className="data-view mb-3">
+                                            <h6 className="data-view-title">Organization :</h6>
+                                            <h6 className="data-view-data">
+                                                {selectedBookingData?.organization || "-------"}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    <div className="col-12 col-lg-6">
+                                        <div className="data-view mb-3">
+                                            <h6 className="data-view-title">Status :</h6>
+                                            <h6 className="data-view-data">
+                                                {selectedBookingData?.bookingStatus}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    <div className="col-12 col-lg-6">
+                                        <div className="data-view mb-3 mb-lg-0">
+                                            <h6 className="data-view-title">Type :</h6>
+                                            <h6 className="data-view-data">
+                                                {selectedBookingData?.bookingType}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    <div className="col-12 col-lg-6">
+                                        <div className="data-view mb-0">
+                                            <h6 className="data-view-title">Price :</h6>
+                                            <h6 className="data-view-data">
+                                                {selectedBookingData?.bookingPrice}
+                                            </h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Divider className="mt-4 mb-4" />
+                            <h5 className="data-view-head">Customer Details</h5>
+                            <div className="row mt-4">
+                                <div className="col-12 col-lg-6">
+                                    <div className="data-view mb-3">
+                                        <h6 className="data-view-title">Name :</h6>
+                                        {selectedBookingData?.firstName ? <h6 className="data-view-data">
+                                            {selectedBookingData?.firstName + " " + selectedBookingData?.lastName}
+                                        </h6> : <h6 className="data-view-data">
+                                            --------
+                                        </h6>}
+                                    </div>
+                                </div>
+                                <div className="col-12 col-lg-6">
+                                    <div className="data-view mb-3">
+                                        <h6 className="data-view-title">
+                                            Email :
+                                        </h6>
+                                        <h6 className="data-view-data">
+                                            {selectedBookingData?.email}
+                                        </h6>
+                                    </div>
+                                </div>
+                                <div className="col-12 col-lg-6">
+                                    <div className="data-view mb-0">
+                                        <h6 className="data-view-title">
+                                            Mobile Number :
+                                        </h6>
+                                        <h6 className="data-view-data">
+                                            {selectedBookingData?.telephoneNumber || "--------"}
                                         </h6>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <Divider className="mt-4 mb-4" />
-                        <h5 className="data-view-head">Customer Details</h5>
-                        <div className="row mt-4">
-                            <div className="col-12 col-lg-6">
-                                <div className="data-view mb-3">
-                                    <h6 className="data-view-title">Name :</h6>
-                                    {selectedBookingData?.firstName ? <h6 className="data-view-data">
-                                        {selectedBookingData?.firstName + " " + selectedBookingData?.lastName}
-                                    </h6> : <h6 className="data-view-data">
-                                        --------
-                                    </h6>}
-                                </div>
-                            </div>
-                            <div className="col-12 col-lg-6">
-                                <div className="data-view mb-3">
-                                    <h6 className="data-view-title">
-                                        Email :
-                                    </h6>
-                                    <h6 className="data-view-data">
-                                        {selectedBookingData?.email}
-                                    </h6>
-                                </div>
-                            </div>
-                            <div className="col-12 col-lg-6">
-                                <div className="data-view mb-0">
-                                    <h6 className="data-view-title">
-                                        Mobile Number :
-                                    </h6>
-                                    <h6 className="data-view-data">
-                                        {selectedBookingData?.telephoneNumber || "--------"}
-                                    </h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    </div> : <SkeletonLoader layout={bookingSkeletonLayout} />}
             </Dialog>
             {/*  */}
         </>
