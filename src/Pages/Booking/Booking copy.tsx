@@ -16,10 +16,11 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import { Lane, BookingResponse, BookingRangeResponse } from "./BookingData";
 import { Dialog } from "primereact/dialog";
 import apiRequest from "../../Utils/apiRequest";
-import { formatDate, getMonthDateRange, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
+import { formatDate, formatDateToISO, getMonthDateRange, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Button } from "primereact/button";
 import { useSelector } from "react-redux";
 import { ProgressSpinner } from 'primereact/progressspinner';
+import { fetchLanes } from "../../Utils/commonService";
 
 
 const BookingCopy: React.FC = () => {
@@ -80,16 +81,9 @@ const BookingCopy: React.FC = () => {
 
 
     const fetchAllLanes = async () => {
-        const response = await apiRequest({
-            method: "get",
-            url: "/booking/lanes"
-        });
-        console.log(response);
-        setLanesData(Array.isArray(response) ? response.map((laneObj: any) => ({
-            id: laneObj?.laneId || 0,
-            name: laneObj?.laneName || ""
-        })) : []);
-        setSelectedLaneData(response && Array.isArray(response) && response[0] ? { id: response[0]?.laneId, name: response[0]?.laneName } : null);
+        const lanes = await fetchLanes();
+        setLanesData(lanes);
+        setSelectedLaneData(lanes[0] ? lanes[0] : null);
     }
 
     const fetchBookingsForCalenderView = async () => {
@@ -162,10 +156,8 @@ const BookingCopy: React.FC = () => {
             const prevDay = new Date(date);
             prevDay.setDate(prevDay.getDate() - 1);
             setDate(prevDay);
-            setFromDate(new Date(prevDay.getTime() - prevDay.getTimezoneOffset() * 60000)
-                .toISOString().split("T")[0]);
-            setToDate(new Date(prevDay.getTime() - prevDay.getTimezoneOffset() * 60000)
-                .toISOString().split("T")[0]);
+            setFromDate(formatDateToISO(prevDay));
+            setToDate(formatDateToISO(prevDay));
         }
 
         setSelectedLaneData(lanesData[0]);
@@ -176,10 +168,8 @@ const BookingCopy: React.FC = () => {
         const nextDay = new Date(date);
         nextDay.setDate(nextDay.getDate() + 1);
         setDate(nextDay);
-        setFromDate(new Date(nextDay.getTime() - nextDay.getTimezoneOffset() * 60000)
-            .toISOString().split("T")[0]);
-        setToDate(new Date(nextDay.getTime() - nextDay.getTimezoneOffset() * 60000)
-            .toISOString().split("T")[0]);
+        setFromDate(formatDateToISO(nextDay));
+        setToDate(formatDateToISO(nextDay));
 
         setSelectedLaneData(lanesData[0]);
     };
@@ -363,10 +353,8 @@ const BookingCopy: React.FC = () => {
                                         onChange={(e) => {
                                             if (e.value) {
                                                 setDate(e.value as Date);
-                                                setFromDate(new Date(e.value.getTime() - e.value.getTimezoneOffset() * 60000)
-                                                    .toISOString().split("T")[0]);
-                                                setToDate(new Date(e.value.getTime() - e.value.getTimezoneOffset() * 60000)
-                                                    .toISOString().split("T")[0]);
+                                                setFromDate(formatDateToISO(e.value));
+                                                setToDate(formatDateToISO(e.value));
                                             } else {
                                                 setFromDate("");
                                             }
