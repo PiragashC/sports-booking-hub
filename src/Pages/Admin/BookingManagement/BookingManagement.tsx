@@ -103,10 +103,11 @@ const BookingManagement: React.FC = () => {
     const [lanesListData, setLanesListData] = useState<Lane[]>([]);
     const [bookingPrice, setBookingPrice] = useState<number>(0);
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
+    const [selectedBookingLanes, setSelectedBookingLanes] = useState<Lane[]>([]);
     const [timeListData, setTimeListData] = useState<TimeList[]>([]);
     const [laneError, setLaneError] = useState<boolean>(false);
     const [isValidNumber, setIsValidNumber] = useState<boolean>(true);
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const [editId, setEditId] = useState<string>('');
 
     const initialBookingFormData = {
         email: '',
@@ -171,7 +172,20 @@ const BookingManagement: React.FC = () => {
     const handleCloseBookingModal = () => {
         setShowBookingModal(false);
         setBookingStep(1);
+        setLoading(false);
+        setTimeListData([]);
+        setLanesListData([]);
+        setBookingPrice(0);
+        setBookingDates(null);
+        setBookingLanes([]);
+        setBookingFormData(initialBookingFormData);
+        setIsRequired(false);
+        setIsValidNumber(true);
+        setSelectedBookingLanes([]);
+        setDataState("Add");
+        setEditId("");
     }
+
 
     const handleNewBooking = () => {
         setShowBookingModal(true);
@@ -181,19 +195,59 @@ const BookingManagement: React.FC = () => {
     const handleClearBookingFields = () => {
     }
 
-    const handleCreateBooking = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
+    const handleCreateBooking = async () => {
+        if (bookingStep2Ref.current) {
+            bookingStep2Ref.current.handleConfirmBooking();
+        }
     }
 
     const handleEditBooking = (data: Bookings) => {
-        setShowBookingModal(true);
-        setDataState('Edit');
+        if (data && data.id) {
+            setShowBookingModal(true);
+            setDataState('Edit');
+            getBookingById(data.id);
+            setEditId(data.id);
+        }
+    }
+
+    const updateBooking = async () => {
+        setLoading(true);
+        const payload = {
+            id: editId,
+            email: bookingFormData?.email || "",
+            fromTime: bookingFormData?.fromTime,
+            toTime: bookingFormData?.toTime,
+            selectedLanesDtos: bookingFormData?.selectedLanesDtos,
+            bookingDatesDtos: bookingFormData?.bookingDatesDtos,
+            bookingTitle: bookingFormData?.bookingTitle,
+            firstName: bookingFormData?.firstName,
+            lastName: bookingFormData?.lastName,
+            telephoneNumber: bookingFormData?.telephoneNumber,
+            organization: bookingFormData?.organization,
+            bookingStatus: "",
+            bookingType: "",
+            bookingPrice: 80.00
+        }
+        const response: any = await apiRequest({
+            method: "put",
+            url: "/booking/update",
+            data: payload,
+          });
+      
+          console.log(response);
+          if(response && !response?.error){
+            showSuccessToast(toastRef, "Booking updated successfully!", "");
+            handleCloseBookingModal();
+            fetchBookingsForFilters();
+          }else{
+            showErrorToast(toastRef, " Booking Update Failed", response?.error);
+          }
+          setLoading(false);
     }
 
     const handleUpdateBooking = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
+        updateBooking();
     }
 
     const handleDeleteBooking = (data: Bookings) => {
@@ -217,6 +271,7 @@ const BookingManagement: React.FC = () => {
     }
 
     const handleViewBooking = (data: Bookings) => {
+        setDataState('Add');
         if (data && data.id) {
             setShowBookingViewModal(true);
             getBookingById(data.id);
@@ -315,7 +370,7 @@ const BookingManagement: React.FC = () => {
             />
 
             <Button
-                label={`${loading ? 'Processing' : dataState === 'Add' ? 'Next' : 'Update'}`}
+                label={`${loading ? 'Processing' : dataState === 'Add' ? 'Confirm Booking' : 'Update Existing Booking'}`}
                 onClick={dataState === 'Add' ? handleCreateBooking : handleUpdateBooking}
                 loading={loading}
                 className="custom_btn primary"
@@ -448,11 +503,30 @@ const BookingManagement: React.FC = () => {
             url: `/booking/get-by-id/${bookingId}`,
             token
         });
-        console.log(response);
+
         if (response && !response?.error) {
-            setSelectedBookingData(response);
+            if (dataState === "Edit") {
+                setBookingFormData({
+                    email: response?.email || '',
+                    fromTime: response?.fromTime || '',
+                    toTime: response?.toTime || '',
+                    bookingTitle: response?.bookingTitle || '',
+                    firstName: response?.firstName || '',
+                    lastName: response?.lastName || '',
+                    telephoneNumber: response?.telephoneNumber || '',
+                    organization: response?.organization || '',
+                    selectedLanesDtos: response?.laneDtos && Array.isArray(response?.laneDtos) && response?.laneDtos?.length > 0 ? response?.laneDtos?.map((lnObj: { laneId: string, laneName: string }) => lnObj.laneId) : [],
+                    bookingDatesDtos: response?.bookingDatesDtos || [],
+                    bookingType: "Offline"
+                })
+                setBookingDates(response?.bookingDatesDtos && Array.isArray(response?.bookingDatesDtos) ? response?.bookingDatesDtos.map((dateStr: string) => new Date(dateStr)) : []);
+                setSelectedBookingLanes(response?.laneDtos && Array.isArray(response?.laneDtos) && response?.laneDtos?.length > 0 ? response?.laneDtos?.map((lnObj: { laneId: string, laneName: string }) => { return { id: lnObj.laneId, name: lnObj.laneName } }) : []);
+            } else {
+                setSelectedBookingData(response);
+            }
         } else {
             setSelectedBookingData(null);
+            setBookingFormData(initialBookingFormData);
         }
     }
 
@@ -532,7 +606,7 @@ const BookingManagement: React.FC = () => {
         setBookingLoading(false);
     };
 
-    const onSuccessFnCall = () => {
+    const onSuccessFnCall = async (response: any) => {
         handleCloseBookingModal();
     }
 
@@ -722,6 +796,20 @@ const BookingManagement: React.FC = () => {
                     {bookingStep === 1 ? (
                         <BookingStep2
                             ref={bookingStep2Ref}
+                            isValidNumber={isValidNumber}
+                            setIsValidNumber={setIsValidNumber}
+                            timeListData={timeListData}
+                            setTimeListData={setTimeListData}
+                            bookingPrice={bookingPrice}
+                            setBookingPrice={setBookingPrice}
+                            isRequired={isRequired}
+                            setIsRequired={setIsRequired}
+                            bookingLanes={bookingLanes}
+                            setBookingLanes={setBookingLanes}
+                            lanesListData={lanesListData}
+                            setLanesListData={setLanesListData}
+                            bookingDates={bookingDates}
+                            setBookingDates={setBookingDates}
                             bookingFormData={bookingFormData}
                             setBookingFormData={setBookingFormData}
                             isOpen={showBookingModal}
@@ -729,6 +817,9 @@ const BookingManagement: React.FC = () => {
                             setLoading={setLoading}
                             fetchBookings={fetchBookingsForFilters}
                             onSuccessFnCall={onSuccessFnCall}
+                            selectedBookingLanes={selectedBookingLanes}
+                            setSelectedBookingLanes={setSelectedBookingLanes}
+                            enableEditInterface={dataState === "Edit"}
                         />
                     ) : bookingStep === 2 ? (
                         <>

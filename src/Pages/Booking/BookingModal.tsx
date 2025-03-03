@@ -1,31 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import './Booking.css';
 import './Booking-responsive.css';
-
 import { Button } from "primereact/button";
 import { Ripple } from "primereact/ripple";
 import { Dialog } from "primereact/dialog";
-import { Calendar } from 'primereact/calendar';
-import { FormEvent, Nullable } from "primereact/ts-helpers";
-import { Dropdown, DropdownChangeEvent, DropdownProps } from "primereact/dropdown";
-import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
-import { Checkbox } from "primereact/checkbox";
-
+import { Nullable } from "primereact/ts-helpers";
 import TextInput from "../../Components/TextInput";
-import TextArea from "../../Components/TextArea";
-
 import { TimeList, timeList } from "../../Utils/SiteData";
 import { Lane } from "./BookingData";
-
-import PhoneNumberInput from "../../Components/PhoneNumberInput";
 import apiRequest from "../../Utils/apiRequest";
-import { removeEmptyValues, showSuccessToast, showErrorToast, formatDateToISO } from "../../Utils/commonLogic";
+import { showSuccessToast, showErrorToast, emailRegex } from "../../Utils/commonLogic";
 import { loadStripe, PaymentIntent, Stripe } from "@stripe/stripe-js";
 import StripePayment from "../../Components/Stripe/StripePayment";
 import { Toast } from "primereact/toast";
-import { useSelector } from "react-redux";
+import BookingStep2 from "../../Components/Booking/BookingStep2";
 
+type BookingType = "Online" | "Offline";
 interface BookingFormData {
     email: string;
     fromTime: string;
@@ -38,18 +29,18 @@ interface BookingFormData {
     organization?: string;
     selectedLanesDtos: string[];
     bookingDatesDtos: string[];
-    bookingType: string;
+    bookingType: BookingType;
 }
 
 interface BookingModalProps {
     isOpen: boolean;
     onClose: () => void;
     toastRef: React.RefObject<Toast>;
-    fetchBookingsForCalenderView?: () => Promise<void>;
+    fetchBookingsForCalenderView: () => Promise<void>;
 }
 
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, fetchBookingsForCalenderView }) => {
-    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
+    const bookingStep2Ref = useRef<{ handleConfirmBooking: (e?: React.FormEvent) => void } | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [bookingStep, setBookingStep] = useState<number>(1);
     const [timeListData, setTimeListData] = useState<TimeList[]>([]);
@@ -59,7 +50,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     const [bookingPrice, setBookingPrice] = useState<number>(0);
     const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
-    const [laneError, setLaneError] = useState<boolean>(false);
     const [isAgree, setIsAgree] = useState<{ terms: boolean, privacy: boolean }>({ terms: false, privacy: false });
     //test
     const initialBookingFormData = {
@@ -74,11 +64,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         organization: '',
         selectedLanesDtos: [],
         bookingDatesDtos: [],
-        bookingType: 'Online'
+        bookingType: "Online" as BookingType
     }
     const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
     const [isRequired, setIsRequired] = useState<boolean>(false);
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    // const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const [isValidNumber, setIsValidNumber] = useState<boolean>(true);
 
     const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
@@ -145,7 +135,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
             } else {
                 showErrorToast(toastRef, "Booking Failed", "Your payment was not completed, and your booking could not be confirmed. Please try again.");
             }
-            fetchBookingsForCalenderView && fetchBookingsForCalenderView();
+            fetchBookingsForCalenderView();
 
         } else {
             if (status === "SUCCESS") {
@@ -184,127 +174,45 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         }
     }
 
-    const confirmBooking = async () => {
-        setLoading(true);
-        const response: any = await apiRequest({
-            method: "post",
-            url: "/booking",
-            data: removeEmptyValues({ ...bookingFormData, telephoneNumber: bookingFormData.telephoneNumber ? `+${bookingFormData.telephoneNumber}` : "" }),
-        });
+    const fnCallAfterSucessToastOfBooking = async (response: any) => {
+        setBookingId(response.bookingId);
+        localStorage.setItem("bookingId", JSON.stringify(response.bookingId));
 
-        console.log(response);
-        if (response?.bookingId && !response?.error) {
-            showSuccessToast(toastRef, "Booking Pending Payment", "Your booking has been successfully created! Please complete the payment to confirm your reservation.")
-            setBookingId(response.bookingId);
-            localStorage.setItem("bookingId", JSON.stringify(response.bookingId));
+        const [configResponse, intentResponse] = await Promise.all([
+            apiRequest<{ stripe_PUBLISHABLE_KEY: string }>({
+                method: "get",
+                url: "/payment/config",
+            }),
 
-            const [configResponse, intentResponse] = await Promise.all([
-                apiRequest<{ stripe_PUBLISHABLE_KEY: string }>({
-                    method: "get",
-                    url: "/payment/config",
-                }),
+            apiRequest<{ clientSecret: string }>({
+                method: "post",
+                url: `/payment/create-payment-intent`,
+                params: { bookingId: response.bookingId },
+            }),
+        ]);
 
-                apiRequest<{ clientSecret: string }>({
-                    method: "post",
-                    url: `/payment/create-payment-intent`,
-                    params: { bookingId: response.bookingId },
-                }),
-            ]);
+        console.log("Payment Config:", configResponse.stripe_PUBLISHABLE_KEY);
+        console.log("Client Secret:", intentResponse.clientSecret);
 
-            console.log("Payment Config:", configResponse.stripe_PUBLISHABLE_KEY);
-            console.log("Client Secret:", intentResponse.clientSecret);
-
-            if (configResponse.stripe_PUBLISHABLE_KEY && intentResponse.clientSecret) {
-                setStripePromise(loadStripe(configResponse.stripe_PUBLISHABLE_KEY));
-                setClientSecret(intentResponse.clientSecret);
-                setBookingStep(3);
-                setLoading(false);
-            } else {
-                setStripePromise(null);
-                setClientSecret("");
-                setLoading(false);
-                // showErrorToast(toastRef, "Payment Setup Failed", "We couldn't initialize the payment process. Please try again or contact support if the issue persists.");
-                showErrorToast(toastRef, "Payment Setup Failed", response?.error);
-                localStorage.removeItem("bookingId");
-            }
-
-
-
-        } else {
+        if (configResponse.stripe_PUBLISHABLE_KEY && intentResponse.clientSecret) {
+            setStripePromise(loadStripe(configResponse.stripe_PUBLISHABLE_KEY));
+            setClientSecret(intentResponse.clientSecret);
+            setBookingStep(3);
             setLoading(false);
-            // showErrorToast(toastRef, " Booking Failed", "We couldn’t process your booking due to a technical issue. Please try again later or contact support if the issue persists.");
-            showErrorToast(toastRef, " Booking Failed", response?.error);
+        } else {
+            setStripePromise(null);
+            setClientSecret("");
+            setLoading(false);
+            // showErrorToast(toastRef, "Payment Setup Failed", "We couldn't initialize the payment process. Please try again or contact support if the issue persists.");
+            showErrorToast(toastRef, "Payment Setup Failed", response?.error);
+            localStorage.removeItem("bookingId");
         }
-        fetchBookingsForCalenderView && fetchBookingsForCalenderView();
-    };
-
-    const handleConfirmBooking = async (e: React.FormEvent) => {
-        setIsRequired(true);
-        e.preventDefault();
-        if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgree?.terms || !isAgree?.privacy || !bookingFormData?.firstName || !bookingFormData?.lastName || !bookingFormData?.telephoneNumber || !isValidNumber) {
-            return;
-        }
-
-        confirmBooking();
     }
 
-    // Function to filter valid end times based on selected start time
-    const getValidEndTimes = (startTime?: string) => {
-        if (!startTime) return [];
-
-        const startIndex = timeList.findIndex((time) => time.value === startTime);
-        if (startIndex === -1) return [];
-
-        // Ensure the end times maintain the same minute part (e.g., :30 stays :30)
-        return timeList.filter((_, index) => index > startIndex && (index - startIndex) % 2 === 0);
-    };
-
-    const endTimeOptions = getValidEndTimes(bookingFormData.fromTime);
-
-    const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
-        if (e && e?.value) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            let selectedDates = e.value.map(date => {
-                return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            });
-
-            const isTodaySelected = selectedDates.some(date => date.getTime() === today.getTime());
-
-            // If today is selected, only today should be set; otherwise, remove today from the selection
-            let finalDates: Date[];
-            if (isTodaySelected) {
-                finalDates = [today];
-            } else {
-                finalDates = selectedDates.filter(date => date.getTime() !== today.getTime());
-            }
-
-            // Format the dates correctly for form submission
-            const formattedDates = finalDates.map(date =>
-                formatDateToISO(date)
-            );
-
-            setLanesListData([]);
-            setBookingLanes([]);
-            setBookingFormData({
-                ...bookingFormData,
-                selectedLanesDtos: [],
-                bookingDatesDtos: formattedDates
-            });
-
-            setBookingDates(finalDates);
+    const handleConfirmBooking = async (e: React.FormEvent) => {
+        if (bookingStep2Ref.current) {
+            bookingStep2Ref.current.handleConfirmBooking();
         }
-    };
-
-
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setBookingFormData({
-            ...bookingFormData,
-            [name]: value
-        });
     }
 
     const bookingModalHeader = (
@@ -352,83 +260,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         </div>
     );
 
-    const handleClearBookingDates = () => {
-        setBookingDates([]);
-        setBookingFormData({ ...bookingFormData, bookingDatesDtos: [], selectedLanesDtos: [] });
-        setLanesListData([]);
-        setBookingLanes([]);
-    }
-
-    const selectedStartTimeTemplate = (data: TimeList, props: DropdownProps) => {
-        if (data) {
-            return (
-                <div className="d-flex align-items-center">
-                    <div>From - {data.label}</div>
-                </div>
-            );
-        }
-
-        return <span>{props.placeholder}</span>;
-    };
-
-    const selectedEndTimeTemplate = (data: TimeList, props: DropdownProps) => {
-        if (data) {
-            return (
-                <div className="d-flex align-items-center">
-                    <div>To - {data.label}</div>
-                </div>
-            );
-        }
-
-        return <span>{props.placeholder}</span>;
-    };
-
-    const fetchLanes = async () => {
-        setLaneError(false);
-        setLanesListData([]);
-
-        const response = await apiRequest({
-            method: "get",
-            url: "/booking/check-availability",
-            params: {
-                fromTime: bookingFormData?.fromTime,
-                toTime: bookingFormData?.toTime,
-                date: bookingFormData?.bookingDatesDtos?.join(',')
-            }
-        });
-
-        console.log(response);
-
-        setLanesListData(Array.isArray(response) ? response.map((laneObj: any) => ({
-            id: laneObj?.laneId || 0,
-            name: laneObj?.laneName || ""
-        })) : []);
-        setLaneError(true);
-        fetchBookingsForCalenderView && fetchBookingsForCalenderView();
-    };
-
-
-    const fetchBookingAmount = async () => {
-        setBookingPrice(0);
-        const response = await apiRequest({
-            method: "get",
-            url: "/booking",
-            params: {
-                noOfLanes: bookingFormData?.selectedLanesDtos?.length,
-                noOfDates: bookingFormData?.bookingDatesDtos?.length,
-                fromTime: bookingFormData?.fromTime,
-                toTime: bookingFormData?.toTime
-            }
-        });
-
-        console.log(response);
-        setBookingPrice(response && response?.bookingPrice ? Number(response.bookingPrice) : 0);
-    }
-
-    const handleViewTermsCondition = () => {
-        setShowTermsConditionModal(true);
-    }
-
     const handleCloseTermsConditionModal = () => {
         setShowTermsConditionModal(false);
         setIsAgree({ ...isAgree, terms: true });
@@ -451,9 +282,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         </div>
     );
     /*  */
-    const handleViewPrivacyPolicy = () => {
-        setShowPrivacyPolicyModal(true);
-    }
 
     const handleClosePrivacyPolicyModal = () => {
         setShowPrivacyPolicyModal(false);
@@ -477,17 +305,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         </div>
     );
 
-
-    useEffect(() => {
-        if (bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchLanes();
-    }, [bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
-
-    useEffect(() => {
-        if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
-    }, [bookingFormData?.selectedLanesDtos, bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
-
     useEffect(() => { checkIsBookingIdInLocal() }, []);
-
 
     /*  */
 
@@ -542,331 +360,33 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                 Outside shoes are not allowed at the facility. Metal spikes are not allowed on Cricket lanes.
                             </div>
 
-                            <div className="booking_form_area">
-                                <h5 className="form_title">Booking details</h5>
-
-                                <div className="row">
-                                    {/* Date */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingDate' className={`custom_form_label is_required`}>Date</label>
-                                            <div className="multi_date_input_group">
-                                                <Calendar
-                                                    inputId="bookingDate"
-                                                    value={bookingDates}
-                                                    onChange={handleDateChange}
-                                                    selectionMode="multiple"
-                                                    readOnlyInput
-                                                    placeholder="Select date(s)"
-                                                    className="multi_date_input_area w-100"
-                                                    inputClassName="multi_date_input"
-                                                    minDate={new Date()}
-                                                // minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
-                                                />
-                                                {bookingDates && bookingDates?.length > 0 && (
-                                                    <i className="bi bi-x-lg data_clear_icon" onClick={handleClearBookingDates}></i>
-                                                )}
-                                            </div>
-                                            {(isRequired && bookingFormData?.bookingDatesDtos?.length === 0) && (
-                                                <small className="form_error_msg">Atleast single date needed for booking!</small>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Time */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingTime' className={`custom_form_label is_required`}>Time</label>
-
-                                            <div className="row">
-                                                {/* Start time */}
-                                                <div className="col-12 col-sm-6">
-                                                    <Dropdown
-                                                        id="startTime"
-                                                        value={bookingFormData?.fromTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => {
-                                                            setLanesListData([]);
-                                                            setBookingLanes([]);
-                                                            setBookingPrice(0);
-
-                                                            setBookingFormData((prev: BookingFormData) => ({
-                                                                ...prev,
-                                                                fromTime: e?.value || "",
-                                                                toTime: "",
-                                                                selectedLanesDtos: []
-                                                            }));
-                                                        }}
-                                                        options={timeListData}
-                                                        optionLabel="label"
-                                                        valueTemplate={selectedStartTimeTemplate}
-                                                        placeholder="Start time"
-                                                        className="form_dropdown w-100 mb-3 mb-sm-0"
-                                                        showClear
-                                                    />
-                                                </div>
-
-                                                {/* End time */}
-                                                <div className="col-12 col-sm-6">
-                                                    <Dropdown
-                                                        id="endTime"
-                                                        value={bookingFormData?.toTime || undefined}
-                                                        onChange={(e: DropdownChangeEvent) => {
-                                                            setLanesListData([]);
-                                                            setBookingLanes([]);
-                                                            setBookingPrice(0);
-
-                                                            setBookingFormData((prev: BookingFormData) => ({
-                                                                ...prev,
-                                                                toTime: e?.value || "",
-                                                                selectedLanesDtos: []
-                                                            }));
-                                                        }}
-                                                        options={endTimeOptions}
-                                                        optionLabel="label"
-                                                        valueTemplate={selectedEndTimeTemplate}
-                                                        placeholder="End time"
-                                                        className="form_dropdown w-100"
-                                                        showClear
-                                                        disabled={!bookingFormData?.fromTime}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {(isRequired && (!bookingFormData?.fromTime || !bookingFormData?.fromTime)) && (
-                                        <small className="form_error_msg">Booking time range required!</small>
-                                    )}
-                                    {/* <div className="col-12">
-                                        <div className="message_label danger mb-4">
-                                            <i className="bi bi-exclamation-triangle-fill me-2"></i>
-                                            Your booking doesn't meet the advance-notice requirements. Bookings are not allowed to be made less than 1 hour in advance.
-                                        </div>
-                                    </div> */}
-
-
-
-                                    {/* Lanes */}
-                                    <div className="col-12">
-                                        <div className="page_form_group">
-                                            <label htmlFor='bookingLanes' className={`custom_form_label is_required`}>Spaces</label>
-                                            <MultiSelect
-                                                value={bookingLanes}
-                                                onChange={(e: MultiSelectChangeEvent) => {
-                                                    setBookingPrice(0);
-                                                    setBookingLanes(e.value);
-                                                    setBookingFormData({
-                                                        ...bookingFormData,
-                                                        selectedLanesDtos: Array.isArray(e.value) && e?.value?.length > 0
-                                                            ? e.value.map((v: any) => String(v?.id)).filter(Boolean)
-                                                            : [],
-                                                    });
-                                                }}
-                                                options={lanesListData}
-                                                display="chip"
-                                                optionLabel="name"
-                                                showClear
-                                                filter
-                                                filterPlaceholder="Search lanes"
-                                                placeholder="Select space"
-                                                maxSelectedLabels={4}
-                                                className="w-100"
-                                                emptyMessage="No spaces found!"
-                                                disabled={lanesListData?.length === 0}
-                                            />
-
-                                            {(laneError && lanesListData?.length === 0 && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) && (
-                                                <small className="form_error_msg">No lanes available for your date and time!</small>
-                                            )}
-
-                                            {(isRequired && bookingFormData?.selectedLanesDtos?.length === 0) && (
-                                                <small className="form_error_msg">Please select available lanes for booking!</small>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Booking title */}
-                                    <div className="col-12">
-                                        <TextInput
-                                            id="bookingTitle"
-                                            label="Booking title"
-                                            labelHtmlFor="bookingTitle"
-                                            required={false}
-                                            inputType="text"
-                                            value={bookingFormData?.bookingTitle}
-                                            placeholder="Enter a title for this booking"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setBookingFormData({ ...bookingFormData, bookingTitle: e.target.value }) }}
-                                            error={''}
-                                            formGroupClassName="mb-0"
-                                        />
-                                    </div>
-
-                                    {/* Terms and conditions agreement */}
-                                    <div className="col-12">
-                                        <div className="page_form_group mb-0">
-                                            <div className="form_check_area">
-                                                <Checkbox
-                                                    inputId="isAgree"
-                                                    name="isAgree"
-                                                    value={isAgree?.privacy && isAgree?.terms}
-                                                    className="form_checkbox"
-                                                    checked={isAgree?.privacy && isAgree?.terms}
-                                                />
-                                                <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
-                                                    <button onClick={handleViewTermsCondition}>Terms and Conditions</button>&nbsp;&&nbsp;
-                                                    <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
-                                                </label>
-                                            </div>
-
-                                            <p className="note_text">
-                                                <i className="bi bi-info-circle me-1"></i>
-                                                Please click on <b>'Terms and Conditions'</b> and <b>'Privacy Policy'</b> and read them clearly, accept them by clicking on the 'Ok' button and proceed with your booking.
-                                            </p>
-
-                                            {/* <div className="form_check_area pt-2">
-                                                <Checkbox
-                                                    inputId="isAgreePrivacy"
-                                                    name="isAgreePrivacy"
-                                                    value={isAgreePrivacy}
-                                                    className="form_checkbox"
-                                                    onChange={e => setIsAgreePrivacy(e.checked ?? false)}
-                                                    checked={isAgreePrivacy}
-                                                />
-                                                <label htmlFor="isAgreePrivacy" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
-                                                    <button onClick={handleViewPrivacyPolicy}>Privacy Policy</button>
-                                                </label>
-                                            </div> */}
-                                        </div>
-                                    </div>
-
-                                    {/* Booking description */}
-                                    {/* <div className="col-12">
-                                        <TextArea
-                                            id="bookingDescription"
-                                            label="Booking description"
-                                            labelHtmlFor="bookingDescription"
-                                            required={false}
-                                            value={bookingFormData?.bookingDetails}
-                                            placeholder="Enter a description for your booking"
-                                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setBookingFormData({ ...bookingFormData, bookingDetails: e.target.value }) }}
-                                            error={''}
-                                            formGroupClassName="mb-0"
-                                        />
-                                    </div> */}
-                                </div>
-
-                                <hr className="form_divider" />
-
-                                <h5 className="form_title">Your details ({bookingFormData?.email})</h5>
-
-                                <div className="row">
-                                    {/* First name */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="firstName"
-                                            label="First name"
-                                            labelHtmlFor="firstName"
-                                            required={true}
-                                            inputType="text"
-                                            value={bookingFormData?.firstName}
-                                            name="firstName"
-                                            placeholder="eg: John"
-                                            onChange={handleChange}
-                                            error={(isRequired && !bookingFormData?.firstName) ? "First name is required!" : ""}
-                                        />
-                                    </div>
-
-                                    {/* Last name */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="lastName"
-                                            label="Last name"
-                                            name="lastName"
-                                            labelHtmlFor="lastName"
-                                            required={true}
-                                            inputType="text"
-                                            value={bookingFormData?.lastName}
-                                            placeholder="eg: Doe"
-                                            onChange={handleChange}
-                                            error={(isRequired && !bookingFormData?.lastName) ? "Last name is required!" : ""}
-                                        />
-                                    </div>
-
-                                    {/* Phone number */}
-                                    <div className="col-12 col-sm-6">
-                                        {/* <TextInput
-                                            id="phoneNumber"
-                                            label="Phone number"
-                                            labelHtmlFor="phoneNumber"
-                                            required={false}
-                                            inputType="number"
-                                            value={phoneNumber}
-                                            placeholder="eg: 077 123 4567"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
-                                            error={phoneNumberError}
-                                            formGroupClassName="mb-sm-0"
-                                        /> */}
-                                        <PhoneNumberInput
-                                            id="phoneNumber"
-                                            label="Phone number"
-                                            labelHtmlFor="phoneNumber"
-                                            required={true}
-                                            name="telephoneNumber"
-                                            value={bookingFormData?.telephoneNumber}
-                                            onChange={(value: string) => { setBookingFormData({ ...bookingFormData, telephoneNumber: value }) }}
-                                            error={(isRequired && !bookingFormData?.telephoneNumber) ? "Phone number is required!" : ""}
-                                            formGroupClassName="mb-sm-0"
-                                            setIsValidNumber={setIsValidNumber}
-                                        />
-                                    </div>
-
-                                    {/* Organization */}
-                                    <div className="col-12 col-sm-6">
-                                        <TextInput
-                                            id="organization"
-                                            label="Organization"
-                                            labelHtmlFor="organization"
-                                            required={false}
-                                            inputType="text"
-                                            value={bookingFormData?.organization}
-                                            placeholder="Optional"
-                                            onChange={handleChange}
-                                            error={''}
-                                            formGroupClassName="mb-0"
-                                            name="organization"
-                                        />
-                                    </div>
-                                </div>
-                                {bookingFormData?.selectedLanesDtos?.length > 0 && <>
-                                    <hr className="form_divider" />
-
-                                    <h5 className="form_title">Payment and Facility Disclaimer</h5>
-                                    <div className="row">
-                                        <div className="col-12">
-                                            <div className="price_info_area">
-                                                <label htmlFor='bookingPrice' className={`custom_form_label`}>Booking price</label>
-                                                <h3 className="price_text">
-                                                    {bookingPrice === 0 ? "Calculating..." : `$ ${bookingPrice.toFixed(2)}`}
-                                                </h3>
-
-                                                {bookingPrice && bookingPrice !== 0 && <span className="form_info">
-                                                    (Tax included.)
-                                                </span>}
-                                                <hr />
-                                                <label htmlFor='bookingCancellation' className={`custom_form_label`}>Facility Disclaimer</label>
-                                                <p className="form_info mt-2">
-                                                    By using this facility, you acknowledge and agree to the following terms:
-                                                </p>
-                                                <p className="form_info mt-3">
-                                                    <span>1. </span>Assumption of Risk: Participation in cricket activities is at your own risk. We are not responsible for any injury, accident, or harm that may occur while using the facility.
-                                                </p>
-                                                <p className="form_info mt-3">
-                                                    <span>2. </span>Property Damage: Any damage to the facility, equipment, or property caused by you or your group will be your sole responsibility. You agree to cover the costs for repairs or replacements.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>}
-                            </div>
+                            <BookingStep2
+                                ref={bookingStep2Ref}
+                                isValidNumber={isValidNumber}
+                                setIsValidNumber={setIsValidNumber}
+                                timeListData={timeListData}
+                                setTimeListData={setTimeListData}
+                                bookingPrice={bookingPrice}
+                                setBookingPrice={setBookingPrice}
+                                isRequired={isRequired}
+                                setIsRequired={setIsRequired}
+                                bookingLanes={bookingLanes}
+                                setBookingLanes={setBookingLanes}
+                                lanesListData={lanesListData}
+                                setLanesListData={setLanesListData}
+                                bookingDates={bookingDates}
+                                setBookingDates={setBookingDates}
+                                bookingFormData={bookingFormData}
+                                setBookingFormData={setBookingFormData}
+                                isOpen={isOpen}
+                                toastRef={toastRef}
+                                setLoading={setLoading}
+                                fetchBookings={fetchBookingsForCalenderView}
+                                onSuccessFnCall={fnCallAfterSucessToastOfBooking}
+                                isAgree={isAgree}
+                                setShowTermsConditionModal={setShowTermsConditionModal}
+                                setShowPrivacyPolicyModal={setShowPrivacyPolicyModal}
+                            />
                         </>
                     ) : bookingStep === 3 ? (
                         <div className="payment_area">

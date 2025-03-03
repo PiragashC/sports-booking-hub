@@ -31,20 +31,14 @@ interface BookingFormData {
 }
 
 
-const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, toastRef, setLoading, fetchBookings, onSuccessFnCall, isAgree, setShowTermsConditionModal, setShowPrivacyPolicyModal }: {
-  bookingFormData: BookingFormData, setBookingFormData: React.Dispatch<React.SetStateAction<BookingFormData>>, isOpen: boolean, toastRef: React.RefObject<Toast>, setLoading: React.Dispatch<React.SetStateAction<boolean>>, fetchBookings: () => Promise<void>, onSuccessFnCall: () => void, isAgree?: {
+const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData, setTimeListData, bookingPrice, setBookingPrice, isRequired, setIsRequired, bookingLanes, setBookingLanes, lanesListData, setLanesListData, bookingDates, setBookingDates, bookingFormData, setBookingFormData, isOpen, toastRef, setLoading, fetchBookings, onSuccessFnCall, isAgree, setShowTermsConditionModal, setShowPrivacyPolicyModal, enableEditInterface = false, selectedBookingLanes, setSelectedBookingLanes }: {
+  isValidNumber: boolean, setIsValidNumber: React.Dispatch<React.SetStateAction<boolean>>, timeListData: TimeList[], setTimeListData: React.Dispatch<React.SetStateAction<TimeList[]>>, bookingPrice: number, setBookingPrice: React.Dispatch<React.SetStateAction<number>>, isRequired: boolean, setIsRequired: React.Dispatch<React.SetStateAction<boolean>>, bookingLanes: Lane[], setBookingLanes: React.Dispatch<React.SetStateAction<Lane[]>>, lanesListData: Lane[], setLanesListData: React.Dispatch<React.SetStateAction<Lane[]>>, bookingDates: Nullable<Date[]>, setBookingDates: React.Dispatch<React.SetStateAction<Nullable<Date[]>>>, bookingFormData: BookingFormData, setBookingFormData: React.Dispatch<React.SetStateAction<BookingFormData>>, isOpen: boolean, toastRef: React.RefObject<Toast>, setLoading: React.Dispatch<React.SetStateAction<boolean>>, fetchBookings: () => Promise<void>, onSuccessFnCall: (response: any) => Promise<void>, isAgree?: {
     terms: boolean;
     privacy: boolean;
-  }, setShowTermsConditionModal?: React.Dispatch<React.SetStateAction<boolean>>, setShowPrivacyPolicyModal?: React.Dispatch<React.SetStateAction<boolean>>
+  }, setShowTermsConditionModal?: React.Dispatch<React.SetStateAction<boolean>>, setShowPrivacyPolicyModal?: React.Dispatch<React.SetStateAction<boolean>>, enableEditInterface?: boolean, selectedBookingLanes?: Lane[], setSelectedBookingLanes?: React.Dispatch<React.SetStateAction<Lane[]>>
 }, ref) => {
-  const [bookingDates, setBookingDates] = useState<Nullable<Date[]>>(null);
-  const [lanesListData, setLanesListData] = useState<Lane[]>([]);
-  const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
-  const [isRequired, setIsRequired] = useState<boolean>(false);
-  const [bookingPrice, setBookingPrice] = useState<number>(0);
-  const [timeListData, setTimeListData] = useState<TimeList[]>([]);
   const [laneError, setLaneError] = useState<boolean>(false);
-  const [isValidNumber, setIsValidNumber] = useState<boolean>(true);
+  const [alreadySelectedLaneList, setAlreadySelectedLaneList] = useState<Lane[]>([]);
 
   const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
     if (e && e?.value) {
@@ -74,17 +68,17 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
       setBookingLanes([]);
       setBookingFormData({
         ...bookingFormData,
-        selectedLanesDtos: [],
+        selectedLanesDtos: selectedBookingLanes && selectedBookingLanes.length > 0 ? [...selectedBookingLanes?.map((v: any) => String(v?.id)).filter(Boolean)] : [],
         bookingDatesDtos: formattedDates
       });
-
       setBookingDates(finalDates);
     }
   };
 
+
   const handleClearBookingDates = () => {
     setBookingDates([]);
-    setBookingFormData({ ...bookingFormData, bookingDatesDtos: [], selectedLanesDtos: [] });
+    setBookingFormData({ ...bookingFormData, bookingDatesDtos: [], selectedLanesDtos: selectedBookingLanes && selectedBookingLanes.length > 0 ? [...selectedBookingLanes?.map((v: any) => String(v?.id)).filter(Boolean)] : [], });
     setLanesListData([]);
     setBookingLanes([]);
   }
@@ -153,7 +147,7 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
     console.log(response);
     if (response?.bookingId && !response?.error) {
       showSuccessToast(toastRef, "Booking Pending Payment", "Your booking has been successfully created! Please complete the payment to confirm your reservation.");
-      onSuccessFnCall();
+      onSuccessFnCall(response);
     } else {
       setLoading(false);
       // showErrorToast(toastRef, " Booking Failed", "We couldn’t process your booking due to a technical issue. Please try again later or contact support if the issue persists.");
@@ -162,15 +156,40 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
     fetchBookings();
   };
 
-  const handleConfirmBooking = async (e: React.FormEvent) => {
+  const handleConfirmBooking = async () => {
     setIsRequired(true);
-    e.preventDefault();
-    if (bookingFormData?.bookingDatesDtos?.length === 0 || !bookingFormData?.fromTime || !bookingFormData?.toTime || bookingFormData?.selectedLanesDtos?.length === 0 || !isAgree?.terms || !isAgree?.privacy || !bookingFormData?.firstName || !bookingFormData?.lastName || !bookingFormData?.telephoneNumber || !isValidNumber) {
+
+    const {
+      email,
+      bookingDatesDtos,
+      fromTime,
+      toTime,
+      selectedLanesDtos,
+      firstName,
+      lastName,
+      telephoneNumber
+    } = bookingFormData || {};
+
+    const isAgreeValid = isAgree ? isAgree.terms && isAgree.privacy : true;
+
+    if (
+      !email ||
+      !bookingDatesDtos?.length ||
+      !fromTime ||
+      !toTime ||
+      !selectedLanesDtos?.length ||
+      !isAgreeValid ||
+      !firstName ||
+      !lastName ||
+      !telephoneNumber ||
+      !isValidNumber
+    ) {
       return;
     }
 
     confirmBooking();
-  }
+  };
+
 
   useImperativeHandle(ref, () => ({
     handleConfirmBooking,
@@ -201,22 +220,22 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
   };
 
   const fetchBookingAmount = async () => {
+    const reqParams = {
+      laneIds: bookingFormData?.selectedLanesDtos?.join(","),
+      noOfDates: bookingFormData?.bookingDatesDtos?.length,
+      fromTime: bookingFormData?.fromTime,
+      toTime: bookingFormData?.toTime
+    };
     setBookingPrice(0);
     const response = await apiRequest({
       method: "get",
       url: "/booking",
-      params: {
-        noOfLanes: bookingFormData?.selectedLanesDtos?.length,
-        noOfDates: bookingFormData?.bookingDatesDtos?.length,
-        fromTime: bookingFormData?.fromTime,
-        toTime: bookingFormData?.toTime
-      }
+      params: reqParams
     });
 
     console.log(response);
     setBookingPrice(response && response?.bookingPrice ? Number(response.bookingPrice) : 0);
   }
-
 
   useEffect(() => {
     if (isOpen) {
@@ -231,6 +250,10 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
   useEffect(() => {
     if (bookingFormData?.selectedLanesDtos && bookingFormData?.selectedLanesDtos?.length > 0 && bookingFormData?.bookingDatesDtos && bookingFormData?.bookingDatesDtos?.length > 0 && bookingFormData?.fromTime && bookingFormData?.toTime) fetchBookingAmount();
   }, [bookingFormData?.selectedLanesDtos, bookingFormData?.bookingDatesDtos, bookingFormData?.fromTime, bookingFormData?.toTime]);
+
+  useEffect(() => { if (enableEditInterface && selectedBookingLanes) setAlreadySelectedLaneList(selectedBookingLanes) }, [enableEditInterface]);
+
+  console.log(bookingFormData, "fgdvsfgbh");
 
   return (
     <div className="booking_form_area">
@@ -284,7 +307,7 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
                       ...prev,
                       fromTime: e?.value || "",
                       toTime: "",
-                      selectedLanesDtos: []
+                      selectedLanesDtos: selectedBookingLanes && selectedBookingLanes.length > 0 ? [...selectedBookingLanes?.map((v: any) => String(v?.id)).filter(Boolean)] : [],
                     }));
                   }}
                   options={timeListData}
@@ -309,7 +332,7 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
                     setBookingFormData((prev: BookingFormData) => ({
                       ...prev,
                       toTime: e?.value || "",
-                      selectedLanesDtos: []
+                      selectedLanesDtos: selectedBookingLanes && selectedBookingLanes.length > 0 ? [...selectedBookingLanes?.map((v: any) => String(v?.id)).filter(Boolean)] : [],
                     }));
                   }}
                   options={endTimeOptions}
@@ -337,9 +360,40 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
 
 
         {/* Lanes */}
+        {enableEditInterface && <div className="col-12">
+          <div className="page_form_group">
+            <label htmlFor='bookingLanes' className={`custom_form_label`}>Already Selected Spaces</label>
+            <MultiSelect
+              value={selectedBookingLanes}
+              onChange={(e: MultiSelectChangeEvent) => {
+                setBookingPrice(0);
+                setSelectedBookingLanes && setSelectedBookingLanes(e.value);
+                setBookingFormData({
+                  ...bookingFormData,
+                  selectedLanesDtos: [
+                    ...e.value.map((v: any) => String(v?.id)).filter(Boolean),
+                    ...(bookingLanes?.length > 0 ? bookingLanes.map((v: any) => String(v?.id)).filter(Boolean) : [])
+                  ],
+                });
+              }}
+              options={alreadySelectedLaneList}
+              display="chip"
+              optionLabel="name"
+              showClear
+              filter
+              filterPlaceholder="Search lanes"
+              placeholder="Select space"
+              // maxSelectedLabels={4}
+              className="w-100"
+              emptyMessage="No spaces found!"
+            // disabled={lanesListData?.length === 0}
+            />
+          </div>
+        </div>}
+
         <div className="col-12">
           <div className="page_form_group">
-            <label htmlFor='bookingLanes' className={`custom_form_label is_required`}>Spaces</label>
+            <label htmlFor='bookingLanes' className={`custom_form_label ${enableEditInterface ? "" : "is_required"}`}>{enableEditInterface ? "Newly Added Spaces" : "Spaces"}</label>
             <MultiSelect
               value={bookingLanes}
               onChange={(e: MultiSelectChangeEvent) => {
@@ -347,9 +401,10 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
                 setBookingLanes(e.value);
                 setBookingFormData({
                   ...bookingFormData,
-                  selectedLanesDtos: Array.isArray(e.value) && e?.value?.length > 0
-                    ? e.value.map((v: any) => String(v?.id)).filter(Boolean)
-                    : [],
+                  selectedLanesDtos: [
+                    ...e.value.map((v: any) => String(v?.id)).filter(Boolean),
+                    ...(selectedBookingLanes && selectedBookingLanes?.length > 0 ? selectedBookingLanes.map((v: any) => String(v?.id)).filter(Boolean) : [])
+                  ],
                 });
               }}
               options={lanesListData}
@@ -359,7 +414,7 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
               filter
               filterPlaceholder="Search lanes"
               placeholder="Select space"
-              maxSelectedLabels={4}
+              // maxSelectedLabels={lanesListData?.length}
               className="w-100"
               emptyMessage="No spaces found!"
               disabled={lanesListData?.length === 0}
@@ -517,13 +572,13 @@ const BookingStep2 = forwardRef(({ bookingFormData, setBookingFormData, isOpen, 
             name="email"
             label="Email"
             labelHtmlFor="bookingEmail"
-            required={false}
+            required={true}
             inputType="email"
             keyFilter={'email'}
             value={bookingFormData?.email}
             placeholder="Your email address"
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingFormData({ ...bookingFormData, email: e.target.value })}
-            error={(!emailRegex.test(bookingFormData?.email) && bookingFormData?.email) ? "Please enter valid email!" : ""}
+            error={(isRequired && bookingFormData?.email === "") ? "Email is required!" : (!emailRegex.test(bookingFormData?.email) && bookingFormData?.email) ? "Please enter valid email!" : ""}
             inputAutoFocus={true}
           />
         </div>}
