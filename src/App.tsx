@@ -18,8 +18,11 @@ import AdminLayout from './Layout/Admin/AdminLayout';
 import Dashboard from './Pages/Admin/Dashboard/Dashboard';
 import BookingManagement from './Pages/Admin/BookingManagement/BookingManagement';
 import LaneManagement from './Pages/Admin/LaneManagement/LaneManagement';
+import { AdminLoginGuard, AdminRoutes, AppRoutes, PublicRoutes } from './middleware/AuthGuard';
+import { useAuthSession } from './middleware/authMiddleware';
 
 function App() {
+  useAuthSession();
   const value = {
     ripple: true,
   };
@@ -28,24 +31,33 @@ function App() {
       <BrowserRouter>
         <ErrorBoundary>
           <Routes>
-            {/* Web routes */}
-            <Route path='/' element={<WebLayout />}>
-              <Route index element={<Home />} />
-              <Route path="contact-us" element={<ContactUs />} />
+            {/* Web Routes - Only accessible by users */}
+            <Route element={<PublicRoutes />}>
+              <Route path="/" element={<WebLayout />}>
+                <Route index element={<Home />} />
+                <Route path="contact-us" element={<ContactUs />} />
+              </Route>
             </Route>
 
-            {/* App routes */}
-            <Route path='/' element={<AppLayout />}>
-              <Route path="booking" element={<BookingCopy />} />
+            {/* App Routes - Only accessible by users */}
+            <Route element={<AppRoutes />}>
+              <Route path="/" element={<AppLayout />}>
+                <Route path="booking" element={<BookingCopy />} />
+              </Route>
             </Route>
 
-            <Route path="/login/admin" element={<AdminLogin />} />
+            {/* Admin Login Route - Redirects to /admin if already logged in */}
+            <Route element={<AdminLoginGuard />}>
+              <Route path="/login/admin" element={<AdminLogin />} />
+            </Route>
 
-            {/* Admin routes */}
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="booking-management" element={<BookingManagement />} />
-              <Route path="lane-management" element={<LaneManagement />} />
+            {/* Admin Routes - Only accessible by admin */}
+            <Route element={<AdminRoutes />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="booking-management" element={<BookingManagement />} />
+                <Route path="lane-management" element={<LaneManagement />} />
+              </Route>
             </Route>
           </Routes>
         </ErrorBoundary>

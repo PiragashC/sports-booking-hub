@@ -199,6 +199,7 @@ const LaneManagement: React.FC = () => {
             method: "put",
             url: "/booking/update-lane",
             data: payload,
+            token
         });
 
         console.log(response);
@@ -269,7 +270,7 @@ const LaneManagement: React.FC = () => {
                         <Ripple />
                     </button>
 
-                    <button
+                    {/* <button
                         type="button"
                         title="Delete"
                         data-pr-tooltip={`Delete Lane`}
@@ -280,7 +281,7 @@ const LaneManagement: React.FC = () => {
                     >
                         <i className="bi bi-trash3"></i>
                         <Ripple />
-                    </button>
+                    </button> */}
                 </div>
             </>
         )

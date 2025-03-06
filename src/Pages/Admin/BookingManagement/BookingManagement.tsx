@@ -422,6 +422,7 @@ const BookingManagement: React.FC = () => {
                         data-pr-position="top"
                         data-pr-classname="custom_tooltip"
                         className="data_action_btn primary p-ripple"
+                        disabled={data.status === 'Failure'}
                         onClick={() => handleEditBooking(data)}>
                         <i className="bi bi-pencil-square"></i>
                         <Ripple />

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Link, useLocation, Outlet } from "react-router-dom";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { Ripple } from 'primereact/ripple';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
@@ -9,9 +9,10 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { goToTop } from '../../Components/GoToTop';
 
 import AdminFooter from "./AdminFooter";
+import { setLogout, User } from '../../state';
 
 const AdminLayout: React.FC = () => {
-    const navigate = useNavigate;
+    const { userName } = useSelector((state: { auth: { user: User } }) => state.auth.user);
     const { pathname } = useLocation();
     const dispatch = useDispatch();
     const [menuOpen, setMenuOpen] = useState<boolean>(false);
@@ -69,12 +70,9 @@ const AdminLayout: React.FC = () => {
             icon: 'bi bi-info-circle',
             defaultFocus: 'reject',
             acceptClassName: 'p-button-danger',
-            accept: logout,
+            accept: () => { dispatch(setLogout()); },
         });
         setMenuOpen(false);
-    }
-
-    const logout = () => {
     }
 
     useEffect(() => {
@@ -179,7 +177,7 @@ const AdminLayout: React.FC = () => {
                                     <img src={"/Admin/user.svg"} className='profile-dropdown-no-img' alt="" />
                                 </div>
                                 <h6 className='dropdown-profile-name'>
-                                    Admin
+                                    {userName}
                                 </h6>
                             </li>
                             {/* <li className='profile-dropdown-item mb-1 mt-1'>
