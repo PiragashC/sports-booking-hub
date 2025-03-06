@@ -7,21 +7,26 @@ import { Toast } from "primereact/toast";
 import { Calendar } from "primereact/calendar";
 import { Nullable } from "primereact/ts-helpers";
 import { Dropdown, DropdownChangeEvent, DropdownProps } from 'primereact/dropdown';
-import { DataTable } from 'primereact/datatable';
+import { DataTable, DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tooltip } from "primereact/tooltip";
 
 import { goToTop } from "../../../Components/GoToTop";
-import { formatTime } from "../../../Utils/commonLogic";
+import { formatTime, removeEmptyValues, showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
 
 import { Lane, lanes } from "../SampleData";
 import { confirmDialog } from "primereact/confirmdialog";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import TextInput from "../../../Components/TextInput";
+import apiRequest from "../../../Utils/apiRequest";
+import { useSelector } from "react-redux";
+import NumberInput from "../../../Components/NumberInput";
+import SkeletonLoader, { SkeletonLayout } from "../../../Components/SkeletonLoader";
 
 interface LaneFormData {
     laneName: string;
+    lanePrice: number;
 }
 
 interface Status {
@@ -29,7 +34,17 @@ interface Status {
     value: boolean;
 }
 
+interface LaneApiResult {
+    laneId: string;
+    laneName: string;
+    isActive: boolean;
+    laneNumber: string;
+    lanePrice: number;
+}
+
 const LaneManagement: React.FC = () => {
+    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
+    const toastRef = useRef<Toast>(null);
     const today = new Date();
     const [loading, setLoading] = useState<boolean>(false);
     const [dataState, setDataState] = useState<'Add' | 'Edit'>('Add');
@@ -37,11 +52,12 @@ const LaneManagement: React.FC = () => {
     const toast = useRef<Toast>(null);
 
     const [showLaneModal, setShowLaneModal] = useState<boolean>(false);
-    const [lanesData, setLanesData] = useState<Lane[]>([]);
+    const [lanesData, setLanesData] = useState<LaneApiResult[]>([]);
     const [selectedLane, setSelectedLane] = useState<Lane | null>(null);
 
     const initialLaneFormData = {
-        laneName: 'Lane '
+        laneName: '',
+        lanePrice: 0,
     }
 
     const [laneFormData, setLaneFormData] = useState<LaneFormData>(initialLaneFormData);
@@ -52,15 +68,47 @@ const LaneManagement: React.FC = () => {
         { label: 'Inactive', value: false },
     ];
 
+    const [paginationParams, setPaginationParams] = useState<{ first: number, page: number; size: number }>({
+        first: 0,
+        page: 1,
+        size: 10,
+    });
+    const [laneLoading, setLaneLoading] = useState<boolean>(false);
+    const [totalRecords, setTotalRecords] = useState<number>(0);
+    const [rowPerPage, setRowsPerPage] = useState<number[]>([5]);
+    const [editId, setEditId] = useState<string>('');
 
-    useEffect(() => {
-        setLanesData(lanes);
-    }, []);
+    const laneSkeletonLayout: SkeletonLayout = {
+        type: "column",
+        items: [
+            { width: "150px", height: "20px", className: "mb-3" },
+            {
+                type: "row",
+                items: [
+                    { width: "85%", height: "40px", className: "mb-3 col-12 col-lg-6" },
+
+                ],
+            },
+            { width: "150px", height: "20px", className: "mb-3" },
+            {
+                type: "row",
+                items: [
+                    { width: "55%", height: "40px", className: "mb-3 col-12 col-lg-6" },
+
+                ],
+            },
+        ]
+    };
+
 
     const handleCloseLaneModal = () => {
         setShowLaneModal(false);
         handleClearLaneFields();
         handleClearLaneErrors();
+        setEditId("");
+        setDataState("Add");
+        setIsRequired(false);
+        setLoading(false);
     }
 
     const handleClearLaneFields = () => {
@@ -76,77 +124,102 @@ const LaneManagement: React.FC = () => {
         setDataState('Add');
     }
 
+    const createlane = async () => {
+        setLoading(true);
+        const response = await apiRequest({
+            method: "post",
+            url: "/booking/create-lane",
+            data: removeEmptyValues(laneFormData),
+            token
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            showSuccessToast(toastRef, "Success", "New Lane created successfully!");
+            fetchLanes();
+            handleCloseLaneModal();
+        } else {
+            showErrorToast(toastRef, "Failed to create a lane. Please try again.", response?.error);
+        }
+        setLoading(false);
+    }
+
+    const validateRequiredFields = (): boolean => {
+        if (!laneFormData.laneName || !laneFormData.lanePrice || laneFormData.lanePrice === 0) {
+            setIsRequired(true);
+            showErrorToast(toastRef, "Error in Submission", "Please fill all required fields!");
+            return false;
+        }
+        setIsRequired(false);
+        return true;
+    };
+
     const handleCreateLane = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!validateRequiredFields()) return;
+        await createlane();
+    };
+
+    const getLaneById = async (laneId: string) => {
         setLoading(true);
+        const response = await apiRequest({
+            method: "get",
+            url: `/booking/get-lane-by-id/${laneId}`,
+            token
+        });
 
-        try {
-            setTimeout(() => {
-                setLoading(false);
-                handleCloseLaneModal();
+        if (response && !response?.error) {
+            setLaneFormData({
+                laneName: response?.laneName,
+                lanePrice: response?.lanePrice || 0,
+            })
+        } else {
+            setLaneFormData(initialLaneFormData);
+        }
+        setLoading(false);
+    }
 
-                if (toast.current) {
-                    toast.current.show({
-                        severity: 'success',
-                        summary: 'Success',
-                        detail: 'Lane created successfully.',
-                        life: 3000
-                    });
-                }
-            }, 500);
-        } catch (error) {
-            setLoading(false);
-            if (toast.current) {
-                toast.current.show({
-                    severity: 'error',
-                    summary: 'Failed',
-                    detail: 'There was an error creating the lane.',
-                    life: 3000
-                });
-            }
+    const handleEditLane = (data: LaneApiResult) => {
+        if (data && data.laneId) {
+            setLaneFormData(initialLaneFormData);
+            setShowLaneModal(true);
+            setDataState('Edit');
+            getLaneById(data.laneId);
+            setEditId(data.laneId);
         }
     }
 
-    const handleEditLane = (data: Lane) => {
-        setShowLaneModal(true);
-        setDataState('Edit');
-        setSelectedLane(data);
-        setLaneFormData({ ...laneFormData, laneName: data?.name });
+    const updateLane = async () => {
+        setLoading(true);
+        const payload = {
+            laneId: editId,
+            laneName: laneFormData.laneName || "",
+            lanePrice: laneFormData?.lanePrice,
+        }
+        const response: any = await apiRequest({
+            method: "put",
+            url: "/booking/update-lane",
+            data: payload,
+        });
+
+        console.log(response);
+        if (response && !response?.error) {
+            showSuccessToast(toastRef, "Lane data updated successfully!", "");
+            handleCloseLaneModal();
+            fetchLanes();
+        } else {
+            showErrorToast(toastRef, " Lane data Update Failed", response?.error);
+        }
+        setLoading(false);
     }
 
     const handleUpdateLane = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-
-        try {
-            setTimeout(() => {
-                setLoading(false);
-                handleCloseLaneModal();
-
-                if (toast.current) {
-                    toast.current.show({
-                        severity: 'success',
-                        summary: 'Success',
-                        detail: 'Lane updated successfully.',
-                        life: 3000
-                    });
-                }
-            }, 500);
-        } catch (error) {
-            setLoading(false);
-            if (toast.current) {
-                toast.current.show({
-                    severity: 'error',
-                    summary: 'Failed',
-                    detail: 'There was an error updating the lane.',
-                    life: 3000
-                });
-            }
-        }
+        if (!validateRequiredFields()) return;
+        await updateLane();
     }
 
-    const handleDeleteLane = (data: Lane) => {
-        const laneId: string = data?.id!;
+    const handleDeleteLane = (data: LaneApiResult) => {
+        const laneId: string = data?.laneId!;
 
         confirmDialog({
             message: 'Are you sure you want to delete this lane?',
@@ -160,34 +233,25 @@ const LaneManagement: React.FC = () => {
         });
     }
 
-    const deleteLane = async (laneId: string) => {
-        try {
-            setTimeout(() => {
-                setLoading(false);
-
-                if (toast.current) {
-                    toast.current.show({
-                        severity: 'success',
-                        summary: 'Success',
-                        detail: 'Lane deleted successfully.',
-                        life: 3000
-                    });
-                }
-            }, 500);
-        } catch (error) {
-            setLoading(false);
-            if (toast.current) {
-                toast.current.show({
-                    severity: 'error',
-                    summary: 'Failed',
-                    detail: 'There was an error deleting the lane.',
-                    life: 3000
-                });
-            }
+    const deleteLane = async (id: string) => {
+        const response = await apiRequest({
+            method: "delete",
+            url: "/lane/delete",
+            params: {
+                bookingId: id
+            },
+            token
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            showSuccessToast(toastRef, "Success", "Lane data deleted successfully.");
+            fetchLanes();
+        } else {
+            showErrorToast(toastRef, "Failed to delete lane. Please try again.", response?.error);
         }
     }
 
-    const tableActionBody = (rowData: Lane) => {
+    const tableActionBody = (rowData: LaneApiResult) => {
         const data = rowData;
         return (
             <>
@@ -253,7 +317,7 @@ const LaneManagement: React.FC = () => {
                 onClick={dataState === 'Add' ? handleCreateLane : handleUpdateLane}
                 loading={loading}
                 className="custom_btn primary"
-                disabled={laneFormData?.laneName === ''}
+                disabled={laneFormData?.laneName === '' || !laneFormData.lanePrice || laneFormData.lanePrice === 0}
             />
         </div>
     );
@@ -297,47 +361,39 @@ const LaneManagement: React.FC = () => {
         return <span>{props.placeholder}</span>;
     };
 
-    const handleStatusChange = (newStatus: number, rowData: Lane) => {
+    const changeLaneStatus = async (id: string, status: number) => {
+        const response = await apiRequest({
+            method: "put",
+            url: "/booking/update-lane-status",
+            params: {
+                id,
+                status
+            },
+            token
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            showSuccessToast(toastRef, "Success", "Lane Status updated successfully!");
+            fetchLanes();
+        } else {
+            showErrorToast(toastRef, "Failed to update lane status. Please try again.", response?.error);
+        }
+    }
+
+    const handleStatusChange = (newStatus: boolean, rowData: LaneApiResult) => {
+        console.log(newStatus, rowData, "ghvfcdefgrhn");
         confirmDialog({
             message: "Are you sure you want to change the lane's status?",
             header: 'Confirm Status Change',
             icon: 'bi bi-info-circle',
             defaultFocus: 'accept',
             dismissableMask: true,
-            accept: () => {
-
-
-                try {
-                    setTimeout(() => {
-                        setLoading(false);
-                        handleCloseLaneModal();
-
-                        if (toast.current) {
-                            toast.current.show({
-                                severity: 'success',
-                                summary: 'Success',
-                                detail: 'Lane status changed successfully.',
-                                life: 3000
-                            });
-                        }
-                    }, 500);
-                } catch (error) {
-                    setLoading(false);
-                    if (toast.current) {
-                        toast.current.show({
-                            severity: 'error',
-                            summary: 'Failed',
-                            detail: 'There was an error changing the lane status.',
-                            life: 3000
-                        });
-                    }
-                }
-            },
+            accept: () => { changeLaneStatus(rowData?.laneId, newStatus ? 1 : 0) },
             reject: () => { },
         });
     };
 
-    const statusBodyTemplate = (rowData: Lane) => {
+    const statusBodyTemplate = (rowData: LaneApiResult) => {
         return (
             <div className="flex_center">
                 <Dropdown
@@ -359,6 +415,40 @@ const LaneManagement: React.FC = () => {
         return 'table_data_row secondary';
     };
 
+    const onPage = (event: DataTableStateEvent) => {
+        setPaginationParams((prev) => ({
+            ...prev,
+            first: event.first,
+            page: event && event?.page ? event.page + 1 : 1,
+            size: event.rows,
+        }));
+    };
+
+    const fetchLanes = async () => {
+        setLaneLoading(true);
+        const response = await apiRequest({
+            method: "get",
+            url: "/booking/get-all-lanes",
+            token,
+            params: {
+                page: paginationParams.page,
+                size: paginationParams.size,
+            }
+        });
+        console.log(response);
+        if (response && !response?.error) {
+            setLanesData(response?.data);
+            setTotalRecords(response?.totalItems);
+            const newRowPerPage = ([5, 10, 25, 50].filter(x => x < Number(response?.totalItems)));
+            setRowsPerPage([...newRowPerPage, Number(response?.totalItems)])
+        } else {
+            setLanesData([]);
+        }
+        setLaneLoading(false);
+    };
+
+    useEffect(() => { if (paginationParams.page && paginationParams.size) fetchLanes(); }, [paginationParams]);
+
     return (
         <>
             <Toast ref={toast} />
@@ -377,61 +467,74 @@ const LaneManagement: React.FC = () => {
                 </div>
 
                 <div className="page_content_section mt-3 pb-0">
-                    {lanesData && lanesData?.length > 0 ? (
-                        <>
-                            <DataTable
-                                value={lanesData}
-                                paginator
-                                size="small"
-                                rows={10}
-                                rowsPerPageOptions={[5, 10, 25, 50]}
-                                tableStyle={{ minWidth: '50rem' }}
-                                paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                                currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                                className="page_table p-0 p-sm-1 pb-sm-0"
-                                rowHover
-                                rowClassName={getRowClassName}
-                            >
-                                <Column
-                                    header="No."
-                                    body={(rowData: Lane, { rowIndex }) => (
-                                        <span className="text_bold text_no_wrap">
-                                            {String(rowIndex + 1).padStart(2, '0')}.
-                                        </span>
-                                    )}
-                                    style={{ width: '15%' }}
-                                ></Column>
+                    <div className="card">
+                        <DataTable
+                            value={lanesData}
+                            lazy
+                            paginator
+                            rows={paginationParams.size}
+                            first={paginationParams.first}
+                            totalRecords={totalRecords}
+                            onPage={onPage}
+                            loading={laneLoading}
+                            size="small"
+                            rowsPerPageOptions={rowPerPage}
+                            tableStyle={{ minWidth: "50rem" }}
+                            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                            currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                            className="page_table p-0 p-sm-1 pb-sm-0"
+                            rowClassName={getRowClassName}
+                            rowHover
+                            emptyMessage="No Lanes found!"
+                        >
+                            <Column
+                                header="No."
+                                body={(rowData: LaneApiResult, { rowIndex }) => (
+                                    <span className="text_bold text_no_wrap">
+                                        {/* {String(rowIndex + 1).padStart(2, '0')}. */}
+                                        {rowData?.laneNumber}
+                                    </span>
+                                )}
+                                style={{ width: '15%' }}
+                            ></Column>
 
-                                <Column
-                                    header="Lane name"
-                                    field="name"
-                                    body={(rowData: Lane) => (
-                                        <span className="text_no_wrap">
-                                            {rowData?.name ? rowData?.name : '---'}
-                                        </span>
-                                    )}
-                                    style={{ width: '50%' }}
-                                ></Column>
+                            <Column
+                                header="Lane name"
+                                field="name"
+                                body={(rowData: LaneApiResult) => (
+                                    <span className="text_no_wrap">
+                                        {rowData?.laneName}
+                                    </span>
+                                )}
+                                style={{ width: '50%' }}
+                            ></Column>
 
-                                <Column
-                                    header="Status"
-                                    field="status"
-                                    alignHeader={'center'}
-                                    body={statusBodyTemplate}
-                                    style={{ width: '15%' }}
-                                ></Column>
+                            <Column
+                                header="Lane price"
+                                field="price"
+                                body={(rowData: LaneApiResult) => (
+                                    <span className="text_no_wrap">
+                                        {rowData?.lanePrice}
+                                    </span>
+                                )}
+                                style={{ width: '50%' }}
+                            ></Column>
 
-                                <Column
-                                    alignHeader="center"
-                                    body={tableActionBody}
-                                    style={{ width: '20%' }}
-                                ></Column>
-                            </DataTable>
-                        </>
-                    ) : (
-                        <>
-                        </>
-                    )}
+                            <Column
+                                header="Status"
+                                field="status"
+                                alignHeader={'center'}
+                                body={statusBodyTemplate}
+                                style={{ width: '15%' }}
+                            ></Column>
+
+                            <Column
+                                alignHeader="center"
+                                body={tableActionBody}
+                                style={{ width: '20%' }}
+                            ></Column>
+                        </DataTable>
+                    </div>
                 </div>
             </div>
 
@@ -444,7 +547,7 @@ const LaneManagement: React.FC = () => {
                 onHide={handleCloseLaneModal}
                 dismissableMask
             >
-                <div className="custom_modal_body">
+                {!loading ? <div className="custom_modal_body">
                     <div className="row">
                         <div className="col-12">
                             <TextInput
@@ -463,8 +566,26 @@ const LaneManagement: React.FC = () => {
                                 error={(isRequired && !laneFormData?.laneName) ? "Lane name is required!" : ""}
                             />
                         </div>
+                        <div className="col-12">
+                            <NumberInput
+                                id="lanePrice"
+                                key="lanePrice"
+                                label="Lane Price"
+                                labelHtmlFor="lanePrice"
+                                required={true}
+                                value={laneFormData?.lanePrice}
+                                name="lanePrice"
+                                placeholder="Enter lane price"
+                                onChange={(value) => setLaneFormData({ ...laneFormData, lanePrice: value || 0 })}
+                                formGroupClassName="mb-2"
+                                inputAutoFocus={true}
+                                min={0}
+                                error={(isRequired && !laneFormData?.lanePrice) ? "Lane price is required!" : ""}
+                            />
+
+                        </div>
                     </div>
-                </div>
+                </div> : <SkeletonLoader layout={laneSkeletonLayout} />}
             </Dialog>
         </>
     )

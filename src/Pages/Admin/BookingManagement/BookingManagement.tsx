@@ -109,6 +109,7 @@ const BookingManagement: React.FC = () => {
     const [laneError, setLaneError] = useState<boolean>(false);
     const [isValidNumber, setIsValidNumber] = useState<boolean>(true);
     const [editId, setEditId] = useState<string>('');
+    const [skeletonLoading, setSkeletonLoading] = useState<boolean>(false);
 
     const initialBookingFormData = {
         email: '',
@@ -612,6 +613,7 @@ const BookingManagement: React.FC = () => {
     };
 
     const getBookingById = async (bookingId: string, type: 'Edit' | 'View') => {
+        setSkeletonLoading(true);
         const response = await apiRequest({
             method: "get",
             url: `/booking/get-by-id/${bookingId}`,
@@ -642,6 +644,7 @@ const BookingManagement: React.FC = () => {
             setSelectedBookingData(null);
             setBookingFormData(initialBookingFormData);
         }
+        setSkeletonLoading(false);
     }
 
     const deleteBooking = async (id: string) => {
@@ -908,7 +911,7 @@ const BookingManagement: React.FC = () => {
             >
                 <div className="custom_modal_body">
                     {bookingStep === 1 ? (
-                        bookingFormData && bookingFormData.bookingDatesDtos.length > 0 ?
+                        !skeletonLoading ?
                             <BookingStep2
                                 ref={bookingStep2Ref}
                                 isValidNumber={isValidNumber}
