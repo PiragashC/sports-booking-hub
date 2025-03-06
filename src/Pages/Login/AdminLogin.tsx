@@ -20,7 +20,6 @@ interface SignInInfo {
 
 
 const AdminLogin: React.FC = () => {
-    useAuthRedirect();
     const toast = useRef<Toast | null>(null);
     const dispatch = useDispatch();
     const [require, setRequire] = useState<boolean>(false);
@@ -58,6 +57,8 @@ const AdminLogin: React.FC = () => {
                     setLogin({
                         user: response.userDto || null,
                         token: response.accessToken,
+                        refreshToken: response.refreshToken,
+                        expireIn: response.expireIn || 180000,
                     })
                 );
             }, 1000);
