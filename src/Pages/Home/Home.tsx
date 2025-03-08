@@ -154,6 +154,11 @@ const Home: React.FC = () => {
                                         <h3>$45/hr
                                             <span> + Tax</span>
                                         </h3>
+                                        <hr className="home_hero_card_footer_divider" />
+                                        <h3>$55/hr
+                                            <span> + Tax</span>&nbsp;
+                                            <small>(Book Bowling Machine (Lane 1))</small>
+                                        </h3>
                                     </div>
                                 </article>
                             </Slide>

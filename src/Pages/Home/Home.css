@@ -420,6 +420,11 @@
     border-radius: 0 0 8px 8px;
 }
 
+.home_hero_card_footer_divider{
+    border-color: var(--color-secondary-light);
+    margin: 5px 0 !important;
+}
+
 .home_hero_card_footer h3 {
     color: #FFF;
     font-size: var(--font-size-xl);
@@ -431,6 +436,11 @@
 .home_hero_card_footer h3 span {
     font-size: var(--font-size-lg);
     font-weight: 400;
+}
+
+.home_hero_card_footer h3 small{
+    font-weight: 400 !important;
+    font-size: var(--font-size-md);
 }
 
 .contact_us_row {
