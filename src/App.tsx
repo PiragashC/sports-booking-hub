@@ -13,6 +13,7 @@ import AppLayout from './Layout/App/AppLayout';
 import Booking from './Pages/Booking/Booking';
 import BookingCopy from './Pages/Booking/Booking copy';
 import AdminLogin from './Pages/Login/AdminLogin';
+import Extras from './Pages/Admin/Extras/Extras';
 
 import AdminLayout from './Layout/Admin/AdminLayout';
 import Dashboard from './Pages/Admin/Dashboard/Dashboard';
@@ -57,6 +58,7 @@ function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="booking-management" element={<BookingManagement />} />
                 <Route path="lane-management" element={<LaneManagement />} />
+                <Route path="extras" element={<Extras />} />
               </Route>
             </Route>
           </Routes>

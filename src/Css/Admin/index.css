@@ -742,6 +742,7 @@ a:focus {
     cursor: not-allowed;
     opacity: 0.8;
     filter: grayscale(1);
+    pointer-events: none;
 }
 
 .data_action_btn:disabled i {

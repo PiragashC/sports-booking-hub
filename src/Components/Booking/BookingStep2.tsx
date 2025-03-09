@@ -11,6 +11,8 @@ import { Checkbox } from 'primereact/checkbox';
 import PhoneNumberInput from '../PhoneNumberInput';
 import apiRequest from '../../Utils/apiRequest';
 import { Toast } from 'primereact/toast';
+import { InputText } from 'primereact/inputtext';
+import { Button } from 'primereact/button';
 
 
 type BookingType = "Online" | "Offline";
@@ -39,6 +41,10 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
 }, ref) => {
   const [laneError, setLaneError] = useState<boolean>(false);
   const [alreadySelectedLaneList, setAlreadySelectedLaneList] = useState<Lane[]>([]);
+
+  const [couponCode, setCouponCode] = useState<string>('');
+  const [couponCodeIsValid, setCouponCodeIsValid] = useState<boolean | null>(true);
+  const [couponCodeLoading, setCouponCodeLoading] = useState<boolean>(false);
 
   const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
     if (e && e?.value) {
@@ -254,6 +260,10 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
   useEffect(() => { if (enableEditInterface && selectedBookingLanes) setAlreadySelectedLaneList(selectedBookingLanes) }, [enableEditInterface]);
 
   console.log(bookingFormData, "fgdvsfgbh");
+
+  const handleApplyCouponCode = () => {
+
+  }
 
   return (
     <div className="booking_form_area">
@@ -595,7 +605,7 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
             placeholder="Optional"
             onChange={handleChange}
             error={''}
-            formGroupClassName="mb-0"
+            formGroupClassName='mb-0'
             name="organization"
           />
         </div>
@@ -632,6 +642,46 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
           </div>
         </div>
       </>}
+
+      <div className="row mt-4">
+        <div className="col-12 col-sm-8">
+          <label htmlFor='couponCode' className={`custom_form_label`}>Coupon code</label>
+          <div className="coupon_code_input_group">
+            <InputText
+              id={`couponCode`}
+              key={`couponCode`}
+              name={`couponCode`}
+              value={couponCode}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCouponCode(e.target.value)}
+              className={`custom_form_input`}
+              placeholder={`Enter coupon code`}
+              autoComplete="off"
+              type={'text'}
+            />
+
+            <Button
+              label={`Apply`}
+              onClick={handleApplyCouponCode}
+              loading={couponCodeLoading}
+              className="custom_btn primary"
+              disabled={couponCode === ''}
+            />
+          </div>
+
+          {couponCodeIsValid === true ? (
+            <span className='coupon_code_validity valid'>
+              <i className='bi bi-check-circle-fill me-1'></i>
+              Coupon code is valid.
+            </span>
+          ) : couponCodeIsValid === false ? (
+            <span className='coupon_code_validity invalid'>
+              <i className='bi bi-exclamation-circle-fill me-1'></i>
+              Coupon code is invalid.
+            </span>
+          ) : null}
+
+        </div>
+      </div>
     </div>
   )
 })
