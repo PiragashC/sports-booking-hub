@@ -28,6 +28,7 @@ interface BookingFormData {
   selectedLanesDtos: string[];
   bookingDatesDtos: string[];
   bookingType: BookingType;
+  promoCode?: string;
 }
 
 
@@ -224,7 +225,8 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
       laneIds: bookingFormData?.selectedLanesDtos?.join(","),
       noOfDates: bookingFormData?.bookingDatesDtos?.length,
       fromTime: bookingFormData?.fromTime,
-      toTime: bookingFormData?.toTime
+      toTime: bookingFormData?.toTime,
+      ...(bookingFormData?.promoCode && { promoCode: bookingFormData.promoCode }),
     };
     setBookingPrice(0);
     const response = await apiRequest({
