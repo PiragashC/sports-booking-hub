@@ -123,7 +123,8 @@ const BookingManagement: React.FC = () => {
         organization: '',
         selectedLanesDtos: [],
         bookingDatesDtos: [],
-        bookingType: "Offline" as BookingType
+        bookingType: "Offline" as BookingType,
+        promoCode: ''
     }
     const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
 
@@ -736,6 +737,7 @@ const BookingManagement: React.FC = () => {
 
     return (
         <>
+            <Toast ref={toastRef} />
             <div>
                 <div className="page_header_section">
                     <h4 className="page_heading">Bookings</h4>
