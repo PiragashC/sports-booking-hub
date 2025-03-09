@@ -54,7 +54,22 @@
     .custom_modal_body {
         padding: 0;
     }
+
+    
+    .page_content_section,
+    .filter_area {
+        border-radius: 12px !important;
+    }
+
+    .filter_area{
+        position: relative !important;
+        top: auto !important;
+    }
 }
 
 /* For custom */
-@media (max-width: 991.5px) {}
+@media (max-width: 991.5px) {
+    .filter_area_row {
+        row-gap: 8px;
+    }
+}

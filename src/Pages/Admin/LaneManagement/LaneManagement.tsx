@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import './Css/LaneManagement.css';
 import './Css/LaneManagement-responsive.css';
+import LaneFormLoader from "./LaneFormLoader";
 
 import { Ripple } from "primereact/ripple";
 import { Toast } from "primereact/toast";
@@ -543,8 +544,8 @@ const LaneManagement: React.FC = () => {
                 onHide={handleCloseLaneModal}
                 dismissableMask
             >
-                {!loading ? (
-                    <div className="custom_modal_body">
+                <div className="custom_modal_body">
+                    {!loading ? (
                         <div className="row">
                             <div className="col-12 col-sm-6">
                                 <TextInput
@@ -584,10 +585,10 @@ const LaneManagement: React.FC = () => {
 
                             </div>
                         </div>
-                    </div>
-                ) : (
-                    <SkeletonLoader layout={laneSkeletonLayout} />
-                )}
+                    ) : (
+                        <LaneFormLoader />
+                    )}
+                </div>
             </Dialog>
         </>
     )
