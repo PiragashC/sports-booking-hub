@@ -43,9 +43,9 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
   const [laneError, setLaneError] = useState<boolean>(false);
   const [alreadySelectedLaneList, setAlreadySelectedLaneList] = useState<Lane[]>([]);
 
-  const [couponCode, setCouponCode] = useState<string>('');
-  const [couponCodeIsValid, setCouponCodeIsValid] = useState<boolean | null>(true);
-  const [couponCodeLoading, setCouponCodeLoading] = useState<boolean>(false);
+  const [promoCode, setpromoCode] = useState<string>('');
+  const [promoCodeIsValid, setpromoCodeIsValid] = useState<boolean | null>(null);
+  const [promoCodeLoading, setpromoCodeLoading] = useState<boolean>(false);
 
   const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
     if (e && e?.value) {
@@ -153,7 +153,11 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
 
     console.log(response);
     if (response?.bookingId && !response?.error) {
-      showSuccessToast(toastRef, "Booking Pending Payment", "Your booking has been successfully created! Please complete the payment to confirm your reservation.");
+      if (!isAgree) {
+        showSuccessToast(toastRef, "Booking Successful!", "");
+      } else {
+        showSuccessToast(toastRef, "Booking Pending Payment", "Your booking has been successfully created! Please complete the payment to confirm your reservation.");
+      }
       onSuccessFnCall(response);
     } else {
       setLoading(false);
@@ -245,6 +249,29 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
     setBookingPrice(response && response?.bookingPrice ? Number(response.bookingPrice) : 0);
   }
 
+  const checkPromoCodeValidity = async () => {
+    setpromoCodeLoading(true);
+    setpromoCodeIsValid(null);
+    const response = await apiRequest({
+      method: "get",
+      url: "/booking/promo-code",
+      params: {
+        promoCode: bookingFormData.promoCode
+      }
+    });
+
+    console.log(response);
+    if (response && !response?.error) {
+      setpromoCodeIsValid(response);
+    } else if (!response && !response?.error) {
+      setpromoCodeIsValid(response);
+    } else {
+      setpromoCodeIsValid(null);
+    }
+    fetchBookingAmount();
+    setpromoCodeLoading(false);
+  }
+
   useEffect(() => {
     if (isOpen) {
       setTimeListData(timeList);
@@ -261,11 +288,6 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
 
   useEffect(() => { if (enableEditInterface && selectedBookingLanes) setAlreadySelectedLaneList(selectedBookingLanes) }, [enableEditInterface]);
 
-  console.log(bookingFormData, "fgdvsfgbh");
-
-  const handleApplyCouponCode = () => {
-
-  }
 
   return (
     <div className="booking_form_area">
@@ -616,7 +638,48 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
         <hr className="form_divider" />
 
         <h5 className="form_title">{isAgree ? "Payment and Facility Disclaimer" : "Payment"}</h5>
+
         <div className="row">
+          <div className="col-12 col-sm-8">
+            <label htmlFor='promoCode' className={`custom_form_label`}>Promo code</label>
+            <div className="coupon_code_input_group">
+              <InputText
+                id={`promoCode`}
+                key={`promoCode`}
+                name={`promoCode`}
+                value={bookingFormData?.promoCode}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.value === '') { fetchBookingAmount(); }; setpromoCodeIsValid(null); handleChange(e) }}
+                className={`custom_form_input`}
+                placeholder={`Enter promo code`}
+                autoComplete="off"
+                type={'text'}
+              />
+
+              <Button
+                label={`Apply`}
+                onClick={checkPromoCodeValidity}
+                loading={promoCodeLoading}
+                className="custom_btn primary"
+                disabled={!bookingFormData?.promoCode}
+              />
+            </div>
+
+            {promoCodeIsValid === true ? (
+              <span className='coupon_code_validity valid'>
+                <i className='bi bi-check-circle-fill me-1'></i>
+                Coupon code is valid.
+              </span>
+            ) : promoCodeIsValid === false ? (
+              <span className='coupon_code_validity invalid'>
+                <i className='bi bi-exclamation-circle-fill me-1'></i>
+                Coupon code is invalid.
+              </span>
+            ) : null}
+
+          </div>
+        </div>
+
+        <div className="row mt-4">
           <div className="col-12">
             <div className="price_info_area">
               <label htmlFor='bookingPrice' className={`custom_form_label`}>Booking price</label>
@@ -645,45 +708,6 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
         </div>
       </>}
 
-      <div className="row mt-4">
-        <div className="col-12 col-sm-8">
-          <label htmlFor='couponCode' className={`custom_form_label`}>Coupon code</label>
-          <div className="coupon_code_input_group">
-            <InputText
-              id={`couponCode`}
-              key={`couponCode`}
-              name={`couponCode`}
-              value={couponCode}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCouponCode(e.target.value)}
-              className={`custom_form_input`}
-              placeholder={`Enter coupon code`}
-              autoComplete="off"
-              type={'text'}
-            />
-
-            <Button
-              label={`Apply`}
-              onClick={handleApplyCouponCode}
-              loading={couponCodeLoading}
-              className="custom_btn primary"
-              disabled={couponCode === ''}
-            />
-          </div>
-
-          {couponCodeIsValid === true ? (
-            <span className='coupon_code_validity valid'>
-              <i className='bi bi-check-circle-fill me-1'></i>
-              Coupon code is valid.
-            </span>
-          ) : couponCodeIsValid === false ? (
-            <span className='coupon_code_validity invalid'>
-              <i className='bi bi-exclamation-circle-fill me-1'></i>
-              Coupon code is invalid.
-            </span>
-          ) : null}
-
-        </div>
-      </div>
     </div>
   )
 })

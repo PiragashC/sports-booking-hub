@@ -64,7 +64,7 @@ export const useAuthSession = () => {
 
         inactivityTimeout = setTimeout(() => {
             console.log("User inactive for 5 minutes. Logging out...");
-            dispatch(setLogout());
+            // dispatch(setLogout());
         }, 60000); // 5 minutes = 300,000ms
     };
 

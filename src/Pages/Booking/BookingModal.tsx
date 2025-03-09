@@ -64,7 +64,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
         organization: '',
         selectedLanesDtos: [],
         bookingDatesDtos: [],
-        bookingType: "Online" as BookingType
+        bookingType: "Online" as BookingType,
+        promoCode: ''
     }
     const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
     const [isRequired, setIsRequired] = useState<boolean>(false);
