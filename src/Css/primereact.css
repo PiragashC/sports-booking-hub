@@ -657,6 +657,8 @@
     padding: 8px 10px 5px;
     position: sticky !important;
     z-index: 2;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
 }
 
 .p-datatable .p-paginator-bottom::before {
@@ -1051,4 +1053,16 @@
 
 .p-inputtextarea.is_text_area {
     height: 100px;
+}
+
+.p-inputnumber {
+    width: 100%;
+}
+
+.p-datatable .p-datatable-loading-overlay {
+    background-color: rgba(197, 197, 197, 1);
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-radius: 15px;
+    z-index: 99;
 }

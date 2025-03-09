@@ -140,6 +140,15 @@ const AdminLayout: React.FC = () => {
                         </Link>
                     </li>
 
+                    <li className={`${pathname === '/extras' ? 'active' : ''}`}>
+                        <Link to={'/admin/extras'} onClick={handleLinkClick}>
+                            <span className="icon">
+                                <i className="bi bi-layers"></i>
+                            </span>
+                            <span className="title">Extras</span>
+                        </Link>
+                    </li>
+
                     <li className='danger'>
                         <Link to={`#`} onClick={handleLogOut}>
                             <span className="icon">

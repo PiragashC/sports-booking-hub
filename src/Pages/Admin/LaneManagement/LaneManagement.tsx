@@ -4,20 +4,18 @@ import './Css/LaneManagement-responsive.css';
 
 import { Ripple } from "primereact/ripple";
 import { Toast } from "primereact/toast";
-import { Calendar } from "primereact/calendar";
-import { Nullable } from "primereact/ts-helpers";
 import { Dropdown, DropdownChangeEvent, DropdownProps } from 'primereact/dropdown';
 import { DataTable, DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tooltip } from "primereact/tooltip";
+import { confirmDialog } from "primereact/confirmdialog";
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 
 import { goToTop } from "../../../Components/GoToTop";
 import { formatTime, removeEmptyValues, showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
 
 import { Lane, lanes } from "../SampleData";
-import { confirmDialog } from "primereact/confirmdialog";
-import { Button } from "primereact/button";
-import { Dialog } from "primereact/dialog";
 import TextInput from "../../../Components/TextInput";
 import apiRequest from "../../../Utils/apiRequest";
 import { useSelector } from "react-redux";
@@ -56,7 +54,7 @@ const LaneManagement: React.FC = () => {
     const [selectedLane, setSelectedLane] = useState<Lane | null>(null);
 
     const initialLaneFormData = {
-        laneName: '',
+        laneName: 'Lane ',
         lanePrice: 0,
     }
 
@@ -468,74 +466,71 @@ const LaneManagement: React.FC = () => {
                 </div>
 
                 <div className="page_content_section mt-3 pb-0">
-                    <div className="card">
-                        <DataTable
-                            value={lanesData}
-                            lazy
-                            paginator
-                            rows={paginationParams.size}
-                            first={paginationParams.first}
-                            totalRecords={totalRecords}
-                            onPage={onPage}
-                            loading={laneLoading}
-                            size="small"
-                            rowsPerPageOptions={rowPerPage}
-                            tableStyle={{ minWidth: "50rem" }}
-                            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                            currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                            className="page_table p-0 p-sm-1 pb-sm-0"
-                            rowClassName={getRowClassName}
-                            rowHover
-                            emptyMessage="No Lanes found!"
-                        >
-                            <Column
-                                header="No."
-                                body={(rowData: LaneApiResult, { rowIndex }) => (
-                                    <span className="text_bold text_no_wrap">
-                                        {/* {String(rowIndex + 1).padStart(2, '0')}. */}
-                                        {rowData?.laneNumber}
-                                    </span>
-                                )}
-                                style={{ width: '15%' }}
-                            ></Column>
+                    <DataTable
+                        value={lanesData}
+                        lazy
+                        paginator
+                        rows={paginationParams.size}
+                        first={paginationParams.first}
+                        totalRecords={totalRecords}
+                        onPage={onPage}
+                        loading={laneLoading}
+                        size="small"
+                        rowsPerPageOptions={rowPerPage}
+                        tableStyle={{ minWidth: "50rem" }}
+                        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                        currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                        className="page_table p-0 p-sm-1 pb-sm-0"
+                        rowClassName={getRowClassName}
+                        rowHover
+                        emptyMessage="No Lanes found!"
+                    >
+                        <Column
+                            header="No."
+                            body={(rowData: LaneApiResult) => (
+                                <span className="text_bold text_no_wrap">
+                                    {rowData?.laneNumber ? rowData?.laneNumber : '---'}
+                                </span>
+                            )}
+                            style={{ width: '15%' }}
+                        ></Column>
 
-                            <Column
-                                header="Lane name"
-                                field="name"
-                                body={(rowData: LaneApiResult) => (
-                                    <span className="text_no_wrap">
-                                        {rowData?.laneName}
-                                    </span>
-                                )}
-                                style={{ width: '50%' }}
-                            ></Column>
+                        <Column
+                            header="Lane name"
+                            field="name"
+                            body={(rowData: LaneApiResult) => (
+                                <span className="text_no_wrap text-capitalize">
+                                    {rowData?.laneName ? rowData?.laneName : '---'}
+                                </span>
+                            )}
+                            style={{ width: '50%' }}
+                        ></Column>
 
-                            <Column
-                                header="Lane price"
-                                field="price"
-                                body={(rowData: LaneApiResult) => (
-                                    <span className="text_no_wrap">
-                                        {rowData?.lanePrice}
-                                    </span>
-                                )}
-                                style={{ width: '50%' }}
-                            ></Column>
+                        <Column
+                            header="Lane price"
+                            field="price"
+                            body={(rowData: LaneApiResult) => (
+                                <span className="text_no_wrap">
+                                    {rowData?.lanePrice ? '$ ' + (rowData?.lanePrice.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '---'}
+                                </span>
+                            )}
+                            style={{ width: '50%' }}
+                        ></Column>
 
-                            <Column
-                                header="Status"
-                                field="status"
-                                alignHeader={'center'}
-                                body={statusBodyTemplate}
-                                style={{ width: '15%' }}
-                            ></Column>
+                        <Column
+                            header="Status"
+                            field="status"
+                            alignHeader={'center'}
+                            body={statusBodyTemplate}
+                            style={{ width: '15%' }}
+                        ></Column>
 
-                            <Column
-                                alignHeader="center"
-                                body={tableActionBody}
-                                style={{ width: '20%' }}
-                            ></Column>
-                        </DataTable>
-                    </div>
+                        <Column
+                            alignHeader="center"
+                            body={tableActionBody}
+                            style={{ width: '20%' }}
+                        ></Column>
+                    </DataTable>
                 </div>
             </div>
 
@@ -548,45 +543,51 @@ const LaneManagement: React.FC = () => {
                 onHide={handleCloseLaneModal}
                 dismissableMask
             >
-                {!loading ? <div className="custom_modal_body">
-                    <div className="row">
-                        <div className="col-12">
-                            <TextInput
-                                id="laneName"
-                                key={`laneName`}
-                                label="Lane name"
-                                labelHtmlFor="laneName"
-                                required={true}
-                                inputType="text"
-                                value={laneFormData?.laneName}
-                                name="laneName"
-                                placeholder="Enter lane name"
-                                onChange={handleChange}
-                                formGroupClassName="mb-2"
-                                inputAutoFocus={true}
-                                error={(isRequired && !laneFormData?.laneName) ? "Lane name is required!" : ""}
-                            />
-                        </div>
-                        <div className="col-12">
-                            <NumberInput
-                                id="lanePrice"
-                                key="lanePrice"
-                                label="Lane Price"
-                                labelHtmlFor="lanePrice"
-                                required={true}
-                                value={laneFormData?.lanePrice}
-                                name="lanePrice"
-                                placeholder="Enter lane price"
-                                onChange={(value) => setLaneFormData({ ...laneFormData, lanePrice: value || 0 })}
-                                formGroupClassName="mb-2"
-                                inputAutoFocus={true}
-                                min={0}
-                                error={(isRequired && !laneFormData?.lanePrice) ? "Lane price is required!" : ""}
-                            />
+                {!loading ? (
+                    <div className="custom_modal_body">
+                        <div className="row">
+                            <div className="col-12 col-sm-6">
+                                <TextInput
+                                    id="laneName"
+                                    key={`laneName`}
+                                    label="Lane name"
+                                    labelHtmlFor="laneName"
+                                    required={true}
+                                    inputType="text"
+                                    value={laneFormData?.laneName}
+                                    name="laneName"
+                                    placeholder="Enter lane name"
+                                    onChange={handleChange}
+                                    inputAutoFocus={true}
+                                    formGroupClassName="mb-sm-2"
+                                    error={(isRequired && !laneFormData?.laneName) ? "Lane name is required!" : ""}
+                                />
+                            </div>
 
+                            <div className="col-12 col-sm-6">
+                                <NumberInput
+                                    id="lanePrice"
+                                    key="lanePrice"
+                                    label="Lane Price"
+                                    labelHtmlFor="lanePrice"
+                                    required={true}
+                                    value={laneFormData?.lanePrice}
+                                    name="lanePrice"
+                                    placeholder="Enter lane price"
+                                    onChange={(value) => setLaneFormData({ ...laneFormData, lanePrice: value || 0 })}
+                                    formGroupClassName="mb-2"
+                                    inputAutoFocus={true}
+                                    min={0}
+                                    prefix="$ "
+                                    error={(isRequired && !laneFormData?.lanePrice) ? "Lane price is required!" : ""}
+                                />
+
+                            </div>
                         </div>
                     </div>
-                </div> : <SkeletonLoader layout={laneSkeletonLayout} />}
+                ) : (
+                    <SkeletonLoader layout={laneSkeletonLayout} />
+                )}
             </Dialog>
         </>
     )

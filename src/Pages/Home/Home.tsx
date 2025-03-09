@@ -154,6 +154,11 @@ const Home: React.FC = () => {
                                         <h3>$45/hr
                                             <span> + Tax</span>
                                         </h3>
+                                        <hr className="home_hero_card_footer_divider" />
+                                        <h3>$55/hr
+                                            <span> + Tax</span>&nbsp;
+                                            <small>(Book Bowling Machine (Lane 1))</small>
+                                        </h3>
                                     </div>
                                 </article>
                             </Slide>
@@ -309,8 +314,8 @@ const Home: React.FC = () => {
                                                         Location
                                                     </h4>
                                                     <div className="contact_card_link_group">
-                                                        <Link to={`https://maps.app.goo.gl/uMLQimJ1LNyDjt5d9`} target="_blank">
-                                                            Oxbury Mall, 1299 Oxford St E, London, ON N5Y 4W4
+                                                        <Link to={`https://maps.app.goo.gl/XtnfBT1nHxvnLZDZ7`} target="_blank">
+                                                            1299 Oxford St E, London, ON N5Y 4W5, Canada
                                                         </Link>
                                                     </div>
                                                 </article>

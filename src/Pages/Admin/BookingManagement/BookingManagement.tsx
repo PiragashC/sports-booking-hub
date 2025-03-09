@@ -589,20 +589,22 @@ const BookingManagement: React.FC = () => {
         )
     }
 
-    const bookingViewModalHeader = () => {
-        return (
-            <div className="modal-header p-2">
-                <h1 className="modal-title fs-5" id="bookingDetailModalLabel">
-                    Booking Info
-                </h1>
-                <button
-                    type="button"
-                    className="btn-close"
-                    onClick={() => setShowBookingViewModal(false)}
-                ></button>
-            </div>
-        )
-    }
+    const bookingViewModalHeader = (
+        <div className="custom_modal_header_inner">
+            <h1 className="modal-title fs-5">
+                Booking Info
+            </h1>
+            <button
+                type="button"
+                aria-label="Close"
+                className="close_modal_btn p-ripple"
+                onClick={() => setShowBookingViewModal(false)}
+            >
+                <i className="bi bi-x-circle"></i>
+                <Ripple />
+            </button>
+        </div>
+    )
 
     const onPage = (event: DataTableStateEvent) => {
         setPaginationParams((prev) => ({
@@ -833,70 +835,68 @@ const BookingManagement: React.FC = () => {
                 </div>
 
                 <div className="page_content_section pb-0">
-                    <div className="card">
-                        <DataTable
-                            value={bookingsData}
-                            lazy
-                            paginator
-                            rows={paginationParams.size}
-                            first={paginationParams.first}
-                            totalRecords={totalRecords}
-                            onPage={onPage}
-                            loading={bookingLoading}
-                            size="small"
-                            rowsPerPageOptions={rowPerPage}
-                            tableStyle={{ minWidth: "50rem" }}
-                            paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                            currentPageReportTemplate="{first} to {last} of {totalRecords}"
-                            className="page_table p-0 p-sm-1 pb-sm-0"
-                            rowClassName={getRowClassName}
-                            rowHover
-                            emptyMessage="No Bookings found!"
-                        >
+                    <DataTable
+                        value={bookingsData}
+                        lazy
+                        paginator
+                        rows={paginationParams.size}
+                        first={paginationParams.first}
+                        totalRecords={totalRecords}
+                        onPage={onPage}
+                        loading={bookingLoading}
+                        size="small"
+                        rowsPerPageOptions={rowPerPage}
+                        tableStyle={{ minWidth: "50rem" }}
+                        paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                        currentPageReportTemplate="{first} to {last} of {totalRecords}"
+                        className="page_table p-0 p-sm-1 pb-sm-0"
+                        rowClassName={getRowClassName}
+                        rowHover
+                        emptyMessage="No Bookings found!"
+                    >
 
-                            <Column
-                                header="Booking no."
-                                field="bookingNumber"
-                                body={(rowData: Bookings) => (
-                                    <span className="text_bold text_no_wrap">
-                                        {rowData?.bookingNumber || "---"}
-                                    </span>
-                                )}
-                                style={{ width: "15%" }}
-                            />
+                        <Column
+                            header="Booking no."
+                            field="bookingNumber"
+                            body={(rowData: Bookings) => (
+                                <span className="text_bold text_no_wrap">
+                                    {rowData?.bookingNumber || "---"}
+                                </span>
+                            )}
+                            style={{ width: "15%" }}
+                        />
 
-                            <Column
-                                header="Date"
-                                field="date"
-                                body={(rowData: Bookings) => (
-                                    <span className="text_no_wrap">{rowData?.date || "---"}</span>
-                                )}
-                                style={{ width: "15%" }}
-                            />
+                        <Column
+                            header="Date"
+                            field="date"
+                            body={(rowData: Bookings) => (
+                                <span className="text_no_wrap">{rowData?.date || "---"}</span>
+                            )}
+                            style={{ width: "15%" }}
+                        />
 
-                            <Column
-                                header="Time"
-                                body={(rowData: Bookings) => (
-                                    <span className="text_no_wrap">
-                                        {rowData?.fromTime && rowData?.toTime
-                                            ? `${formatTime(rowData.fromTime)} - ${formatTime(rowData.toTime)}`
-                                            : "---"}
-                                    </span>
-                                )}
-                                style={{ width: "20%" }}
-                            />
+                        <Column
+                            header="Time"
+                            body={(rowData: Bookings) => (
+                                <span className="text_no_wrap">
+                                    {rowData?.fromTime && rowData?.toTime
+                                        ? `${formatTime(rowData.fromTime)} - ${formatTime(rowData.toTime)}`
+                                        : "---"}
+                                </span>
+                            )}
+                            style={{ width: "20%" }}
+                        />
 
-                            <Column
-                                header="Status"
-                                field="status"
-                                alignHeader="center"
-                                body={statusDisplayBody}
-                                style={{ width: "15%" }}
-                            />
+                        <Column
+                            header="Status"
+                            field="status"
+                            alignHeader="center"
+                            body={statusDisplayBody}
+                            style={{ width: "15%" }}
+                        />
 
-                            <Column alignHeader="center" body={tableActionBody} style={{ width: "10%" }} />
-                        </DataTable>
-                    </div>
+                        <Column alignHeader="center" body={tableActionBody} style={{ width: "10%" }} />
+                    </DataTable>
                 </div>
             </div>
 
@@ -952,9 +952,14 @@ const BookingManagement: React.FC = () => {
             {/*  */}
 
             {/* Booking view modal */}
-            <Dialog header={bookingViewModalHeader} visible={showBookingViewModal}
-                onHide={() => { if (!showBookingViewModal) return; setShowBookingViewModal(false); }}
-                className="custom-modal modal_dialog modal_dialog_md">
+            <Dialog
+                visible={showBookingViewModal}
+                header={bookingViewModalHeader}
+                className="custom-modal modal_dialog modal_dialog_md"
+                headerClassName="custom_modal_header"
+                onHide={handleCloseBookingViewModal}
+                dismissableMask
+            >
                 {selectedBookingData ?
                     <div className="modal-body p-2">
                         <div className="data-view-area">
