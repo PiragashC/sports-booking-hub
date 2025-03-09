@@ -1,0 +1,19 @@
+.coupon_code_validity {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+
+}
+
+.coupon_code_validity.valid {
+    color: var(--color-success);
+}
+
+.coupon_code_validity.invalid {
+    color: var(--color-danger);
+}
+
+.coupon_code_input_group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}

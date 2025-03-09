@@ -18,6 +18,8 @@ interface NumberInputProps {
     min?: number;
     max?: number;
     inputClassName?: string;
+    prefix?: string;
+    suffix?: string;
 }
 
 const NumberInput: React.FC<NumberInputProps> = ({
@@ -36,7 +38,9 @@ const NumberInput: React.FC<NumberInputProps> = ({
     min,
     max,
     name,
-    inputClassName
+    inputClassName,
+    prefix,
+    suffix
 }) => {
     return (
         <div className={`page_form_group ${formGroupClassName}`}>
@@ -58,6 +62,8 @@ const NumberInput: React.FC<NumberInputProps> = ({
                 max={max}
                 mode="decimal"
                 useGrouping={false}
+                prefix={prefix}
+                suffix={suffix}
             />
 
             {error && <small className="form_error_msg">{error}</small>}
