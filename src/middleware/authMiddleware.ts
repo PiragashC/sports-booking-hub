@@ -39,10 +39,10 @@ export const useAuthSession = () => {
                         user: userDto || null,
                         token: accessToken,
                         refreshToken,
-                        expireIn: expireIn || 180000,
+                        expireIn: expireIn || 300000,
                     })
                 );
-                scheduleTokenRefresh(expireIn || 180000);
+                scheduleTokenRefresh(expireIn || 300000);
             } else {
                 dispatch(setLogout());
             }
@@ -65,7 +65,7 @@ export const useAuthSession = () => {
         inactivityTimeout = setTimeout(() => {
             console.log("User inactive for 5 minutes. Logging out...");
             dispatch(setLogout());
-        }, 60000); // 5 minutes = 300,000ms
+        }, 180000); // 5 minutes = 300,000ms
     };
 
     // Attach event listeners to reset inactivity timer on user activity
@@ -78,7 +78,7 @@ export const useAuthSession = () => {
     // Initialize auth session
     useEffect(() => {
         if (token) {
-            scheduleTokenRefresh(expireIn || 180000);
+            scheduleTokenRefresh(expireIn || 300000);
             setupInactivityListeners();
             startInactivityTimer();
         }
