@@ -593,7 +593,7 @@ body {
     color: var(--color-primary);
 }
 
-.react-tel-input .country-list .country{
+.react-tel-input .country-list .country {
     font-size: 14px !important;
     padding: 8px 16px;
     border-radius: 5px;
@@ -636,4 +636,18 @@ body {
 .react-tel-input .country-list .search {
     border-bottom: 1px solid #e5e7eb;
     margin-bottom: 5px;
+}
+
+
+.form_label_loader {
+    height: 14px !important;
+    width: 100px !important;
+    border-radius: 4px !important;
+    margin-bottom: 7px !important;
+}
+
+.form_input_loader {
+    width: 100% !important;
+    height: 45px !important;
+    border-radius: 8px !important;
 }
