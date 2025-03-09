@@ -114,7 +114,7 @@ const Booking: React.FC = () => {
             (calendarRef.current as any).show();
         }
 
-        
+
     }
 
 
@@ -571,6 +571,7 @@ const Booking: React.FC = () => {
                 isOpen={showBookingModal}
                 onClose={handleCloseBookingModal}
                 toastRef={toastRef}
+                fetchBookingsForCalenderView={async () => { }}
             />
 
             <Dialog

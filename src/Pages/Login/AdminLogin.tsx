@@ -20,7 +20,6 @@ interface SignInInfo {
 
 
 const AdminLogin: React.FC = () => {
-    useAuthRedirect();
     const toast = useRef<Toast | null>(null);
     const dispatch = useDispatch();
     const [require, setRequire] = useState<boolean>(false);
@@ -58,6 +57,8 @@ const AdminLogin: React.FC = () => {
                     setLogin({
                         user: response.userDto || null,
                         token: response.accessToken,
+                        refreshToken: response.refreshToken,
+                        expireIn: response.expireIn || 180000,
                     })
                 );
             }, 1000);
@@ -92,7 +93,7 @@ const AdminLogin: React.FC = () => {
                 <div className="container-md">
                     <div className="row">
                         <div className="col-12 col-xxl-5 col-xl-6 col-lg-6 col-md-8 col-sm-9 mx-auto">
-                            <Fade triggerOnce>
+                            <Slide direction="up" triggerOnce>
                                 <article className="auth_card">
                                     <div className="auth_card_header">
                                         <h3>
@@ -102,7 +103,7 @@ const AdminLogin: React.FC = () => {
                                     </div>
                                     <div className="auth_card_body">
                                         <div className="auth_card_img_area">
-                                            <img src="/Login/sign_in_img1_green.svg" alt="Sign in" />
+                                            <img src="/Login/sign_in_img2_green.svg" alt="Sign in" />
                                         </div>
 
                                         <div className="auth_form_area">
@@ -118,6 +119,7 @@ const AdminLogin: React.FC = () => {
                                                         required
                                                         name="email"
                                                         keyfilter={'email'}
+                                                        autoFocus={true}
                                                     />
                                                 </div>
                                                 {require && !signInInfo.email && (
@@ -165,7 +167,7 @@ const AdminLogin: React.FC = () => {
                                         </div>
                                     </div>
                                 </article>
-                            </Fade>
+                            </Slide>
                         </div>
                     </div>
                 </div>

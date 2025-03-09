@@ -1,72 +1,74 @@
 import React from "react";
-import { InputText } from "primereact/inputtext";
-import { KeyFilterType } from "primereact/keyfilter";
-import { InputType } from "../Utils/commonLogic";
+import { InputNumber, InputNumberChangeEvent } from "primereact/inputnumber";
 
-interface TextInputProps {
+interface NumberInputProps {
     id?: string;
     name?: string;
     label?: string;
     labelHtmlFor?: string;
     placeholder?: string;
     required?: boolean;
-    value?: string;
-    keyFilter?: KeyFilterType;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    value?: number;
+    onChange?: (e: number | null) => void; 
     error?: string;
     formGroupClassName?: string;
     inputDisabled?: boolean;
     inputReadOnly?: boolean;
     inputAutoFocus?: boolean;
-    inputType?: InputType;
+    min?: number;
+    max?: number;
     inputClassName?: string;
+    prefix?: string;
+    suffix?: string;
 }
 
-const TextInput: React.FC<TextInputProps> = ({
+const NumberInput: React.FC<NumberInputProps> = ({
     id,
     label,
     labelHtmlFor,
     placeholder,
     required,
     value,
-    keyFilter,
     onChange,
     error,
     formGroupClassName,
     inputDisabled,
     inputReadOnly,
     inputAutoFocus,
-    inputType,
+    min,
+    max,
     name,
-    inputClassName
+    inputClassName,
+    prefix,
+    suffix
 }) => {
-
     return (
         <div className={`page_form_group ${formGroupClassName}`}>
             {label && (
                 <label htmlFor={labelHtmlFor} className={`custom_form_label ${required ? 'is_required' : ''}`}>{label}</label>
             )}
 
-            <InputText
+            <InputNumber
                 id={id}
                 name={name}
                 value={value}
-                onChange={onChange}
+                onChange={(event: InputNumberChangeEvent) => onChange?.(event.value ?? null)}
                 className={`custom_form_input ${inputClassName}`}
                 placeholder={placeholder}
-                keyfilter={keyFilter}
                 disabled={inputDisabled}
                 readOnly={inputReadOnly}
-                autoComplete="off"
                 autoFocus={inputAutoFocus}
-                type={inputType}
-                // invalid={error ? true : false}
+                min={min}
+                max={max}
+                mode="decimal"
+                useGrouping={false}
+                prefix={prefix}
+                suffix={suffix}
             />
 
             {error && <small className="form_error_msg">{error}</small>}
         </div>
-    )
-
+    );
 }
 
-export default TextInput;
+export default NumberInput;

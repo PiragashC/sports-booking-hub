@@ -18,6 +18,7 @@
     --color-warning-light: #fff4d9;
     --color-focus-primary: rgba(0, 128, 0, 0.2);
     --color-focus-secondary: rgba(22, 60, 109, 0.2);
+    --color-focus-danger: rgba(217, 83, 79, 0.184);
     --color-overlay-shadow-primary: rgba(0, 128, 0, 0.18);
     --color-overlay-shadow-secondary: rgba(22, 60, 109, 0.18);
 

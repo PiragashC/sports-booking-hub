@@ -8,7 +8,7 @@ export function useAuthRedirect() {
 
     useEffect(() => {
         if (token) {
-            navigate("/booking");
+            navigate("/admin");
         }
     }, [token, navigate]);
 }
