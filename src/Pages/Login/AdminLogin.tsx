@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef } from "react";
 import './Login.css';
 import './Login-responsive.css';
 import { InputText } from "primereact/inputtext";
 import { Toast } from 'primereact/toast';
 import { Password } from 'primereact/password';
 import { Button } from "primereact/button";
-import { Fade, Slide } from "react-awesome-reveal";
-import { useAuthRedirect } from "../../middleware/middleware";
+import { Slide } from "react-awesome-reveal";
 import { useDispatch } from "react-redux";
 import apiRequest from "../../Utils/apiRequest";
 import { showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
@@ -127,7 +125,7 @@ const AdminLogin: React.FC = () => {
                                                         This field is required
                                                     </small>
                                                 )}
-                                                
+
                                                 {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signInInfo.email) && signInInfo.email && (
                                                     <small className="auth_form_error">
                                                         Enter a valid email

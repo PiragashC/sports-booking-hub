@@ -22,7 +22,8 @@ const apiRequest = async <T = any>({
     try {
         const baseUrl = process.env.REACT_APP_BASEURL || "";
         if (!baseUrl) {
-            throw new Error("Base URL is not defined in environment variables.");
+            // throw new Error("Base URL is not defined in environment variables.");
+            return { error: "Base URL is not defined in environment variables." };
         }
 
         const config: AxiosRequestConfig = {
