@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 import "primereact/resources/themes/lara-light-cyan/theme.css";
 
@@ -10,7 +9,6 @@ import Home from './Pages/Home/Home';
 import ContactUs from './Pages/ContactUs/ContactUs';
 
 import AppLayout from './Layout/App/AppLayout';
-import Booking from './Pages/Booking/Booking';
 import BookingCopy from './Pages/Booking/Booking copy';
 import AdminLogin from './Pages/Login/AdminLogin';
 import Extras from './Pages/Admin/Extras/Extras';

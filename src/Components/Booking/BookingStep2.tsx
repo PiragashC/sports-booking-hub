@@ -45,8 +45,6 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
 }, ref) => {
   const [laneError, setLaneError] = useState<boolean>(false);
   const [alreadySelectedLaneList, setAlreadySelectedLaneList] = useState<Lane[]>([]);
-
-  const [promoCode, setpromoCode] = useState<string>('');
   const [promoCodeIsValid, setpromoCodeIsValid] = useState<boolean | null>(null);
   const [promoCodeLoading, setpromoCodeLoading] = useState<boolean>(false);
 

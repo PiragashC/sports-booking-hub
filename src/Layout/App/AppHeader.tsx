@@ -5,17 +5,10 @@ import { Link } from "react-router-dom";
 import { setLogout } from "../../state";
 import { Button } from "primereact/button";
 
-interface User {
-    id: string;
-    userName: string;
-    email: string;
-}
 
 const AppHeader: React.FC = () => {
     const dispatch = useDispatch();
     const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
-    const user = useSelector((state: { auth: { user: User } }) => state.auth.user);
-
 
     const handleLogOut = () => {
         confirmDialog({

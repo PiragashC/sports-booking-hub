@@ -5,7 +5,7 @@ import LaneFormLoader from "./LaneFormLoader";
 
 import { Ripple } from "primereact/ripple";
 import { Toast } from "primereact/toast";
-import { Dropdown, DropdownChangeEvent, DropdownProps } from 'primereact/dropdown';
+import { Dropdown, DropdownProps } from 'primereact/dropdown';
 import { DataTable, DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tooltip } from "primereact/tooltip";
@@ -13,15 +13,14 @@ import { confirmDialog } from "primereact/confirmdialog";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 
-import { goToTop } from "../../../Components/GoToTop";
-import { formatTime, removeEmptyValues, showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
+import { removeEmptyValues, showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
 
-import { Lane, lanes } from "../SampleData";
+import { Lane } from "../SampleData";
 import TextInput from "../../../Components/TextInput";
 import apiRequest from "../../../Utils/apiRequest";
 import { useSelector } from "react-redux";
 import NumberInput from "../../../Components/NumberInput";
-import SkeletonLoader, { SkeletonLayout } from "../../../Components/SkeletonLoader";
+import { SkeletonLayout } from "../../../Components/SkeletonLoader";
 
 interface LaneFormData {
     laneName: string;
@@ -44,7 +43,6 @@ interface LaneApiResult {
 const LaneManagement: React.FC = () => {
     const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
     const toastRef = useRef<Toast>(null);
-    const today = new Date();
     const [loading, setLoading] = useState<boolean>(false);
     const [dataState, setDataState] = useState<'Add' | 'Edit'>('Add');
     const [isRequired, setIsRequired] = useState<boolean>(false);
@@ -52,7 +50,6 @@ const LaneManagement: React.FC = () => {
 
     const [showLaneModal, setShowLaneModal] = useState<boolean>(false);
     const [lanesData, setLanesData] = useState<LaneApiResult[]>([]);
-    const [selectedLane, setSelectedLane] = useState<Lane | null>(null);
 
     const initialLaneFormData = {
         laneName: 'Lane ',
