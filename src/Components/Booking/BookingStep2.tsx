@@ -7,7 +7,7 @@ import { Dropdown, DropdownChangeEvent, DropdownProps } from 'primereact/dropdow
 import { timeList, TimeList } from '../../Utils/SiteData';
 import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
 import TextInput from '../TextInput';
-import { Checkbox } from 'primereact/checkbox';
+import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox';
 import PhoneNumberInput from '../PhoneNumberInput';
 import apiRequest from '../../Utils/apiRequest';
 import { Toast } from 'primereact/toast';
@@ -34,11 +34,14 @@ interface BookingFormData {
 }
 
 
-const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData, setTimeListData, bookingPrice, setBookingPrice, isRequired, setIsRequired, bookingLanes, setBookingLanes, lanesListData, setLanesListData, bookingDates, setBookingDates, bookingFormData, setBookingFormData, isOpen, toastRef, setLoading, fetchBookings, onSuccessFnCall, isAgree, setShowTermsConditionModal, setShowPrivacyPolicyModal, enableEditInterface = false, selectedBookingLanes, setSelectedBookingLanes }: {
+const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData, setTimeListData, bookingPrice, setBookingPrice, isRequired, setIsRequired, bookingLanes, setBookingLanes, lanesListData, setLanesListData, bookingDates, setBookingDates, bookingFormData, setBookingFormData, isOpen, toastRef, setLoading, fetchBookings, onSuccessFnCall, isAgree, setShowTermsConditionModal, setShowPrivacyPolicyModal, enableEditInterface = false, selectedBookingLanes, setSelectedBookingLanes, setIsAgree }: {
   isValidNumber: boolean, setIsValidNumber: React.Dispatch<React.SetStateAction<boolean>>, timeListData: TimeList[], setTimeListData: React.Dispatch<React.SetStateAction<TimeList[]>>, bookingPrice: number, setBookingPrice: React.Dispatch<React.SetStateAction<number>>, isRequired: boolean, setIsRequired: React.Dispatch<React.SetStateAction<boolean>>, bookingLanes: Lane[], setBookingLanes: React.Dispatch<React.SetStateAction<Lane[]>>, lanesListData: Lane[], setLanesListData: React.Dispatch<React.SetStateAction<Lane[]>>, bookingDates: Nullable<Date[]>, setBookingDates: React.Dispatch<React.SetStateAction<Nullable<Date[]>>>, bookingFormData: BookingFormData, setBookingFormData: React.Dispatch<React.SetStateAction<BookingFormData>>, isOpen: boolean, toastRef: React.RefObject<Toast>, setLoading: React.Dispatch<React.SetStateAction<boolean>>, fetchBookings: () => Promise<void>, onSuccessFnCall: (response: any) => Promise<void>, isAgree?: {
     terms: boolean;
     privacy: boolean;
-  }, setShowTermsConditionModal?: React.Dispatch<React.SetStateAction<boolean>>, setShowPrivacyPolicyModal?: React.Dispatch<React.SetStateAction<boolean>>, enableEditInterface?: boolean, selectedBookingLanes?: Lane[], setSelectedBookingLanes?: React.Dispatch<React.SetStateAction<Lane[]>>
+  }, setShowTermsConditionModal?: React.Dispatch<React.SetStateAction<boolean>>, setShowPrivacyPolicyModal?: React.Dispatch<React.SetStateAction<boolean>>, enableEditInterface?: boolean, selectedBookingLanes?: Lane[], setSelectedBookingLanes?: React.Dispatch<React.SetStateAction<Lane[]>>, setIsAgree?: (value: React.SetStateAction<{
+    terms: boolean;
+    privacy: boolean;
+  }>) => void
 }, ref) => {
   const [laneError, setLaneError] = useState<boolean>(false);
   const [alreadySelectedLaneList, setAlreadySelectedLaneList] = useState<Lane[]>([]);
@@ -490,6 +493,7 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
                 value={isAgree?.privacy && isAgree?.terms}
                 className="form_checkbox"
                 checked={isAgree?.privacy && isAgree?.terms}
+                onChange={(event: CheckboxChangeEvent) => setIsAgree && setIsAgree({ terms: event.checked || false, privacy: event.checked || false })}
               />
               <label htmlFor="isAgree" className="form_check_label is_required">I agree with <b>Kover Drive</b>' s&nbsp;
                 <button onClick={handleViewTermsCondition}>Terms and Conditions</button>&nbsp;&&nbsp;
