@@ -54,7 +54,46 @@
     .custom_modal_body {
         padding: 0;
     }
+
+
+    .page_content_section,
+    .filter_area {
+        border-radius: 12px !important;
+    }
+
+    .filter_area {
+        position: relative !important;
+        top: auto !important;
+    }
+
+    .error_area h3 {
+        font-size: 18px;
+    }
+
+    .error_area h6 {
+        font-size: 14px;
+        max-width: max-content;
+    }
+
+    .go_back_btn.custom {
+        padding: 6px 15px !important;
+        height: 33px;
+    }
+
+    .error_area {
+        padding: 40px 25px;
+        width: 88%;
+    }
+
+    .error_area img {
+        width: 55vw !important;
+        height: 55vw !important;
+    }
 }
 
 /* For custom */
-@media (max-width: 991.5px) {}
+@media (max-width: 991.5px) {
+    .filter_area_row {
+        row-gap: 8px;
+    }
+}

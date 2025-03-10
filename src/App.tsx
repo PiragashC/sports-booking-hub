@@ -22,6 +22,9 @@ import LaneManagement from './Pages/Admin/LaneManagement/LaneManagement';
 import { AdminLoginGuard, AdminRoutes, AppRoutes, PublicRoutes } from './middleware/AuthGuard';
 import { useAuthSession } from './middleware/authMiddleware';
 
+import ErrorPage from './Components/ErrorPage';
+import NotFoundPage from './Components/NotFoundPage';
+
 function App() {
   useAuthSession();
   const value = {
@@ -61,6 +64,9 @@ function App() {
                 <Route path="extras" element={<Extras />} />
               </Route>
             </Route>
+
+            <Route path="/error" element={<ErrorPage />} />
+            <Route path='*' element={<NotFoundPage />} />
           </Routes>
         </ErrorBoundary>
       </BrowserRouter>

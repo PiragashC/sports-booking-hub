@@ -593,7 +593,7 @@ body {
     color: var(--color-primary);
 }
 
-.react-tel-input .country-list .country{
+.react-tel-input .country-list .country {
     font-size: 14px !important;
     padding: 8px 16px;
     border-radius: 5px;
@@ -636,4 +636,120 @@ body {
 .react-tel-input .country-list .search {
     border-bottom: 1px solid #e5e7eb;
     margin-bottom: 5px;
+}
+
+
+.form_label_loader {
+    height: 14px !important;
+    width: 100px !important;
+    border-radius: 4px !important;
+    margin-bottom: 7px !important;
+}
+
+.form_input_loader {
+    width: 100% !important;
+    height: 45px !important;
+    border-radius: 8px !important;
+}
+
+/* Error */
+.error_container {
+    height: 100dvh;
+    width: 100%;
+    position: relative;
+    padding: 20px;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #FFF;
+}
+
+.error_area {
+    position: absolute;
+    display: flex;
+    padding: 40px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 75%;
+    background-color: #FFF;
+    border-radius: 20px;
+    box-shadow: 0px 10px 30px #37348b2c;
+}
+
+.error_area img {
+    width: 350px;
+    height: 350px;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+    margin-bottom: 40px;
+}
+
+.error_area h6 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-color);
+    opacity: 0.5;
+    pointer-events: none;
+    text-align: center;
+    max-width: 40%;
+    display: block;
+    line-height: 1.6em;
+    margin: 20px auto;
+}
+
+.error_area h3 {
+    color: var(--text-color);
+    margin-bottom: 0 !important;
+    text-align: center;
+    font-size: 20px;
+    background-color: #f1f1f1;
+    border-radius: 30px;
+    padding: 8px 20px;
+}
+
+.error_area p {
+    color: var(--text-color);
+    margin-bottom: 15px !important;
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.5;
+}
+
+.go_back_btn {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 15px;
+    font-size: 14px;
+    color: var(--color-primary);
+    border-radius: 6px;
+    background-color: #FFF;
+    transition: ease 0.5s;
+    overflow: hidden;
+    border: 1px solid var(--color-primary);
+}
+
+.go_back_btn:hover{
+    background-color: var(--color-primary);
+    color: #FFF;
+}
+
+.go_back_btn.custom {
+    border-radius: 50px !important;
+    padding: 8px 16px !important;
+
+}
+
+.go_back_btn.custom:focus {
+    box-shadow: 0px 0px 0px 4px var(--color-focus-primary);
+    border-color: #FFF !important;
+    background-color: var(--color-primary);
+    color: #FFF;
 }

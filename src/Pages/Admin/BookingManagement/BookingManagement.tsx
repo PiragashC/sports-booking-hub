@@ -30,6 +30,7 @@ import { fetchLanes } from "../../../Utils/commonService";
 import { Divider } from "primereact/divider";
 import BookingStep2 from "../../../Components/Booking/BookingStep2";
 import SkeletonLoader, { SkeletonLayout } from "../../../Components/SkeletonLoader";
+import { Link } from "react-router-dom";
 
 type BookingType = "Online" | "Offline";
 interface BookingFormData {
@@ -753,8 +754,8 @@ const BookingManagement: React.FC = () => {
                 </div>
 
                 <div className="filter_area mt-3">
-                    <div className="row">
-                        <div className="col-12 col-xxl-4 col-xl-4">
+                    <div className="row filter_area_row">
+                        <div className="col-12 col-xxl-4 col-xl-4 col-sm-6">
                             <div className="filter_option_group">
                                 <div className="filter_tab_group">
                                     {bookingTypes &&
@@ -775,7 +776,7 @@ const BookingManagement: React.FC = () => {
 
                             </div>
                         </div>
-                        <div className="col-12 col-xxl-3 col-xl-4">
+                        <div className="col-12 col-xxl-3 col-xl-4 col-sm-6">
                             <div className="filter_option_group">
                                 <Calendar
                                     key="day-calendar"
@@ -805,7 +806,7 @@ const BookingManagement: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="col-12 col-xxl-3 col-xl-4">
+                        <div className="col-12 col-xxl-3 col-xl-4 col-sm-6">
                             <div className="filter_option_group">
                                 <Dropdown
                                     value={selectedLane}
@@ -819,7 +820,7 @@ const BookingManagement: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="col-12 col-xxl-2 col-xl-4">
+                        <div className="col-12 col-xxl-2 col-xl-4 col-sm-6">
                             <div className="filter_option_group mt-xxl-0 mt-xl-3">
                                 <Dropdown
                                     value={status}
@@ -963,129 +964,208 @@ const BookingManagement: React.FC = () => {
                 dismissableMask
             >
                 {selectedBookingData ?
-                    <div className="modal-body p-2">
+                    <div className="custom_modal_body">
+                        <h5 className="data-view-head">
+                            <i className="bi bi-calendar2-event-fill me-2"></i>
+                            Booking Details
+                        </h5>
+
                         <div className="data-view-area">
-                            <h5 className="data-view-head">Booking Details</h5>
-                            <div className="row mt-4">
-                                <div className="col-12 col-lg-6">
-                                    <div className="data-view mb-3">
-                                        <h6 className="data-view-title">Start time :</h6>
-                                        <h6 className="data-view-data">
-                                            {selectedBookingData?.fromTime}
-                                        </h6>
-                                    </div>
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Title :</h6>
                                 </div>
-                                <div className="col-12 col-lg-6">
-                                    <div className="data-view mb-3">
-                                        <h6 className="data-view-title">End time :</h6>
-                                        <h6 className="data-view-data">
-                                            {selectedBookingData?.toTime}
-                                        </h6>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-lg-6">
-                                    <div className="data-view mb-3">
-                                        <h6 className="data-view-title">Lanes :</h6>
-                                        <h6 className="data-view-data">
-                                            {selectedBookingData?.laneDtos && Array.isArray(selectedBookingData?.laneDtos) && selectedBookingData?.laneDtos?.length > 0 ? selectedBookingData?.laneDtos?.map(ln => ln.laneName).join(', ') : "-------"}
-                                        </h6>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-lg-6">
-                                    <div className="data-view mb-3 mb-lg-0">
-                                        <h6 className="data-view-title">
-                                            Dates :
-                                        </h6>
-                                        <h6 className="data-view-data">
-                                            {selectedBookingData?.bookingDatesDtos && Array.isArray(selectedBookingData?.bookingDatesDtos) && selectedBookingData?.bookingDatesDtos?.length > 0 ? selectedBookingData?.bookingDatesDtos?.join(', ') : "-------"}
-                                        </h6>
-                                    </div>
-                                </div>
-                                <div className="col-12 col-lg-6">
-                                    <div className="data-view mb-0">
-                                        <h6 className="data-view-title">
-                                            Title :
-                                        </h6>
-                                        <h6 className="data-view-data">
-                                            {selectedBookingData?.bookingTitle || "--------"}
-                                        </h6>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="data-view-sub mt-3">
-                                <div className="row">
-                                    <div className="col-12 col-lg-6">
-                                        <div className="data-view mb-3">
-                                            <h6 className="data-view-title">Organization :</h6>
-                                            <h6 className="data-view-data">
-                                                {selectedBookingData?.organization || "-------"}
-                                            </h6>
-                                        </div>
-                                    </div>
-                                    <div className="col-12 col-lg-6">
-                                        <div className="data-view mb-3">
-                                            <h6 className="data-view-title">Status :</h6>
-                                            <h6 className="data-view-data">
-                                                {selectedBookingData?.bookingStatus}
-                                            </h6>
-                                        </div>
-                                    </div>
-                                    <div className="col-12 col-lg-6">
-                                        <div className="data-view mb-3 mb-lg-0">
-                                            <h6 className="data-view-title">Type :</h6>
-                                            <h6 className="data-view-data">
-                                                {selectedBookingData?.bookingType}
-                                            </h6>
-                                        </div>
-                                    </div>
-                                    <div className="col-12 col-lg-6">
-                                        <div className="data-view mb-0">
-                                            <h6 className="data-view-title">Price :</h6>
-                                            <h6 className="data-view-data">
-                                                {selectedBookingData?.bookingPrice}
-                                            </h6>
-                                        </div>
-                                    </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.bookingTitle ? selectedBookingData?.bookingTitle : '-------'}
+                                    </h6>
                                 </div>
                             </div>
 
-                            <Divider className="mt-4 mb-4" />
-                            <h5 className="data-view-head">Customer Details</h5>
-                            <div className="row mt-4">
-                                <div className="col-12 col-lg-6">
-                                    <div className="data-view mb-3">
-                                        <h6 className="data-view-title">Name :</h6>
-                                        {selectedBookingData?.firstName ? <h6 className="data-view-data">
-                                            {selectedBookingData?.firstName + " " + selectedBookingData?.lastName}
-                                        </h6> : <h6 className="data-view-data">
-                                            --------
-                                        </h6>}
-                                    </div>
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Start time :</h6>
                                 </div>
-                                <div className="col-12 col-lg-6">
-                                    <div className="data-view mb-3">
-                                        <h6 className="data-view-title">
-                                            Email :
-                                        </h6>
-                                        <h6 className="data-view-data">
-                                            {selectedBookingData?.email}
-                                        </h6>
-                                    </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.fromTime ? formatTime(selectedBookingData?.fromTime) : '-------'}
+                                    </h6>
                                 </div>
-                                <div className="col-12 col-lg-6">
-                                    <div className="data-view mb-0">
-                                        <h6 className="data-view-title">
-                                            Mobile Number :
-                                        </h6>
-                                        <h6 className="data-view-data">
-                                            {selectedBookingData?.telephoneNumber || "--------"}
-                                        </h6>
-                                    </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">End time :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.toTime ? formatTime(selectedBookingData?.toTime) : '-------'}
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Booking Date(s) :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {(selectedBookingData?.bookingDatesDtos && Array.isArray(selectedBookingData?.bookingDatesDtos) && selectedBookingData?.bookingDatesDtos?.length > 0) ?
+                                            selectedBookingData?.bookingDatesDtos?.map((date) => (
+                                                <span className="data-view-label">
+                                                    {date}
+                                                </span>
+                                            ))
+                                            : "-------"
+                                        }
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Lanes :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {(selectedBookingData?.laneDtos && Array.isArray(selectedBookingData?.laneDtos) && selectedBookingData?.laneDtos?.length > 0) ?
+                                            selectedBookingData?.laneDtos?.map((lane) => (
+                                                <span className="data-view-label">
+                                                    {lane?.laneName}
+                                                </span>
+                                            ))
+                                            : "-------"
+                                        }
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Organization :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.organization ? selectedBookingData?.organization : '-------'}
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Status :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.bookingStatus ? (
+                                            <span className={`status_display_label ${selectedBookingData?.bookingStatus === 'Success' ? ' success' : selectedBookingData?.bookingStatus === 'Pending' ? ' warning' : ' danger'}`}>
+                                                <i className={`bi ${selectedBookingData?.bookingStatus === 'Success' ? ' bi-check-circle-fill' : selectedBookingData?.bookingStatus === 'Pending' ? ' bi-exclamation-circle-fill' : ' bi-x-circle-fill'} me-2`}></i>
+                                                {selectedBookingData?.bookingStatus}
+                                            </span>
+                                        ) : (
+                                            <span>-------</span>
+                                        )}
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Type :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.bookingType ? selectedBookingData?.bookingType : '-------'}
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Price :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        $&nbsp;{selectedBookingData?.bookingPrice ? (selectedBookingData?.bookingPrice.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })) : '-------'}
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <h5 className="data-view-head mt-4">
+                            <i className="bi bi-person-fill me-2"></i>
+                            Customer Details
+                        </h5>
+
+                        <div className="data-view-area">
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Name :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.firstName ? (selectedBookingData?.firstName + ' ' + selectedBookingData?.lastName) : '-------'}
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title">Email :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.email ? (
+                                            <Link to={`mailto: ${selectedBookingData?.email}`}>
+                                                {selectedBookingData?.email}
+                                            </Link>
+                                        ) : (
+                                            <span>-------</span>
+                                        )}
+                                    </h6>
+                                </div>
+                            </div>
+
+                            <Divider className="data-view-divider" />
+
+                            <div className="row">
+                                <div className="col-5">
+                                    <h6 className="data-view-title"> Mobile Number :</h6>
+                                </div>
+                                <div className="col-7">
+                                    <h6 className="data-view-data">
+                                        {selectedBookingData?.telephoneNumber ? (
+                                            <Link to={`tel: ${selectedBookingData?.telephoneNumber}`}>
+                                                {selectedBookingData?.telephoneNumber}
+                                            </Link>
+                                        ) : (
+                                            <span>-------</span>
+                                        )}
+                                    </h6>
                                 </div>
                             </div>
                         </div>
                     </div> : <SkeletonLoader layout={bookingSkeletonLayout} />}
-            </Dialog>
+            </Dialog >
             {/*  */}
         </>
     )

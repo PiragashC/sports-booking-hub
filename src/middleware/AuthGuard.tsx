@@ -34,6 +34,6 @@ export const AppRoutes = () => {
 // Redirect Admin if they try to access login after logging in
 export const AdminLoginGuard = () => {
     const { isAdmin } = useAuth();
-    if (isAdmin) return <Navigate to="/admin" />;
+    if (isAdmin) return <Navigate to="/admin/dashboard" />;
     return <Outlet />;
 };
