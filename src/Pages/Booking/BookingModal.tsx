@@ -69,7 +69,6 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     }
     const [bookingFormData, setBookingFormData] = useState<BookingFormData>(initialBookingFormData);
     const [isRequired, setIsRequired] = useState<boolean>(false);
-    // const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const [isValidNumber, setIsValidNumber] = useState<boolean>(true);
 
     const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
@@ -387,6 +386,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                                 isAgree={isAgree}
                                 setShowTermsConditionModal={setShowTermsConditionModal}
                                 setShowPrivacyPolicyModal={setShowPrivacyPolicyModal}
+                                setIsAgree={setIsAgree}
                             />
                         </>
                     ) : bookingStep === 3 ? (

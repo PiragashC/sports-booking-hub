@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setLogin, setLogout, User } from "../state";
 import apiRequest from "../Utils/apiRequest";
+import { sessionInactivityCheckTime, tokenExpireIn } from "../Utils/commonLogic";
 
 let refreshTimeout: NodeJS.Timeout | null = null;
 let inactivityTimeout: NodeJS.Timeout | null = null;
@@ -39,10 +40,10 @@ export const useAuthSession = () => {
                         user: userDto || null,
                         token: accessToken,
                         refreshToken,
-                        expireIn: expireIn || 300000,
+                        expireIn: expireIn || tokenExpireIn,
                     })
                 );
-                scheduleTokenRefresh(expireIn || 300000);
+                scheduleTokenRefresh(expireIn || tokenExpireIn);
             } else {
                 dispatch(setLogout());
             }
@@ -65,7 +66,7 @@ export const useAuthSession = () => {
         inactivityTimeout = setTimeout(() => {
             console.log("User inactive for 5 minutes. Logging out...");
             dispatch(setLogout());
-        }, 180000); // 5 minutes = 300,000ms
+        }, sessionInactivityCheckTime); // 5 minutes = 300,000ms
     };
 
     // Attach event listeners to reset inactivity timer on user activity
@@ -78,7 +79,7 @@ export const useAuthSession = () => {
     // Initialize auth session
     useEffect(() => {
         if (token) {
-            scheduleTokenRefresh(expireIn || 300000);
+            scheduleTokenRefresh(expireIn || tokenExpireIn);
             setupInactivityListeners();
             startInactivityTimer();
         }

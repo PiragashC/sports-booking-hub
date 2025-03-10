@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { tokenExpireIn } from "../Utils/commonLogic";
 
 export interface User {
   id: string;
@@ -17,7 +18,7 @@ const initialAuthState: AuthState = {
   user: null,
   token: null,
   refreshToken: null,
-  expireIn: 180000
+  expireIn: tokenExpireIn
 };
 
 export const authSlice = createSlice({
@@ -28,7 +29,7 @@ export const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.refreshToken = action.payload.refreshToken;
-      state.expireIn = action.payload.expireIn || 180000;
+      state.expireIn = action.payload.expireIn || tokenExpireIn;
     },
     setLogout: (state) => {
       state.user = null;
