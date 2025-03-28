@@ -348,3 +348,24 @@
     border-color: #FFF;
     box-shadow: 0px 0px 0px 4px var(--color-focus-primary);
 }
+
+
+/*image editor*/
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1040;
+  }
+  
+  .modal {
+    z-index: 1045;
+  }
+  
+  .modal-dialog {
+    z-index: 1050;
+  }
+  
+  .filter-preset-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }

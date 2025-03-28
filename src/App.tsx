@@ -22,6 +22,7 @@ import { useAuthSession } from './middleware/authMiddleware';
 
 import ErrorPage from './Components/ErrorPage';
 import NotFoundPage from './Components/NotFoundPage';
+import Upload from './Components/Upload';
 
 function App() {
   useAuthSession();
@@ -62,7 +63,7 @@ function App() {
                 <Route path="extras" element={<Extras />} />
               </Route>
             </Route>
-
+            <Route path="/img-editor" element={<Upload />} />
             <Route path="/error" element={<ErrorPage />} />
             <Route path='*' element={<NotFoundPage />} />
           </Routes>
