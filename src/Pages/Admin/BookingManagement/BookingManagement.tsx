@@ -10,19 +10,13 @@ import { Dropdown, DropdownChangeEvent, DropdownProps } from 'primereact/dropdow
 import { DataTable, DataTableStateEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Tooltip } from "primereact/tooltip";
-import { MultiSelect, MultiSelectChangeEvent } from "primereact/multiselect";
-import { Checkbox } from "primereact/checkbox";
-
-import { goToTop } from "../../../Components/GoToTop";
 import { formatTime, showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
 
-import { Bookings, bookings, Lane, lanes } from "../SampleData";
+import { Bookings, Lane } from "../SampleData";
 import { confirmDialog } from "primereact/confirmdialog";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { timeList, TimeList } from "../../../Utils/SiteData";
-import TextInput from "../../../Components/TextInput";
-import PhoneNumberInput from "../../../Components/PhoneNumberInput";
 import apiRequest from "../../../Utils/apiRequest";
 import { useSelector } from "react-redux";
 import { formatDate, formatDateToISO } from "../../../Utils/commonLogic";
@@ -107,7 +101,6 @@ const BookingManagement: React.FC = () => {
     const [bookingLanes, setBookingLanes] = useState<Lane[]>([]);
     const [selectedBookingLanes, setSelectedBookingLanes] = useState<Lane[]>([]);
     const [timeListData, setTimeListData] = useState<TimeList[]>([]);
-    const [laneError, setLaneError] = useState<boolean>(false);
     const [isValidNumber, setIsValidNumber] = useState<boolean>(true);
     const [editId, setEditId] = useState<string>('');
     const [skeletonLoading, setSkeletonLoading] = useState<boolean>(false);
@@ -310,9 +303,6 @@ const BookingManagement: React.FC = () => {
         setDataState('Add');
     }
 
-    const handleClearBookingFields = () => {
-    }
-
     const handleCreateBooking = async () => {
         if (bookingStep2Ref.current) {
             bookingStep2Ref.current.handleConfirmBooking();
@@ -496,69 +486,6 @@ const BookingManagement: React.FC = () => {
         </div>
     );
 
-    const handleDateChange = (e: FormEvent<Date[], React.SyntheticEvent<Element, Event>>) => {
-        if (e && e?.value) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            let selectedDates = e.value.map(date => {
-                return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            });
-
-            const isTodaySelected = selectedDates.some(date => date.getTime() === today.getTime());
-
-            // If today is selected, only today should be set; otherwise, remove today from the selection
-            let finalDates: Date[];
-            if (isTodaySelected) {
-                finalDates = [today];
-            } else {
-                finalDates = selectedDates.filter(date => date.getTime() !== today.getTime());
-            }
-
-            // Format the dates correctly for form submission
-            const formattedDates = finalDates.map(date =>
-                formatDateToISO(date)
-            );
-
-            setLanesListData([]);
-            setBookingLanes([]);
-            setBookingFormData({
-                ...bookingFormData,
-                selectedLanesDtos: [],
-                bookingDatesDtos: formattedDates
-            });
-
-            setBookingDates(finalDates);
-        }
-    }
-
-    const handleClearBookingDates = () => {
-    }
-
-    const selectedStartTimeTemplate = (data: TimeList, props: DropdownProps) => {
-        if (data) {
-            return (
-                <div className="d-flex align-items-center">
-                    <div>From - {data.label}</div>
-                </div>
-            );
-        }
-
-        return <span>{props.placeholder}</span>;
-    };
-
-    const selectedEndTimeTemplate = (data: TimeList, props: DropdownProps) => {
-        if (data) {
-            return (
-                <div className="d-flex align-items-center">
-                    <div>To - {data.label}</div>
-                </div>
-            );
-        }
-
-        return <span>{props.placeholder}</span>;
-    };
-
     const getValidEndTimes = (startTime?: string) => {
         if (!startTime) return [];
 
@@ -568,16 +495,6 @@ const BookingManagement: React.FC = () => {
         // Ensure the end times maintain the same minute part (e.g., :30 stays :30)
         return timeList.filter((_, index) => index > startIndex && (index - startIndex) % 2 === 0);
     };
-
-    const endTimeOptions = getValidEndTimes(bookingFormData.fromTime);
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setBookingFormData({
-            ...bookingFormData,
-            [name]: value
-        });
-    }
 
     const statusDisplayBody = (rowData: Bookings) => {
         const status = rowData.status;

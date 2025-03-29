@@ -1,40 +1,19 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import './Css/Extras.css';
 import './Css/Extras-responsive.css';
 
 import { Ripple } from "primereact/ripple";
 import { Toast } from "primereact/toast";
-import { Dropdown, DropdownChangeEvent, DropdownProps } from 'primereact/dropdown';
-import { DataTable, DataTableStateEvent } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Tooltip } from "primereact/tooltip";
 import { Button } from "primereact/button";
 import { Divider } from "primereact/divider";
 import { InputSwitch, InputSwitchChangeEvent } from "primereact/inputswitch";
 import { confirmDialog } from "primereact/confirmdialog";
-import { InputNumberChangeEvent } from "primereact/inputnumber";
-
-import { goToTop } from "../../../Components/GoToTop";
-
 import TextInput from "../../../Components/TextInput";
 import NumberInput from "../../../Components/NumberInput";
 import apiRequest from "../../../Utils/apiRequest";
 import SkeletonLoader, { SkeletonLayout } from "../../../Components/SkeletonLoader";
 import { showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
-
-interface CouponCode {
-    code: string;
-    discountPercentage: number;
-    status: boolean;
-}
-
-const coponCode: CouponCode = {
-    code: "KD2025",
-    discountPercentage: 25,
-    status: true,
-}
 
 interface CouponCodeFormData {
     promoCode: string;
@@ -44,7 +23,6 @@ interface CouponCodeFormData {
 
 const Extras: React.FC = () => {
     const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
-    const navigate = useNavigate();
     const toast = useRef<Toast>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [dataState, setDataState] = useState<'Add' | 'Edit'>('Add');
@@ -127,26 +105,6 @@ const Extras: React.FC = () => {
         });
     }
 
-    const handleDeletePromocode = () => {
-        confirmDialog({
-            message: 'Are you sure you want to delete the promo code?',
-            header: 'Delete Confirmation',
-            headerClassName: 'confirmation_danger',
-            icon: 'bi bi-info-circle',
-            defaultFocus: 'reject',
-            acceptClassName: 'p-button-danger',
-            dismissableMask: true,
-            resizable: false,
-            draggable: false,
-            accept: deletePromocode,
-        });
-    }
-
-    const deletePromocode = () => {
-        setHasPromoCode(false);
-        setDataState('Add');
-    }
-
     const handleCreatePromoCode = () => {
         setHasPromoCode(true);
 
@@ -175,6 +133,12 @@ const Extras: React.FC = () => {
     }
 
     const updatePromoCode = async () => {
+        if (!couponCodeFormData.promoCode || !couponCodeFormData.promoPercentage) {
+            setIsRequired(true);
+            showErrorToast(toast, "Error in Submission", "Please fill all required fields!");
+            return;
+        }
+        setIsRequired(false);
         setLoading(true);
         const response = await apiRequest({
             method: "put",

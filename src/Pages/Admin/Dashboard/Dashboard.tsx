@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import './Css/Dashboard.css';
 import './Css/Dashboard-responsive.css';

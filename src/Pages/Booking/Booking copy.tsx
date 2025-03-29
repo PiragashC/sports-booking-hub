@@ -49,7 +49,6 @@ const BookingCopy: React.FC = () => {
 
     const [calenderBookings, setCalenderBookings] = useState<any[]>([]);
     const [monthViewEvents, setMonthViewEvents] = useState<any[]>([]);
-    const monthViewModeRef = useRef(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     const handleNewBooking = () => {
@@ -268,8 +267,6 @@ const BookingCopy: React.FC = () => {
     useEffect(() => { if (fromDate && toDate && selectedLaneData) fetchBookingsForCalenderView() }, [fromDate, toDate, selectedLaneData, token]);
 
     useEffect(() => { fetchAllLanes() }, []);
-
-    console.log(fromDate)
 
     return (
         <>

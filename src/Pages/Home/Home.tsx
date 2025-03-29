@@ -10,7 +10,7 @@ import { Features, features } from "./HomeData";
 import TextInput from "../../Components/TextInput";
 import TextArea from "../../Components/TextArea";
 import apiRequest from "../../Utils/apiRequest";
-import { removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
+import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
 
 
@@ -18,7 +18,6 @@ const Home: React.FC = () => {
     const toastRef = useRef<Toast>(null);
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
     const [featuresData, setFeaturesData] = useState<Features[]>([]);
 
