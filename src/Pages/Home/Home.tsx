@@ -12,6 +12,30 @@ import TextArea from "../../Components/TextArea";
 import apiRequest from "../../Utils/apiRequest";
 import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
+import { url } from "inspector";
+import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
+import { Edit } from "lucide-react";
+
+interface WebContent {
+    content_1: string;
+    content_2: string;
+    content_3: {
+        id: number;
+        c_1: string;
+        c_2: string;
+        c_3: string;
+        c_4: string;
+    }[];
+    content_4: string;
+    content_5: string;
+    content_6: string;
+    content_7: string;
+    content_8: string;
+    content_9: string;
+    content_10: string;
+    content_11: string;
+    content_12: Features[];
+}
 
 
 const Home: React.FC = () => {
@@ -39,6 +63,30 @@ const Home: React.FC = () => {
     const [reachUsForm, setReachUsForm] = useState<typeof intialReachUsForm>(intialReachUsForm);
     const [isRequired, setIsRequired] = useState<boolean>(false);
 
+    const [isEditMode, setIsEditMode] = useState<boolean>(true);
+    const initialWebContents = {
+        content_1: 'London’s Premier Indoor Cricket and Multi-Sport Facility!',
+        content_2: 'Experience London’s ultimate indoor cricket and multi-sport destination! Train with top-quality lanes, pro-grade nets, and advanced pitching machines. With baseball and table tennis coming soon, the game never stops. Book your session today!',
+        content_3: [{
+            id: 1,
+            c_1: 'Book Cricket Lane',
+            c_2: 'Daily',
+            c_3: '8 am – 10 pm',
+            c_4: '$45/hr',
+        }],
+        content_4: '/web_assets/home/hero_img1.jpg',
+        content_5: 'Elevating Indoor Sports in London, Ontario',
+        content_6: 'Welcome to Kover Drive, the premier indoor cricket and baseball facility dedicated to fostering a love for the game while promoting fitness and skill development. Our mission is to create a vibrant community where players of all ages and skill levels can come together to enhance their abilities, build confidence, and enjoy the thrill of sports. At Kover Drive, we understand that every player has unique goals, whether you’re a beginner looking to learn the basics or an experienced athlete aiming to refine your technique. Our state of the-art facility is equipped with top-notch training equipment, batting cages, and practice areas designed to help you elevate your game.',
+        content_7: 'Our facility provides a welcoming environment where you can work on your strength, agility, and endurance, ensuring you are at your best both on and off the field.',
+        content_8: 'Join us at Kover Drive and become part of a community that celebrates the spirit of cricket and baseball. Whether you’re here to improve your game, meet new friends, or simply enjoy the sport, we are excited to support you on your journey. Together, let’s hit new heights in your athletic pursuits!',
+        content_9: 'Contact Us today to learn more about our programs, schedule a visit, or book a session. We can’t wait to see you on the field!',
+        content_10: '/web_assets/home/about_img.png',
+        content_11: 'Discover What Makes Us the Ultimate Indoor Sports Destination',
+        content_12: features
+    }
+    const [webContents, setWebContents] = useState<WebContent>(initialWebContents);
+    const [openImageEditor, setOpenImageEditor] = useState<boolean>(false);
+    const [contentKeyForImageEditor, setContentKeyForImageEditor] = useState<'content_4' | 'content_10'>();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -76,6 +124,27 @@ const Home: React.FC = () => {
         }
     };
 
+    const handleContentChange = (event: React.FormEvent<HTMLHeadingElement | HTMLParagraphElement>) => {
+        const target = event.target as HTMLElement;
+        const contentKey = target.dataset.contentKey; // Get the key from data attribute
+
+        if (contentKey) {
+            setWebContents(prevContents => ({
+                ...prevContents,
+                [contentKey]: target.innerText // Update corresponding key
+            }));
+        }
+    };
+
+    const handleOnSaveForImageEditor = (file: File) => {
+        if (contentKeyForImageEditor) {
+            setWebContents(prevContents => ({
+                ...prevContents,
+                [contentKeyForImageEditor]: URL.createObjectURL(file)
+            }));
+        }
+    }
+
     useEffect(() => {
         const handleScroll = () => {
             if (window.scrollY > 0) {
@@ -96,30 +165,39 @@ const Home: React.FC = () => {
         <>
             <Toast ref={toastRef} />
             {/* Hero section */}
-            <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home">
+            <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home" style={{
+                backgroundImage: `url(${webContents.content_4})`
+            }}>
                 <div className="container-md">
                     <div className="row">
                         <div className="col-12">
                             <article className="home_hero_content">
                                 <Slide direction="up" triggerOnce>
                                     <h1>
-                                        Welcome to <span>Kover<span>Drive</span></span> Sports
+                                        Welcome to <span>Kover<span>Drive</span></span> Sports <Edit size={16} className="ms-2" onClick={(() => {
+                                            setOpenImageEditor(true);
+                                            setContentKeyForImageEditor('content_4');
+                                        })} />
                                     </h1>
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h2>
-                                        London’s Premier Indoor Cricket and Multi-Sport Facility!
+                                    <h2 contentEditable={isEditMode}
+                                        onBlur={handleContentChange}
+                                        data-content-key="content_1">
+                                        {webContents?.content_1}
                                     </h2>
                                 </Slide>
 
                                 <Slide direction="up" delay={200} triggerOnce>
-                                    <p>
-                                        Experience London’s ultimate indoor cricket and multi-sport destination! Train with top-quality lanes, pro-grade nets, and advanced pitching machines. With baseball and table tennis coming soon, the game never stops. Book your session today!
+                                    <p contentEditable={isEditMode}
+                                        onBlur={handleContentChange}
+                                        data-content-key="content_2">
+                                        {webContents?.content_2}
                                     </p>
                                 </Slide>
 
-                                <Zoom delay={200} duration={1500} triggerOnce className="w-100">
+                                {/* <Zoom delay={200} duration={1500} triggerOnce className="w-100">
                                     <div className="home_hero_buttons">
                                         <Button
                                             label="Book Cricket Lane"
@@ -133,34 +211,52 @@ const Home: React.FC = () => {
                                             onClick={() => scrollToSection("features")}
                                         />
                                     </div>
-                                </Zoom>
+                                </Zoom> */}
                             </article>
                         </div>
 
                         <div className="col-12 col-xl-5 col-md-8 col-sm-8 mx-auto">
-                            <Slide direction="up" triggerOnce delay={100}>
-                                <article className="home_hero_card">
-                                    <div className="home_hero_card_header">
-                                        <h4>Book Cricket Lane</h4>
-                                    </div>
+                            {webContents?.content_3 && Array.isArray(webContents?.content_3) && webContents.content_3.map((content: {
+                                id: number;
+                                c_1: string;
+                                c_2: string;
+                                c_3: string;
+                                c_4: string;
+                            }) => {
+                                return (
+                                    <Slide direction="up" triggerOnce delay={100} key={content.id}>
+                                        <article className="home_hero_card">
+                                            <div className="home_hero_card_header">
+                                                <h4>{content?.c_1}</h4>
+                                            </div>
 
-                                    <div className="home_hero_card_body">
-                                        <p><i className="bi bi-clock-fill me-1"></i> Daily</p>
-                                        <p>8 am – 10 pm</p>
-                                    </div>
+                                            <div className="home_hero_card_body">
+                                                <p><i className="bi bi-clock-fill me-1"></i> {content?.c_2}</p>
+                                                <p>{content?.c_3}</p>
+                                            </div>
 
-                                    <div className="home_hero_card_footer">
-                                        <h3>$45/hr
-                                            <span> + Tax</span>
-                                        </h3>
-                                        <hr className="home_hero_card_footer_divider" />
-                                        <h3>$55/hr
-                                            <span> + Tax</span>&nbsp;
-                                            <small>(Book Bowling Machine (Lane 1))</small>
-                                        </h3>
-                                    </div>
-                                </article>
-                            </Slide>
+                                            <div className="home_hero_card_footer">
+                                                <h3>{content?.c_4}
+                                                    <span> + Tax</span>
+                                                </h3>
+                                                <hr className="home_hero_card_footer_divider" />
+                                                {/* <h3>$55/hr
+                                                    <span> + Tax</span>&nbsp;
+                                                    <small>(Book Bowling Machine (Lane 1))</small>
+                                                </h3> */}
+                                                <div className="home_hero_buttons">
+                                                    <Button
+                                                        label={content?.c_1}
+                                                        className="custom_button primary"
+                                                        onClick={handleNavigateBooking}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </article>
+                                    </Slide>
+                                );
+                            })}
+
                         </div>
                     </div>
                 </div>
@@ -180,27 +276,37 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h5 className="section_sub_title">
-                                        Elevating Indoor Sports in London, Ontario
+                                    <h5 className="section_sub_title" contentEditable={isEditMode}
+                                        onBlur={handleContentChange}
+                                        data-content-key="content_5">
+                                        {webContents?.content_5}
                                     </h5>
                                 </Slide>
 
                                 <div className="section_content">
                                     <Fade triggerOnce>
-                                        <p className="section_desc">
-                                            Welcome to Kover Drive, the premier indoor cricket and baseball facility dedicated to fostering a love for the game while promoting fitness and skill development. Our mission is to create a vibrant community where players of all ages and skill levels can come together to enhance their abilities, build confidence, and enjoy the thrill of sports. At Kover Drive, we understand that every player has unique goals, whether you’re a beginner looking to learn the basics or an experienced athlete aiming to refine your technique. Our state of the-art facility is equipped with top-notch training equipment, batting cages, and practice areas designed to help you elevate your game.
+                                        <p className="section_desc" contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="content_6">
+                                            {webContents?.content_6}
                                         </p>
 
-                                        <p className="section_desc">
-                                            Our facility provides a welcoming environment where you can work on your strength, agility, and endurance, ensuring you are at your best both on and off the field.
+                                        <p className="section_desc" contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="content_7">
+                                            {webContents?.content_7}
                                         </p>
 
-                                        <p className="section_desc">
-                                            Join us at Kover Drive and become part of a community that celebrates the spirit of cricket and baseball. Whether you’re here to improve your game, meet new friends, or simply enjoy the sport, we are excited to support you on your journey. Together, let’s hit new heights in your athletic pursuits!
+                                        <p className="section_desc" contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="content_8">
+                                            {webContents?.content_8}
                                         </p>
 
-                                        <p className="section_desc">
-                                            Contact Us today to learn more about our programs, schedule a visit, or book a session. We can’t wait to see you on the field!
+                                        <p className="section_desc" contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="content_9">
+                                            {webContents?.content_9}
                                         </p>
                                     </Fade>
 
@@ -221,7 +327,7 @@ const Home: React.FC = () => {
                         <div className="col-12 col-xl-6">
                             <Fade triggerOnce duration={1500} className="w-100">
                                 <div className="section_image_area">
-                                    <img src="/web_assets/home/about_img.png" alt="" />
+                                    <img src={webContents?.content_10} alt="" />
                                 </div>
                             </Fade>
                         </div>
@@ -243,15 +349,17 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h5 className="section_sub_title text-center">
-                                        Discover What Makes Us the Ultimate Indoor Sports Destination
+                                    <h5 className="section_sub_title text-center" contentEditable={isEditMode}
+                                        onBlur={handleContentChange}
+                                        data-content-key="content_11">
+                                        {webContents?.content_11}
                                     </h5>
                                 </Slide>
 
                                 <div className="section_content">
-                                    {featuresData && featuresData?.length > 0 && (
+                                    {webContents?.content_12 && Array.isArray(webContents?.content_12) && (
                                         <div className="row features_row">
-                                            {featuresData?.map((feature, index) => (
+                                            {webContents?.content_12?.map((feature, index) => (
                                                 <div key={feature?.id} className="col-12 col-xl-4 col-md-6 col-sm-8 mx-auto features_col">
                                                     <Slide direction="up" delay={index * 50} triggerOnce className="feature_card_area h-100">
                                                         <article className="feature_card">
@@ -469,6 +577,13 @@ const Home: React.FC = () => {
                 </div>
             </section>
             {/*  */}
+            <ImageEditorNew
+                isOpen={openImageEditor}
+                onClose={() => { setOpenImageEditor(false); setContentKeyForImageEditor(undefined); }}
+                onSave={handleOnSaveForImageEditor}
+                acceptedFileTypes={['.jpg', '.jpeg', '.png']}
+                maxFileSize={5 * 1024 * 1024} // 5MB
+            />
         </>
     );
 };

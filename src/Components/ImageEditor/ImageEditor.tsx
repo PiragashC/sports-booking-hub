@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { RotateCcw, Download, Crop as CropIcon, Sun, Palette, Upload } from 'lucide-react';
+import { RotateCcw, Download, Crop as CropIcon, Sun, Palette, Upload, } from 'lucide-react';
 import { showErrorToast } from '../../Utils/commonLogic';
 import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
@@ -77,6 +77,23 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
     const previewCanvasRef = useRef<HTMLCanvasElement>(null);
     const toastRef = useRef<Toast>(null);
     const [loading, setLoading] = useState<boolean>(false);
+
+    const handleResetState = () => {
+        setSelectedImage(null);
+        setOriginalImage(null);
+        setWorkingImage(null);
+        setCrop(undefined);
+        setFilters({
+            brightness: 100,
+            contrast: 100,
+            saturation: 100,
+            hue: 0,
+        });
+        setActiveTab('adjust');
+        setIsCropping(false);
+        setImageSize({ width: 0, height: 0 });
+        setLoading(false);
+    }
 
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -213,6 +230,7 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
             const file = new File([blob], 'edited-image.png', { type: 'image/png' });
             onSave(file);
             onClose();
+            handleResetState();
         } catch (error) {
             console.error('Error saving image:', error);
             showErrorToast(toastRef, 'Failed to save the image. Please try again.', '');
@@ -269,7 +287,7 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
                                 <Palette className="me-2" size={24} />
                                 Image Editor
                             </h5>
-                            <button type="button" className="btn-close" onClick={onClose}></button>
+                            <button type="button" className="btn-close" onClick={() => { onClose(); handleReset(); }}></button>
                         </div>
                         <div className="modal-body p-4">
                             {!selectedImage ? (
