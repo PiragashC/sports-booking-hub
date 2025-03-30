@@ -1,7 +1,7 @@
 .home_hero_section {
     background: rgb(221, 248, 221);
     background: linear-gradient(0deg, rgba(221, 248, 221, 1) 0%, rgba(219, 231, 247, 1) 100%);
-    background-image: url(../../../public/web_assets/home/hero_img1.jpg);
+    /* background-image: url(../../../public/web_assets/home/hero_img1.jpg); */
     background-position: center bottom;
     background-attachment: fixed;
     background-size: cover;
