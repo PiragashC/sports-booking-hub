@@ -154,7 +154,7 @@
 
     .web_nav_link_list.show {
         visibility: visible;
-        max-height: 150px;
+        max-height: 300px;
         opacity: 1;
         padding: 6px;
     }

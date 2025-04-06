@@ -89,11 +89,53 @@
         width: 55vw !important;
         height: 55vw !important;
     }
+
+    .breadcrumb_content {
+        width: 95% !important;
+        row-gap: 15px;
+        padding: 15px 10px 10px;
+    }
+
+    .breadcrumb_title {
+        font-size: 24px !important;
+    }
+
+    .breadcrumb_list li {
+        font-size: 14px !important;
+    }
+
+    .no_data_container {
+        padding: 40px;
+    }
+
+
+    .no_data_container h6 {
+        font-size: 14px;
+        padding: 6px 20px;
+    }
+
+    .no_data_container img {
+        width: 80%;
+        height: 80%;
+    }
 }
 
 /* For custom */
 @media (max-width: 991.5px) {
     .filter_area_row {
         row-gap: 8px;
+    }
+
+    .breadcrumb_title {
+        font-size: 28px;
+    }
+
+    .breadcrumb_section {
+        padding-bottom: 70px;
+        background-position: 13%;
+    }
+
+    .breadcrumb_content {
+        width: 60%;
     }
 }

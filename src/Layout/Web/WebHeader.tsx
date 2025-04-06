@@ -1,10 +1,11 @@
 import { Ripple } from "primereact/ripple";
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { goToTop } from "../../Components/GoToTop";
 
 const WebHeader: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
     const [menuToggled, setMenuToggled] = useState<boolean>(false);
 
@@ -33,15 +34,32 @@ const WebHeader: React.FC = () => {
 
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
-        if (element) {
-            const offset = 20;
-            const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-            window.scrollTo({
-                top: elementPosition - offset,
-                behavior: "smooth",
-            });
+        const offset = 20;
+        const currentPath = location.pathname;
+
+        const scrollToElement = () => {
+            const target = document.getElementById(id);
+            if (target) {
+                const elementPosition = target.getBoundingClientRect().top + window.scrollY;
+                window.scrollTo({
+                    top: elementPosition - offset,
+                    behavior: "smooth",
+                });
+            }
+        };
+
+        if (currentPath === "/") {
+            if (element) {
+                scrollToElement();
+            } else {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+        } else {
+            navigate("/", { replace: false });
+            setTimeout(scrollToElement, 100);
         }
     };
+
 
     const handleToggleMenu = () => {
         setMenuToggled(!menuToggled);
@@ -119,11 +137,48 @@ const WebHeader: React.FC = () => {
                                         Contact us
                                     </button>
                                 </li>
+
+                                <li className="web_nav_link_item">
+                                    <button type="button" className="web_nav_link"
+                                        onClick={() => {
+                                            goToTop();
+                                            navigate(`/gallery`);
+                                            setMenuToggled(false);
+                                        }}>
+                                        Gallery
+                                    </button>
+                                </li>
+
+                                <li className="web_nav_link_item">
+                                    <button type="button" className="web_nav_link"
+                                        onClick={() => {
+                                            goToTop();
+                                            navigate(`/events`);
+                                            setMenuToggled(false);
+                                        }}>
+                                        Events
+                                    </button>
+                                </li>
+
+                                <li className="web_nav_link_item">
+                                    <button type="button" className="web_nav_link"
+                                        onClick={() => {
+                                            goToTop();
+                                            navigate(`/blogs`);
+                                            setMenuToggled(false);
+                                        }}>
+                                        Blog
+                                    </button>
+                                </li>
                             </ul>
 
                             <div className="web_nav_btn_area">
-                                <button className={`toggle_btn ${menuToggled && ' toggled'} p-ripple`}
-                                    onClick={handleToggleMenu}>
+                                <button
+                                    type="button"
+                                    className={`toggle_btn ${menuToggled ? 'toggled' : ''} p-ripple`}
+                                    onClick={handleToggleMenu}
+                                    aria-label={menuToggled ? 'Close menu' : 'Open menu'}
+                                    title={menuToggled ? 'Close menu' : 'Open menu'}>
                                     {menuToggled ? (
                                         <i className="ri-close-large-fill"></i>
                                     ) : (

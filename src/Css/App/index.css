@@ -74,7 +74,7 @@
     width: 100%;
 }
 
-.app_footer_area  .sub_footer_desc{
+.app_footer_area .sub_footer_desc {
     color: rgba(0, 0, 0, 0.6);
     text-align: center;
 }
@@ -118,6 +118,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .page_tab_btn:focus {
@@ -354,18 +355,18 @@
 .modal-backdrop {
     background-color: rgba(0, 0, 0, 0.7);
     z-index: 1040;
-  }
-  
-  .modal {
+}
+
+.modal {
     z-index: 1045;
-  }
-  
-  .modal-dialog {
+}
+
+.modal-dialog {
     z-index: 1050;
-  }
-  
-  .filter-preset-card {
+}
+
+.filter-preset-card {
     cursor: pointer;
     transition: all 0.3s ease;
     border: 2px solid transparent;
-  }
+}

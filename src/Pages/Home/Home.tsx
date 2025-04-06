@@ -276,11 +276,11 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h5 className="section_sub_title" contentEditable={isEditMode}
+                                    <h4 className="section_sub_title" contentEditable={isEditMode}
                                         onBlur={handleContentChange}
                                         data-content-key="content_5">
                                         {webContents?.content_5}
-                                    </h5>
+                                    </h4>
                                 </Slide>
 
                                 <div className="section_content">
@@ -349,11 +349,11 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h5 className="section_sub_title text-center" contentEditable={isEditMode}
+                                    <h4 className="section_sub_title text-center" contentEditable={isEditMode}
                                         onBlur={handleContentChange}
                                         data-content-key="content_11">
                                         {webContents?.content_11}
-                                    </h5>
+                                    </h4>
                                 </Slide>
 
                                 <div className="section_content">
@@ -404,9 +404,9 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h5 className="section_sub_title text-center">
+                                    <h4 className="section_sub_title text-center">
                                         We're Here to Help – Reach Out Today!
-                                    </h5>
+                                    </h4>
                                 </Slide>
 
                                 <div className="section_content">

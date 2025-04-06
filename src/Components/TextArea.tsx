@@ -3,6 +3,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 
 interface TextAreaProps {
     id?: string;
+    name?: string;
     label?: string;
     labelHtmlFor?: string;
     placeholder?: string;
@@ -21,6 +22,7 @@ interface TextAreaProps {
 
 const TextArea: React.FC<TextAreaProps> = ({
     id,
+    name,
     label,
     labelHtmlFor,
     placeholder,
@@ -44,6 +46,7 @@ const TextArea: React.FC<TextAreaProps> = ({
 
             <InputTextarea
                 id={id}
+                name={name}
                 value={value}
                 onChange={onChange}
                 rows={rows}
