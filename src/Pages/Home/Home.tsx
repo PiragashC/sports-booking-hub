@@ -578,7 +578,6 @@ const Home: React.FC = () => {
             </section>
             {/*  */}
 
-            
             <ImageEditorNew
                 isOpen={openImageEditor}
                 onClose={() => { setOpenImageEditor(false); setContentKeyForImageEditor(undefined); }}

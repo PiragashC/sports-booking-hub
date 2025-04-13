@@ -101,7 +101,10 @@ const WebHeader: React.FC = () => {
                         <div className="web_navbar_area">
                             <div className="web_nav_logo_area">
                                 <button type="button" className="web_nav_logo p-ripple"
-                                    onClick={() => scrollToSection("home")}>
+                                    onClick={() => {
+                                        scrollToSection("home");
+                                        setMenuToggled(false);
+                                    }}>
                                     <img src="/kover_drive_logo.png" alt="Kover Drive" />
                                     <Ripple />
                                 </button>

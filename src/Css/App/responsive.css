@@ -88,6 +88,11 @@
         padding: 6px 10px !important;
         font-size: var(--font-size-sm);
     }
+
+    .uploaded_image_area{
+        padding: 10px;
+        border-radius: 12px;
+    }
 }
 
 /* For custom */

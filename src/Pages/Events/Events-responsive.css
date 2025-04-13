@@ -14,7 +14,30 @@
 @media (min-width: 576px) and (max-width: 767px) {}
 
 /* For Mobile Screen */
-@media (max-width: 575px) {}
+@media (max-width: 575px) {
+    .event_title {
+        margin-bottom: 5px !important;
+    }
+
+    .event_view_detail_item {
+        padding: 8px 12px !important;
+    }
+
+    .event_view_title {
+        font-size: 18px;
+        margin-bottom: 10px !important;
+    }
+
+    .event_view_img_area img {
+        height: 250px !important;
+    }
+
+    .event_view_detail_item i {
+        font-size: 18px !important;
+    }
+
+    
+}
 
 /* For Custom */
 @media (max-width: 991.8px) {}
