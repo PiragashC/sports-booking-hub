@@ -89,11 +89,100 @@
         width: 55vw !important;
         height: 55vw !important;
     }
+
+    .breadcrumb_content {
+        width: 95% !important;
+        row-gap: 15px;
+        padding: 15px 10px 10px;
+    }
+
+    .breadcrumb_title {
+        font-size: 24px !important;
+    }
+
+    .breadcrumb_list li {
+        font-size: 14px !important;
+    }
+
+    .no_data_container {
+        padding: 40px;
+    }
+
+
+    .no_data_container h6 {
+        font-size: 14px;
+        padding: 6px 20px;
+    }
+
+    .no_data_container img {
+        width: 80%;
+        height: 80%;
+    }
+
+    .no_data_found_area {
+        min-height: 250px !important;
+    }
+
+    .no_data_found_area p {
+        font-size: 14px !important;
+        padding: 3px 8px !important
+    }
+
+    .customize_data_container{
+        padding: 15px !important;
+        margin-bottom: 30px !important;
+    }
+
+    .customize_data_area {
+        align-items: center !important;
+        row-gap: 12px !important;
+    }
+
+    .customize_data_area:first-child {
+        margin-bottom: 12px !important;
+        padding-bottom: 13px !important;
+    }
+
+    .customize_data_container h5 {
+        font-size: 18px !important;
+        margin-bottom: 6px !important;
+    }
+
+    .customize_data_container p {
+        font-size: 13px !important;
+    }
+
+    .customize_data_area:last-child{
+        flex-direction: column;
+    }
+
+    .data_tab_btn{
+        min-width: auto;
+        flex: 1;
+        font-size: 14px
+    }
+
+    .data_tab_area{
+        width: 100%;
+    }
 }
 
 /* For custom */
 @media (max-width: 991.5px) {
     .filter_area_row {
         row-gap: 8px;
+    }
+
+    .breadcrumb_title {
+        font-size: 28px;
+    }
+
+    .breadcrumb_section {
+        padding-bottom: 70px;
+        background-position: 13%;
+    }
+
+    .breadcrumb_content {
+        width: 60%;
     }
 }

@@ -4,10 +4,14 @@ import "primereact/resources/themes/lara-light-cyan/theme.css";
 
 import ErrorBoundary from './Components/ErrorBoundary';
 
+/* Web routes */
 import WebLayout from './Layout/Web/WebLayout';
 import Home from './Pages/Home/Home';
-import ContactUs from './Pages/ContactUs/ContactUs';
+import Gallery from './Pages/Gallery/Gallery';
+import Events from './Pages/Events/Events';
+import Blogs from './Pages/Blogs/Blogs';
 
+/* Admin routes */
 import AppLayout from './Layout/App/AppLayout';
 import BookingCopy from './Pages/Booking/Booking copy';
 import AdminLogin from './Pages/Login/AdminLogin';
@@ -38,7 +42,9 @@ function App() {
             <Route element={<PublicRoutes />}>
               <Route path="/" element={<WebLayout />}>
                 <Route index element={<Home />} />
-                <Route path="contact-us" element={<ContactUs />} />
+                <Route path="gallery" element={<Gallery />} />
+                <Route path="events" element={<Events />} />
+                <Route path="blogs" element={<Blogs />} />
               </Route>
             </Route>
 

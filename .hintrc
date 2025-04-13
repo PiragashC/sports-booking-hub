@@ -16,8 +16,15 @@
       "default",
       {
         "ignore": [
-          "iframe[loading]"
+          "iframe[loading]",
+          "img[loading]"
         ]
+      }
+    ],
+    "axe/name-role-value": [
+      "default",
+      {
+        "button-name": "off"
       }
     ]
   }
