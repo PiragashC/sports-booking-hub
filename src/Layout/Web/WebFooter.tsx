@@ -12,7 +12,7 @@ const WebFooter: React.FC = () => {
 
     return (
         <>
-            
+
 
             <footer className="footer_section">
                 <div className="main_footer">
@@ -105,7 +105,8 @@ const WebFooter: React.FC = () => {
                                             <Link
                                                 to={`https://web.facebook.com/people/Kover-Drive-Sports/61572469933200/?mibextid=wwXIfr&rdid=RdpaU7aKJkFeWFIs&share_url=https%3A%2F%2Fweb.facebook.com%2Fshare%2F18to3KbNox%2F%3Fmibextid%3DwwXIfr%26_rdc%3D1%26_rdr`}
                                                 target="_blank"
-                                                className="footer_social_link p-ripple">
+                                                className="footer_social_link p-ripple"
+                                                aria-label="Visit our Facebook page">
                                                 <i className="ri-facebook-fill"></i>
                                                 <Ripple />
                                             </Link>
@@ -113,7 +114,8 @@ const WebFooter: React.FC = () => {
                                         <li>
                                             <Link to={`https://www.instagram.com/kover_drive/`}
                                                 target="_blank"
-                                                className="footer_social_link p-ripple">
+                                                className="footer_social_link p-ripple"
+                                                aria-label="Visit our Instagram page">
                                                 <i className="bi bi-instagram"></i>
                                                 <Ripple />
                                             </Link>
