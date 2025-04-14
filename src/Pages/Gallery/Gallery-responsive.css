@@ -14,7 +14,47 @@
 @media (min-width: 576px) and (max-width: 767px) {}
 
 /* For Mobile Screen */
-@media (max-width: 575px) {}
+@media (max-width: 575px) {
+    .img_title_area {
+        font-size: 12px !important;
+        padding: 4px 7px !important;
+    }
+
+    .my-masonry-grid {
+        gap: 12px;
+    }
+
+    .my-masonry-grid_column .gallery_img_container {
+        margin-bottom: 12px !important;
+    }
+
+    .gallery_img_container::after {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+
+    .uploaded_files_area {
+        padding: 10px;
+    }
+
+    .uploaded_files_area .uploaded_file_col {
+        padding: 0 4px;
+    }
+
+    .uploaded_files_area .uploaded_file_row {
+        row-gap: 8px;
+        padding: 0 4px;
+    }
+
+    .uploaded_file_container img {
+        height: 100px;
+    }
+
+    .uploaded_file_action button{
+        height: 26px;
+    }
+}
 
 /* For Custom */
 @media (max-width: 991.8px) {}
