@@ -287,7 +287,7 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
                                 <Palette className="me-2" size={24} />
                                 Image Editor
                             </h5>
-                            <button type="button" className="btn-close" onClick={() => { onClose(); handleReset(); }}></button>
+                            <button type="button" className="btn-close" onClick={() => { onClose(); handleResetState(); }}></button>
                         </div>
                         <div className="modal-body p-4">
                             {!selectedImage ? (
