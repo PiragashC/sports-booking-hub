@@ -9,7 +9,7 @@ import { Slide } from "react-awesome-reveal";
 import { useDispatch } from "react-redux";
 import apiRequest from "../../Utils/apiRequest";
 import { showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
-import { setLogin } from "../../state";
+import { setLogin } from "../../redux/authSlice";
 
 interface SignInInfo {
     email: string;

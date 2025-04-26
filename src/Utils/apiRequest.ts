@@ -7,7 +7,7 @@ interface ApiRequestOptions<T = any> {
     params?: Record<string, any>;
     headers?: Record<string, string>;
     contentType?: string;
-    token?: string;
+    token?: string | null;
 }
 
 const apiRequest = async <T = any>({

@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from "react-router-dom";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -9,7 +8,7 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { goToTop } from '../../Components/GoToTop';
 
 import AdminFooter from "./AdminFooter";
-import { setLogout, User } from '../../state';
+import { setLogout, User } from '../../redux/authSlice';
 
 const AdminLayout: React.FC = () => {
     const { userName } = useSelector((state: { auth: { user: User } }) => state.auth.user);

@@ -2,8 +2,8 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { setLogout } from "../../state";
 import { Button } from "primereact/button";
+import { setLogout } from '../../redux/authSlice';
 
 
 const AppHeader: React.FC = () => {

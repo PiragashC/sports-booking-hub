@@ -6,36 +6,17 @@ import { Button } from "primereact/button";
 import { Slide, Fade, Zoom } from "react-awesome-reveal";
 
 import { goToTop } from "../../Components/GoToTop";
-import { Features, features } from "./HomeData";
+import { initialWebContents, WebContent } from "./HomeData";
 import TextInput from "../../Components/TextInput";
 import TextArea from "../../Components/TextArea";
 import apiRequest from "../../Utils/apiRequest";
 import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
-import { url } from "inspector";
 import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
-import { Edit } from "lucide-react";
-
-interface WebContent {
-    content_1: string;
-    content_2: string;
-    content_3: {
-        id: number;
-        c_1: string;
-        c_2: string;
-        c_3: string;
-        c_4: string;
-    }[];
-    content_4: string;
-    content_5: string;
-    content_6: string;
-    content_7: string;
-    content_8: string;
-    content_9: string;
-    content_10: string;
-    content_11: string;
-    content_12: Features[];
-}
+import { Edit, Pencil, Plus, Trash2 } from "lucide-react";
+import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
+import { CardFormModal } from "./CardFormModal";
+import { FeatureFormModal } from "./FeatureFormModal";
 
 
 const Home: React.FC = () => {
@@ -43,11 +24,15 @@ const Home: React.FC = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
-    const [featuresData, setFeaturesData] = useState<Features[]>([]);
 
-    useEffect(() => {
-        setFeaturesData(features);
-    }, []);
+    const [modalVisible, setModalVisible] = useState(false);
+    const showDialog = useDeleteConfirmation();
+    const [isEdit, setIsEdit] = useState(false);
+    const [currentEditCard, setCurrentEditCard] = useState<any>(null);
+
+    const [featureModalVisible, setFeatureModalVisible] = useState(false);
+    const [currentEditFeature, setCurrentEditFeature] = useState<any>(null);
+    const [isFeatureEdit, setIsFeatureEdit] = useState(false);
 
     const handleNavigateBooking = () => {
         navigate(`/booking`);
@@ -64,29 +49,10 @@ const Home: React.FC = () => {
     const [isRequired, setIsRequired] = useState<boolean>(false);
 
     const [isEditMode, setIsEditMode] = useState<boolean>(true);
-    const initialWebContents = {
-        content_1: 'London’s Premier Indoor Cricket and Multi-Sport Facility!',
-        content_2: 'Experience London’s ultimate indoor cricket and multi-sport destination! Train with top-quality lanes, pro-grade nets, and advanced pitching machines. With baseball and table tennis coming soon, the game never stops. Book your session today!',
-        content_3: [{
-            id: 1,
-            c_1: 'Book Cricket Lane',
-            c_2: 'Daily',
-            c_3: '8 am – 10 pm',
-            c_4: '$45/hr',
-        }],
-        content_4: '/web_assets/home/hero_img1.jpg',
-        content_5: 'Elevating Indoor Sports in London, Ontario',
-        content_6: 'Welcome to Kover Drive, the premier indoor cricket and baseball facility dedicated to fostering a love for the game while promoting fitness and skill development. Our mission is to create a vibrant community where players of all ages and skill levels can come together to enhance their abilities, build confidence, and enjoy the thrill of sports. At Kover Drive, we understand that every player has unique goals, whether you’re a beginner looking to learn the basics or an experienced athlete aiming to refine your technique. Our state of the-art facility is equipped with top-notch training equipment, batting cages, and practice areas designed to help you elevate your game.',
-        content_7: 'Our facility provides a welcoming environment where you can work on your strength, agility, and endurance, ensuring you are at your best both on and off the field.',
-        content_8: 'Join us at Kover Drive and become part of a community that celebrates the spirit of cricket and baseball. Whether you’re here to improve your game, meet new friends, or simply enjoy the sport, we are excited to support you on your journey. Together, let’s hit new heights in your athletic pursuits!',
-        content_9: 'Contact Us today to learn more about our programs, schedule a visit, or book a session. We can’t wait to see you on the field!',
-        content_10: '/web_assets/home/about_img.png',
-        content_11: 'Discover What Makes Us the Ultimate Indoor Sports Destination',
-        content_12: features
-    }
+
     const [webContents, setWebContents] = useState<WebContent>(initialWebContents);
     const [openImageEditor, setOpenImageEditor] = useState<boolean>(false);
-    const [contentKeyForImageEditor, setContentKeyForImageEditor] = useState<'content_4' | 'content_10'>();
+    const [contentKeyForImageEditor, setContentKeyForImageEditor] = useState<'contentFour' | 'contentTen'>();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -122,6 +88,102 @@ const Home: React.FC = () => {
         if (element) {
             element.scrollIntoView({ behavior: "smooth", block: "start" });
         }
+    };
+
+    const handleAddCard = () => {
+        setIsEdit(false);
+        setCurrentEditCard(null);
+        setModalVisible(true);
+    };
+
+    const handleEditCard = (card: any) => {
+        setIsEdit(true);
+        setCurrentEditCard(card);
+        setModalVisible(true);
+    };
+
+    const handleSubmitCard = (cardData: any) => {
+        if (isEdit) {
+            // Update existing card
+            setWebContents(prev => ({
+                ...prev,
+                contentThree: prev.contentThree.map(card =>
+                    card.id === cardData.id ? cardData : card
+                )
+            }));
+        } else {
+            // Add new card
+            setWebContents(prev => ({
+                ...prev,
+                contentThree: [...prev.contentThree, cardData]
+            }));
+        }
+    };
+
+    const handleDeleteCard = (id: number) => {
+        // Prevent deletion if only one card exists
+        if (webContents.contentThree.length <= 1) {
+            return;
+        }
+
+        showDialog({
+            message: 'Are you sure you want to delete this card?',
+            header: 'Confirm the deletion',
+            accept: () => {
+                setWebContents(prev => ({
+                    ...prev,
+                    contentThree: prev.contentThree.filter(card => card.id !== id)
+                }));
+            }
+        });
+    };
+
+    const handleAddFeature = () => {
+        setIsFeatureEdit(false);
+        setCurrentEditFeature(null);
+        setFeatureModalVisible(true);
+    };
+
+    const handleEditFeature = (feature: any) => {
+        setIsFeatureEdit(true);
+        setCurrentEditFeature(feature);
+        setFeatureModalVisible(true);
+    };
+
+    const handleSubmitFeature = (featureData: any) => {
+        if (isFeatureEdit) {
+            // Update existing feature
+            setWebContents(prev => ({
+                ...prev,
+                contentTwelve: prev.contentTwelve.map(feature =>
+                    feature.id === featureData.id ? featureData : feature
+                )
+            }));
+        } else {
+            // Add new feature
+            setWebContents(prev => ({
+                ...prev,
+                contentTwelve: [...prev.contentTwelve, featureData]
+            }));
+        }
+    };
+
+    const handleDeleteFeature = (id: number | string) => {
+        // Prevent deletion if only one feature exists
+        if (webContents.contentTwelve.length <= 1) {
+            return;
+        }
+
+        showDialog({
+            message: 'Are you sure you want to delete this feature?',
+            header: 'Confirm the deletion',
+            accept: () => {
+                setWebContents(prev => ({
+                    ...prev,
+                    contentTwelve: prev.contentTwelve.filter(feature => feature.id !== id)
+                }));
+            }
+        });
     };
 
     const handleContentChange = (event: React.FormEvent<HTMLHeadingElement | HTMLParagraphElement>) => {
@@ -166,7 +228,7 @@ const Home: React.FC = () => {
             <Toast ref={toastRef} />
             {/* Hero section */}
             <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home" style={{
-                backgroundImage: `url(${webContents.content_4})`
+                backgroundImage: `url(${webContents.contentFour})`
             }}>
                 <div className="container-md">
                     <div className="row">
@@ -174,26 +236,32 @@ const Home: React.FC = () => {
                             <article className="home_hero_content">
                                 <Slide direction="up" triggerOnce>
                                     <h1>
-                                        Welcome to <span>Kover<span>Drive</span></span> Sports <Edit size={16} className="ms-2" onClick={(() => {
+                                        Welcome to <span>Kover<span>Drive</span></span> Sports {isEditMode && <Edit size={16} className="ms-2" onClick={(() => {
                                             setOpenImageEditor(true);
-                                            setContentKeyForImageEditor('content_4');
-                                        })} />
+                                            setContentKeyForImageEditor('contentFour');
+                                        })} />}
                                     </h1>
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
                                     <h2 contentEditable={isEditMode}
                                         onBlur={handleContentChange}
-                                        data-content-key="content_1">
-                                        {webContents?.content_1}
+                                        data-content-key="contentOne"
+                                        suppressContentEditableWarning
+                                        style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
+                                    >
+                                        {webContents?.contentOne || ''}
                                     </h2>
                                 </Slide>
 
                                 <Slide direction="up" delay={200} triggerOnce>
                                     <p contentEditable={isEditMode}
                                         onBlur={handleContentChange}
-                                        data-content-key="content_2">
-                                        {webContents?.content_2}
+                                        data-content-key="contentTwo"
+                                        suppressContentEditableWarning
+                                        style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
+                                    >
+                                        {webContents?.contentTwo || ''}
                                     </p>
                                 </Slide>
 
@@ -216,37 +284,50 @@ const Home: React.FC = () => {
                         </div>
 
                         <div className="col-12 col-xl-5 col-md-8 col-sm-8 mx-auto">
-                            {webContents?.content_3 && Array.isArray(webContents?.content_3) && webContents.content_3.map((content: {
-                                id: number;
-                                c_1: string;
-                                c_2: string;
-                                c_3: string;
-                                c_4: string;
-                            }) => {
-                                return (
+                            {isEditMode && <div className="d-flex justify-content-end mb-3">
+                                <Button
+                                    icon={<Plus size={16} />}
+                                    label="Add Card"
+                                    className="p-button-rounded p-button-success p-button-sm"
+                                    onClick={handleAddCard}
+                                />
+                            </div>}
+
+                            {webContents?.contentThree && Array.isArray(webContents?.contentThree) &&
+                                webContents.contentThree.map((content) => (
                                     <Slide direction="up" triggerOnce delay={100} key={content.id}>
                                         <article className="home_hero_card">
-                                            <div className="home_hero_card_header">
-                                                <h4>{content?.c_1}</h4>
+                                            <div className="home_hero_card_header d-flex justify-content-between align-items-center">
+                                                <h4>{content?.laneCardTitle}</h4>
+                                                {isEditMode && <div className="d-flex gap-1">
+                                                    <Button
+                                                        icon={<Pencil size={16} />}
+                                                        className="p-button-rounded p-button-info p-button-text"
+                                                        onClick={() => handleEditCard(content)}
+                                                    />
+                                                    {webContents.contentThree.length > 1 && (
+                                                        <Button
+                                                            icon={<Trash2 size={16} />}
+                                                            className="p-button-rounded p-button-danger p-button-text"
+                                                            onClick={() => handleDeleteCard(content.id)}
+                                                        />
+                                                    )}
+                                                </div>}
                                             </div>
 
                                             <div className="home_hero_card_body">
-                                                <p><i className="bi bi-clock-fill me-1"></i> {content?.c_2}</p>
-                                                <p>{content?.c_3}</p>
+                                                <p><i className="bi bi-clock-fill me-1"></i> {content?.frequency}</p>
+                                                <p>{content?.timeInterval}</p>
                                             </div>
 
                                             <div className="home_hero_card_footer">
-                                                <h3>{content?.c_4}
+                                                <h3>{content?.ratePerHour}
                                                     <span> + Tax</span>
                                                 </h3>
                                                 <hr className="home_hero_card_footer_divider" />
-                                                {/* <h3>$55/hr
-                                                    <span> + Tax</span>&nbsp;
-                                                    <small>(Book Bowling Machine (Lane 1))</small>
-                                                </h3> */}
                                                 <div className="home_hero_buttons">
                                                     <Button
-                                                        label={content?.c_1}
+                                                        label={content?.laneCardTitle}
                                                         className="custom_button primary"
                                                         onClick={handleNavigateBooking}
                                                     />
@@ -254,9 +335,16 @@ const Home: React.FC = () => {
                                             </div>
                                         </article>
                                     </Slide>
-                                );
-                            })}
+                                ))
+                            }
 
+                            <CardFormModal
+                                visible={modalVisible}
+                                onHide={() => { setModalVisible(false); setCurrentEditCard(null); }}
+                                onSubmit={handleSubmitCard}
+                                editData={currentEditCard}
+                                isEdit={isEdit}
+                            />
                         </div>
                     </div>
                 </div>
@@ -278,8 +366,11 @@ const Home: React.FC = () => {
                                 <Slide direction="up" delay={100} triggerOnce>
                                     <h4 className="section_sub_title" contentEditable={isEditMode}
                                         onBlur={handleContentChange}
-                                        data-content-key="content_5">
-                                        {webContents?.content_5}
+                                        data-content-key="contentFive"
+                                        suppressContentEditableWarning
+                                        style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
+                                    >
+                                        {webContents?.contentFive || ''}
                                     </h4>
                                 </Slide>
 
@@ -287,26 +378,38 @@ const Home: React.FC = () => {
                                     <Fade triggerOnce>
                                         <p className="section_desc" contentEditable={isEditMode}
                                             onBlur={handleContentChange}
-                                            data-content-key="content_6">
-                                            {webContents?.content_6}
+                                            data-content-key="contentSix"
+                                            suppressContentEditableWarning
+                                            style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
+                                        >
+                                            {webContents?.contentSix || ''}
                                         </p>
 
                                         <p className="section_desc" contentEditable={isEditMode}
                                             onBlur={handleContentChange}
-                                            data-content-key="content_7">
-                                            {webContents?.content_7}
+                                            data-content-key="contentSeven"
+                                            suppressContentEditableWarning
+                                            style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
+                                        >
+                                            {webContents?.contentSeven || ''}
                                         </p>
 
                                         <p className="section_desc" contentEditable={isEditMode}
                                             onBlur={handleContentChange}
-                                            data-content-key="content_8">
-                                            {webContents?.content_8}
+                                            data-content-key="contentEight"
+                                            suppressContentEditableWarning
+                                            style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
+                                        >
+                                            {webContents?.contentEight || ''}
                                         </p>
 
                                         <p className="section_desc" contentEditable={isEditMode}
                                             onBlur={handleContentChange}
-                                            data-content-key="content_9">
-                                            {webContents?.content_9}
+                                            data-content-key="contentNine"
+                                            suppressContentEditableWarning
+                                            style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
+                                        >
+                                            {webContents?.contentNine || ''}
                                         </p>
                                     </Fade>
 
@@ -325,9 +428,15 @@ const Home: React.FC = () => {
                         </div>
 
                         <div className="col-12 col-xl-6">
+                            <div className="">
+                                {isEditMode && <Edit size={16} className="ms-2 " onClick={(() => {
+                                    setOpenImageEditor(true);
+                                    setContentKeyForImageEditor('contentTen');
+                                })} />}
+                            </div>
                             <Fade triggerOnce duration={1500} className="w-100">
                                 <div className="section_image_area">
-                                    <img src={webContents?.content_10} alt="" />
+                                    <img src={webContents?.contentTen} alt="" />
                                 </div>
                             </Fade>
                         </div>
@@ -351,25 +460,53 @@ const Home: React.FC = () => {
                                 <Slide direction="up" delay={100} triggerOnce>
                                     <h4 className="section_sub_title text-center" contentEditable={isEditMode}
                                         onBlur={handleContentChange}
-                                        data-content-key="content_11">
-                                        {webContents?.content_11}
+                                        data-content-key="contentEleven"
+                                        suppressContentEditableWarning
+                                        style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
+                                    >
+                                        {webContents?.contentEleven || ''}
                                     </h4>
                                 </Slide>
 
                                 <div className="section_content">
-                                    {webContents?.content_12 && Array.isArray(webContents?.content_12) && (
+                                    {isEditMode && <div className="d-flex justify-content-end mb-3">
+                                        <Button
+                                            icon={<Plus size={16} />}
+                                            label="Add Feature"
+                                            className="p-button-rounded p-button-success p-button-sm"
+                                            onClick={handleAddFeature}
+                                        />
+                                    </div>}
+
+                                    {webContents?.contentTwelve && Array.isArray(webContents?.contentTwelve) && (
                                         <div className="row features_row">
-                                            {webContents?.content_12?.map((feature, index) => (
+                                            {webContents?.contentTwelve?.map((feature, index) => (
                                                 <div key={feature?.id} className="col-12 col-xl-4 col-md-6 col-sm-8 mx-auto features_col">
                                                     <Slide direction="up" delay={index * 50} triggerOnce className="feature_card_area h-100">
                                                         <article className="feature_card">
-                                                            <div className="feature_card_header">
-                                                                <div className="feature_icon_area">
-                                                                    <img src={feature?.icon} alt={feature?.name} />
+                                                            <div className="feature_card_header d-flex justify-content-between align-items-center">
+                                                                <div className="d-flex align-items-center">
+                                                                    <div className="feature_icon_area">
+                                                                        <img src={feature?.icon} alt={feature?.name} />
+                                                                    </div>
+                                                                    <h5 className="feature_title">
+                                                                        {feature?.name}
+                                                                    </h5>
                                                                 </div>
-                                                                <h5 className="feature_title">
-                                                                    {feature?.name}
-                                                                </h5>
+                                                                {isEditMode && <div className="d-flex gap-1">
+                                                                    <Button
+                                                                        icon={<Pencil size={16} />}
+                                                                        className="p-button-rounded p-button-info p-button-text"
+                                                                        onClick={() => handleEditFeature(feature)}
+                                                                    />
+                                                                    {webContents.contentTwelve.length > 1 && (
+                                                                        <Button
+                                                                            icon={<Trash2 size={16} />}
+                                                                            className="p-button-rounded p-button-danger p-button-text"
+                                                                            onClick={() => handleDeleteFeature(feature.id)}
+                                                                        />
+                                                                    )}
+                                                                </div>}
                                                             </div>
 
                                                             <div className="feature_card_body">
@@ -383,6 +520,14 @@ const Home: React.FC = () => {
                                             ))}
                                         </div>
                                     )}
+
+                                    <FeatureFormModal
+                                        visible={featureModalVisible}
+                                        onHide={() => { setFeatureModalVisible(false); setCurrentEditFeature(null); }}
+                                        onSubmit={handleSubmitFeature}
+                                        editData={currentEditFeature}
+                                        isEdit={isFeatureEdit}
+                                    />
                                 </div>
                             </div>
                         </div>
