@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setLogin, setLogout, User } from "../state";
 import apiRequest from "../Utils/apiRequest";
 import { sessionInactivityCheckTime, tokenExpireIn } from "../Utils/commonLogic";
+import { setLogin, setLogout, User } from "../redux/authSlice";
 
 let refreshTimeout: NodeJS.Timeout | null = null;
 let inactivityTimeout: NodeJS.Timeout | null = null;

@@ -1,5 +1,5 @@
 export interface Features {
-    id: number;
+    id: string | number;
     icon: string;
     name: string;
     description: string;
@@ -47,4 +47,70 @@ export const features: Features[] = [
         name: "Hassle-Free Parking, Every Time",
         description: "Located in Oxbury Mall, our facility offers ample free parking, so you never have to worry about finding a spot."
     }
-]
+];
+
+export interface WebContent {
+    contentOne: string;
+    contentTwo: string;
+    contentThree: {
+        id: number;
+        laneCardTitle: string;
+        frequency: string;
+        timeInterval: string;
+        ratePerHour: string;
+    }[];
+    contentFour: string;
+    contentFive: string;
+    contentSix: string;
+    contentSeven: string;
+    contentEight: string;
+    contentNine: string;
+    contentTen: string;
+    contentEleven: string;
+    contentTwelve: {
+        id: string | number;
+        icon: string;
+        name: string;
+        description: string;
+    }[];
+    contentThirteen: {
+        id: string;
+        title: string;
+        image: string;
+        uploadedDate: string;
+        status: boolean;
+    }[];
+    contentFourteen: {
+        id: string;
+        eventTitle: string;
+        eventDate: string;
+        eventTime: string;
+        location: string;
+        description: string;
+        status: boolean;
+        image: string;
+    }[];
+};
+
+export const initialWebContents = {
+    contentOne: 'London’s Premier Indoor Cricket and Multi-Sport Facility!',
+    contentTwo: 'Experience London’s ultimate indoor cricket and multi-sport destination! Train with top-quality lanes, pro-grade nets, and advanced pitching machines. With baseball and table tennis coming soon, the game never stops. Book your session today!',
+    contentThree: [{
+        id: 1,
+        laneCardTitle: 'Book Cricket Lane',
+        frequency: 'Daily',
+        timeInterval: '8 am – 10 pm',
+        ratePerHour: '$45/hr',
+    }],
+    contentFour: '/web_assets/home/hero_img1.jpg',
+    contentFive: 'Elevating Indoor Sports in London, Ontario',
+    contentSix: 'Welcome to Kover Drive, the premier indoor cricket and baseball facility dedicated to fostering a love for the game while promoting fitness and skill development. Our mission is to create a vibrant community where players of all ages and skill levels can come together to enhance their abilities, build confidence, and enjoy the thrill of sports. At Kover Drive, we understand that every player has unique goals, whether you’re a beginner looking to learn the basics or an experienced athlete aiming to refine your technique. Our state of the-art facility is equipped with top-notch training equipment, batting cages, and practice areas designed to help you elevate your game.',
+    contentSeven: 'Our facility provides a welcoming environment where you can work on your strength, agility, and endurance, ensuring you are at your best both on and off the field.',
+    contentEight: 'Join us at Kover Drive and become part of a community that celebrates the spirit of cricket and baseball. Whether you’re here to improve your game, meet new friends, or simply enjoy the sport, we are excited to support you on your journey. Together, let’s hit new heights in your athletic pursuits!',
+    contentNine: 'Contact Us today to learn more about our programs, schedule a visit, or book a session. We can’t wait to see you on the field!',
+    contentTen: '/web_assets/home/about_img.png',
+    contentEleven: 'Discover What Makes Us the Ultimate Indoor Sports Destination',
+    contentTwelve: features,
+    contentThirteen: [],
+    contentFourteen: []
+}

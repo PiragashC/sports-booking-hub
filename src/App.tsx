@@ -27,6 +27,7 @@ import { useAuthSession } from './middleware/authMiddleware';
 import ErrorPage from './Components/ErrorPage';
 import NotFoundPage from './Components/NotFoundPage';
 import Upload from './Components/Upload';
+import { DeleteConfirmationProvider } from './Components/DeleteConfirmationProvider';
 
 function App() {
   useAuthSession();
@@ -37,6 +38,7 @@ function App() {
     <PrimeReactProvider value={value}>
       <BrowserRouter>
         <ErrorBoundary>
+        <DeleteConfirmationProvider>
           <Routes>
             {/* Web Routes - Only accessible by users */}
             <Route element={<PublicRoutes />}>
@@ -73,6 +75,7 @@ function App() {
             <Route path="/error" element={<ErrorPage />} />
             <Route path='*' element={<NotFoundPage />} />
           </Routes>
+          </DeleteConfirmationProvider>
         </ErrorBoundary>
       </BrowserRouter>
     </PrimeReactProvider>
