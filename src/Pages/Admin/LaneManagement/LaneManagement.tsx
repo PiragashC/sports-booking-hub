@@ -17,7 +17,7 @@ import { removeEmptyValues, showErrorToast, showSuccessToast } from "../../../Ut
 
 import { Lane } from "../SampleData";
 import TextInput from "../../../Components/TextInput";
-import apiRequest from "../../../Utils/apiRequest";
+import apiRequest from "../../../Utils/Axios/apiRequest";
 import { useSelector } from "react-redux";
 import NumberInput from "../../../Components/NumberInput";
 import { SkeletonLayout } from "../../../Components/SkeletonLoader";

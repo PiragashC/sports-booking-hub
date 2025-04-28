@@ -1,17 +1,15 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 import "primereact/resources/themes/lara-light-cyan/theme.css";
 
 import ErrorBoundary from './Components/ErrorBoundary';
-
-/* Web routes */
 import WebLayout from './Layout/Web/WebLayout';
 import Home from './Pages/Home/Home';
 import Gallery from './Pages/Gallery/Gallery';
 import Events from './Pages/Events/Events';
 import Blogs from './Pages/Blogs/Blogs';
 
-/* Admin routes */
 import AppLayout from './Layout/App/AppLayout';
 import BookingCopy from './Pages/Booking/Booking copy';
 import AdminLogin from './Pages/Login/AdminLogin';
@@ -21,6 +19,7 @@ import AdminLayout from './Layout/Admin/AdminLayout';
 import Dashboard from './Pages/Admin/Dashboard/Dashboard';
 import BookingManagement from './Pages/Admin/BookingManagement/BookingManagement';
 import LaneManagement from './Pages/Admin/LaneManagement/LaneManagement';
+
 import { AdminLoginGuard, AdminRoutes, AppRoutes, PublicRoutes } from './middleware/AuthGuard';
 import { useAuthSession } from './middleware/authMiddleware';
 
@@ -29,18 +28,39 @@ import NotFoundPage from './Components/NotFoundPage';
 import Upload from './Components/Upload';
 import { DeleteConfirmationProvider } from './Components/DeleteConfirmationProvider';
 
-function App() {
+import { setNavigateCallback } from './Utils/Axios/axiosInstance'; // <-- import here
+
+// The wrapper that includes BrowserRouter
+const AppWrapper = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+};
+
+// The content where useNavigate is allowed
+const AppContent = () => {
   useAuthSession();
+  const navigate = useNavigate();
+
   const value = {
     ripple: true,
   };
+
+  // Set navigate callback safely inside router context
+  useEffect(() => {
+    setNavigateCallback((path: string) => {
+      navigate(path);
+    });
+  }, [navigate]);
+
   return (
     <PrimeReactProvider value={value}>
-      <BrowserRouter>
-        <ErrorBoundary>
+      <ErrorBoundary>
         <DeleteConfirmationProvider>
           <Routes>
-            {/* Web Routes - Only accessible by users */}
+            {/* Web Routes */}
             <Route element={<PublicRoutes />}>
               <Route path="/" element={<WebLayout />}>
                 <Route index element={<Home />} />
@@ -50,19 +70,19 @@ function App() {
               </Route>
             </Route>
 
-            {/* App Routes - Only accessible by users */}
+            {/* App Routes */}
             <Route element={<AppRoutes />}>
               <Route path="/" element={<AppLayout />}>
                 <Route path="booking" element={<BookingCopy />} />
               </Route>
             </Route>
 
-            {/* Admin Login Route - Redirects to /admin if already logged in */}
+            {/* Admin Login Route */}
             <Route element={<AdminLoginGuard />}>
               <Route path="/login/admin" element={<AdminLogin />} />
             </Route>
 
-            {/* Admin Routes - Only accessible by admin */}
+            {/* Admin Routes */}
             <Route element={<AdminRoutes />}>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route path="dashboard" element={<Dashboard />} />
@@ -71,15 +91,15 @@ function App() {
                 <Route path="extras" element={<Extras />} />
               </Route>
             </Route>
+
             <Route path="/img-editor" element={<Upload />} />
             <Route path="/error" element={<ErrorPage />} />
-            <Route path='*' element={<NotFoundPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
-          </DeleteConfirmationProvider>
-        </ErrorBoundary>
-      </BrowserRouter>
+        </DeleteConfirmationProvider>
+      </ErrorBoundary>
     </PrimeReactProvider>
   );
-}
+};
 
-export default App;
+export default AppWrapper;

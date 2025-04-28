@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { WebContent } from "../Pages/Home/HomeData";
-import apiRequest from "../Utils/apiRequest";
+import apiRequest from "../Utils/Axios/apiRequest";
 import { RootState } from "./store";
 
 interface WebContentState {
@@ -30,7 +30,7 @@ export const getWebContentsThunk = createAsyncThunk<WebContent, { id: string }, 
         token,
       });
       if (response && !response.error) {
-        return response.data;
+        return response;
       } else {
         return rejectWithValue(response?.error || "Unknown error");
       }
@@ -40,7 +40,7 @@ export const getWebContentsThunk = createAsyncThunk<WebContent, { id: string }, 
   
   export const postWebContentsThunk = createAsyncThunk<any, WebContent, { state: RootState }>(
     "webContent/post",
-    async (webContent, { getState, rejectWithValue }) => {
+    async (webContent, { getState, rejectWithValue, dispatch }) => {
       const token = getState().auth.token;
   
       const response: any = await apiRequest({
@@ -50,7 +50,10 @@ export const getWebContentsThunk = createAsyncThunk<WebContent, { id: string }, 
         token,
       });
       if (response && !response.error) {
-        return response.data;
+        const newId = response.message;
+        // Immediately fetch the newly created content
+        await dispatch(getWebContentsThunk({ id: newId }));
+        return newId;
       } else {
         return rejectWithValue(response?.error || "Unknown error");
       }
@@ -83,8 +86,9 @@ export const getWebContentsThunk = createAsyncThunk<WebContent, { id: string }, 
         .addCase(postWebContentsThunk.fulfilled, (state) => {
           state.postStatus = "succeeded";
         })
-        .addCase(postWebContentsThunk.rejected, (state) => {
+        .addCase(postWebContentsThunk.rejected, (state, action) => {
           state.postStatus = "failed";
+          state.error = action.payload as string;
         });
     },
   });

@@ -1,7 +1,7 @@
 import { loadStripe, Stripe } from '@stripe/stripe-js';
 import React, { useEffect, useState } from 'react'
 import StripePayment from './StripePayment';
-import apiRequest from '../../Utils/apiRequest';
+import apiRequest from '../../Utils/Axios/apiRequest';
 
 const StripeFinalComponent = () => {
     const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);

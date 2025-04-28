@@ -17,7 +17,7 @@ import { confirmDialog } from "primereact/confirmdialog";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { timeList, TimeList } from "../../../Utils/SiteData";
-import apiRequest from "../../../Utils/apiRequest";
+import apiRequest from "../../../Utils/Axios/apiRequest";
 import { useSelector } from "react-redux";
 import { formatDate, formatDateToISO } from "../../../Utils/commonLogic";
 import { fetchLanes } from "../../../Utils/commonService";
