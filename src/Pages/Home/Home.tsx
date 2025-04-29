@@ -21,6 +21,8 @@ import { useAppDispatch, useAppSelector } from "../../redux/hook";
 import { ProgressSpinner } from "primereact/progressspinner";
 import { postWebContentsThunk } from "../../redux/webContentSlice";
 import { uploadImageService } from "../../Utils/commonService";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 
 
 const Home: React.FC = () => {
@@ -49,6 +51,7 @@ const Home: React.FC = () => {
 
     const [isEditMode, setIsEditMode] = useState<boolean>(true);
 
+    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
     const dispatch = useAppDispatch();
     const { data, loading: WebContenLoading, error, postStatus } = useAppSelector((state) => state.webContent);
     const [webContents, setWebContents] = useState<WebContent>(initialWebContents);
@@ -127,7 +130,10 @@ const Home: React.FC = () => {
 
         setWebContents(updatedContent);
 
-        dispatch(postWebContentsThunk(updatedContent));
+        dispatch(postWebContentsThunk({
+            webContent: updatedContent,
+            toastRef: toastRef
+        })).unwrap();
     };
 
 
@@ -147,7 +153,10 @@ const Home: React.FC = () => {
                 };
 
                 setWebContents(updatedContent);
-                dispatch(postWebContentsThunk(updatedContent));
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
             }
         });
     };
@@ -182,7 +191,10 @@ const Home: React.FC = () => {
         }
 
         setWebContents(updatedContent);
-        dispatch(postWebContentsThunk(updatedContent));
+        dispatch(postWebContentsThunk({
+            webContent: updatedContent,
+            toastRef: toastRef
+        })).unwrap();
     };
 
     const handleDeleteFeature = (id: number | string) => {
@@ -200,7 +212,10 @@ const Home: React.FC = () => {
                 };
 
                 setWebContents(updatedContent);
-                dispatch(postWebContentsThunk(updatedContent));
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
             }
         });
     };
@@ -217,7 +232,10 @@ const Home: React.FC = () => {
                 };
 
                 // Dispatch after state update
-                dispatch(postWebContentsThunk(updatedContent));
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
                 return updatedContent;
             });
         }
@@ -234,7 +252,7 @@ const Home: React.FC = () => {
                 [contentKeyForImageEditor]: tempUrl
             }));
 
-            const imagePaths = await uploadImageService([file]);
+            const imagePaths = await uploadImageService([file], token);
             const permanentUrl = imagePaths[0];
 
             setWebContents(prev => {
@@ -242,7 +260,10 @@ const Home: React.FC = () => {
                     ...prev,
                     [contentKeyForImageEditor]: permanentUrl
                 };
-                dispatch(postWebContentsThunk(updatedContent));
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
                 return updatedContent;
             });
 

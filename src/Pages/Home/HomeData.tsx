@@ -92,6 +92,8 @@ export interface WebContent {
         id: string;
         title: string;
         image: string;
+        imageViewUrl:string;
+        imageDeleteUrl:string;
         uploadedDate: string;
         status: boolean;
     }[];

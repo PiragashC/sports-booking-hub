@@ -29,9 +29,7 @@ const apiRequest = async <T = any>({
             data,
             params,
             headers: {
-                ...(!isFormData && {
-                    "Content-Type": contentType || "application/json"
-                }),
+                ...(isFormData ? {} : { "Content-Type": contentType || "application/json" }),
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 ...headers,
             },
