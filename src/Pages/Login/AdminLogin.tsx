@@ -7,7 +7,7 @@ import { Password } from 'primereact/password';
 import { Button } from "primereact/button";
 import { Slide } from "react-awesome-reveal";
 import { useDispatch } from "react-redux";
-import apiRequest from "../../Utils/apiRequest";
+import apiRequest from "../../Utils/Axios/apiRequest";
 import { showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { setLogin } from "../../redux/authSlice";
 

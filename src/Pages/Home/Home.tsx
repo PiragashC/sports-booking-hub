@@ -9,7 +9,7 @@ import { goToTop } from "../../Components/GoToTop";
 import { initialWebContents, WebContent } from "./HomeData";
 import TextInput from "../../Components/TextInput";
 import TextArea from "../../Components/TextArea";
-import apiRequest from "../../Utils/apiRequest";
+import apiRequest from "../../Utils/Axios/apiRequest";
 import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
 import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
@@ -17,6 +17,12 @@ import { Edit, Pencil, Plus, Trash2 } from "lucide-react";
 import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
 import { CardFormModal } from "./CardFormModal";
 import { FeatureFormModal } from "./FeatureFormModal";
+import { useAppDispatch, useAppSelector } from "../../redux/hook";
+import { ProgressSpinner } from "primereact/progressspinner";
+import { postWebContentsThunk } from "../../redux/webContentSlice";
+import { uploadImageService } from "../../Utils/commonService";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 
 
 const Home: React.FC = () => {
@@ -34,11 +40,6 @@ const Home: React.FC = () => {
     const [currentEditFeature, setCurrentEditFeature] = useState<any>(null);
     const [isFeatureEdit, setIsFeatureEdit] = useState(false);
 
-    const handleNavigateBooking = () => {
-        navigate(`/booking`);
-        goToTop();
-    }
-
     const intialReachUsForm = {
         name: '',
         email: '',
@@ -50,9 +51,18 @@ const Home: React.FC = () => {
 
     const [isEditMode, setIsEditMode] = useState<boolean>(true);
 
+    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
+    const dispatch = useAppDispatch();
+    const { data, loading: WebContenLoading, error, postStatus } = useAppSelector((state) => state.webContent);
     const [webContents, setWebContents] = useState<WebContent>(initialWebContents);
+
     const [openImageEditor, setOpenImageEditor] = useState<boolean>(false);
-    const [contentKeyForImageEditor, setContentKeyForImageEditor] = useState<'contentFour' | 'contentTen'>();
+    const [contentKeyForImageEditor, setContentKeyForImageEditor] = useState<'contentFourViewUrl' | 'contentTenViewUrl'>();
+
+    const handleNavigateBooking = () => {
+        navigate(`/booking`);
+        goToTop();
+    }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -82,7 +92,6 @@ const Home: React.FC = () => {
         setLoading(false);
     }
 
-
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
@@ -103,22 +112,30 @@ const Home: React.FC = () => {
     };
 
     const handleSubmitCard = (cardData: any) => {
+        let updatedContent;
+
         if (isEdit) {
-            // Update existing card
-            setWebContents(prev => ({
-                ...prev,
-                contentThree: prev.contentThree.map(card =>
+            updatedContent = {
+                ...webContents,
+                contentThree: webContents.contentThree.map(card =>
                     card.id === cardData.id ? cardData : card
                 )
-            }));
+            };
         } else {
-            // Add new card
-            setWebContents(prev => ({
-                ...prev,
-                contentThree: [...prev.contentThree, cardData]
-            }));
+            updatedContent = {
+                ...webContents,
+                contentThree: [...webContents.contentThree, cardData]
+            };
         }
+
+        setWebContents(updatedContent);
+
+        dispatch(postWebContentsThunk({
+            webContent: updatedContent,
+            toastRef: toastRef
+        })).unwrap();
     };
+
 
     const handleDeleteCard = (id: number) => {
         // Prevent deletion if only one card exists
@@ -130,10 +147,16 @@ const Home: React.FC = () => {
             message: 'Are you sure you want to delete this card?',
             header: 'Confirm the deletion',
             accept: () => {
-                setWebContents(prev => ({
-                    ...prev,
-                    contentThree: prev.contentThree.filter(card => card.id !== id)
-                }));
+                const updatedContent = {
+                    ...webContents,
+                    contentThree: webContents.contentThree.filter(card => card.id !== id)
+                };
+
+                setWebContents(updatedContent);
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
             }
         });
     };
@@ -151,25 +174,30 @@ const Home: React.FC = () => {
     };
 
     const handleSubmitFeature = (featureData: any) => {
+        let updatedContent;
+
         if (isFeatureEdit) {
-            // Update existing feature
-            setWebContents(prev => ({
-                ...prev,
-                contentTwelve: prev.contentTwelve.map(feature =>
+            updatedContent = {
+                ...webContents,
+                contentTwelve: webContents.contentTwelve.map(feature =>
                     feature.id === featureData.id ? featureData : feature
                 )
-            }));
+            };
         } else {
-            // Add new feature
-            setWebContents(prev => ({
-                ...prev,
-                contentTwelve: [...prev.contentTwelve, featureData]
-            }));
+            updatedContent = {
+                ...webContents,
+                contentTwelve: [...webContents.contentTwelve, featureData]
+            };
         }
+
+        setWebContents(updatedContent);
+        dispatch(postWebContentsThunk({
+            webContent: updatedContent,
+            toastRef: toastRef
+        })).unwrap();
     };
 
     const handleDeleteFeature = (id: number | string) => {
-        // Prevent deletion if only one feature exists
         if (webContents.contentTwelve.length <= 1) {
             return;
         }
@@ -178,34 +206,78 @@ const Home: React.FC = () => {
             message: 'Are you sure you want to delete this feature?',
             header: 'Confirm the deletion',
             accept: () => {
-                setWebContents(prev => ({
-                    ...prev,
-                    contentTwelve: prev.contentTwelve.filter(feature => feature.id !== id)
-                }));
+                const updatedContent = {
+                    ...webContents,
+                    contentTwelve: webContents.contentTwelve.filter(feature => feature.id !== id)
+                };
+
+                setWebContents(updatedContent);
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
             }
         });
     };
 
     const handleContentChange = (event: React.FormEvent<HTMLHeadingElement | HTMLParagraphElement>) => {
         const target = event.target as HTMLElement;
-        const contentKey = target.dataset.contentKey; // Get the key from data attribute
+        const contentKey = target.dataset.contentKey;
 
         if (contentKey) {
-            setWebContents(prevContents => ({
-                ...prevContents,
-                [contentKey]: target.innerText // Update corresponding key
-            }));
+            setWebContents(prevContents => {
+                const updatedContent = {
+                    ...prevContents,
+                    [contentKey]: target.innerText
+                };
+
+                // Dispatch after state update
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
+                return updatedContent;
+            });
         }
     };
 
-    const handleOnSaveForImageEditor = (file: File) => {
-        if (contentKeyForImageEditor) {
-            setWebContents(prevContents => ({
-                ...prevContents,
-                [contentKeyForImageEditor]: URL.createObjectURL(file)
+    const handleOnSaveForImageEditor = async (file: File) => {
+        if (!contentKeyForImageEditor) return;
+
+        const tempUrl = URL.createObjectURL(file);
+        try {
+
+            setWebContents(prev => ({
+                ...prev,
+                [contentKeyForImageEditor]: tempUrl
             }));
+
+            const imagePaths = await uploadImageService([file], token);
+            const permanentUrl = imagePaths[0];
+
+            setWebContents(prev => {
+                const updatedContent = {
+                    ...prev,
+                    [contentKeyForImageEditor]: permanentUrl
+                };
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
+                return updatedContent;
+            });
+
+        } catch (error) {
+            console.error('Upload failed:', error);
+            setWebContents(prev => ({
+                ...prev,
+                [contentKeyForImageEditor]: prev[contentKeyForImageEditor]
+            }));
+            showErrorToast(toastRef, 'Image upload failed', 'Please try again');
+        } finally {
+            if (tempUrl) URL.revokeObjectURL(tempUrl);
         }
-    }
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -223,12 +295,33 @@ const Home: React.FC = () => {
         };
     }, []);
 
+    useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
+
+    if (!webContents || WebContenLoading) return (
+        <div
+            style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+                width: "100vw",
+                position: "fixed",
+                top: 0,
+                left: 0,
+                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                zIndex: 9999,
+            }}
+        >
+            <ProgressSpinner strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s" />
+        </div>
+    )
+
     return (
         <>
             <Toast ref={toastRef} />
             {/* Hero section */}
             <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home" style={{
-                backgroundImage: `url(${webContents.contentFour})`
+                backgroundImage: `url(${webContents.contentFourViewUrl})`
             }}>
                 <div className="container-md">
                     <div className="row">
@@ -238,7 +331,7 @@ const Home: React.FC = () => {
                                     <h1>
                                         Welcome to <span>Kover<span>Drive</span></span> Sports {isEditMode && <Edit size={16} className="ms-2" onClick={(() => {
                                             setOpenImageEditor(true);
-                                            setContentKeyForImageEditor('contentFour');
+                                            setContentKeyForImageEditor('contentFourViewUrl');
                                         })} />}
                                     </h1>
                                 </Slide>
@@ -431,12 +524,12 @@ const Home: React.FC = () => {
                             <div className="">
                                 {isEditMode && <Edit size={16} className="ms-2 " onClick={(() => {
                                     setOpenImageEditor(true);
-                                    setContentKeyForImageEditor('contentTen');
+                                    setContentKeyForImageEditor('contentTenViewUrl');
                                 })} />}
                             </div>
                             <Fade triggerOnce duration={1500} className="w-100">
                                 <div className="section_image_area">
-                                    <img src={webContents?.contentTen} alt="" />
+                                    <img src={webContents?.contentTenViewUrl} alt="" />
                                 </div>
                             </Fade>
                         </div>

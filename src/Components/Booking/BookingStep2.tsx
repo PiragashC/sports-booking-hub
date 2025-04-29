@@ -9,7 +9,7 @@ import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
 import TextInput from '../TextInput';
 import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox';
 import PhoneNumberInput from '../PhoneNumberInput';
-import apiRequest from '../../Utils/apiRequest';
+import apiRequest from '../../Utils/Axios/apiRequest';
 import { Toast } from 'primereact/toast';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';

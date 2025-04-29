@@ -1,14 +1,12 @@
+// src/redux/store.ts
 import { configureStore } from "@reduxjs/toolkit";
-import {
-  persistStore,
-  persistReducer,
-} from "redux-persist";
+import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import { authReducer } from "./authSlice";
+import { authReducer, setLogout } from "./authSlice";
 import { webContentReducer } from "./webContentSlice";
+import { setLogoutCallback } from "../Utils/Axios/axiosInstance"; // <-- import
 
 const persistConfig = { key: "auth", storage, version: 1 };
-
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
 
 export const store = configureStore({
@@ -21,6 +19,9 @@ export const store = configureStore({
       serializableCheck: false,
     }),
 });
+
+// 🛠 Set the logout callback after store created
+setLogoutCallback(() => store.dispatch(setLogout()));
 
 export const persistor = persistStore(store);
 

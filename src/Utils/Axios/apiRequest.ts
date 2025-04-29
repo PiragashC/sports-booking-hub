@@ -1,4 +1,5 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { AxiosRequestConfig, AxiosResponse, AxiosError } from "axios";
+import api from "./axiosInstance";
 
 interface ApiRequestOptions<T = any> {
     method: "get" | "post" | "put" | "delete" | "patch";
@@ -8,6 +9,7 @@ interface ApiRequestOptions<T = any> {
     headers?: Record<string, string>;
     contentType?: string;
     token?: string | null;
+    isFormData?: boolean;
 }
 
 const apiRequest = async <T = any>({
@@ -18,34 +20,28 @@ const apiRequest = async <T = any>({
     headers = {},
     contentType,
     token,
+    isFormData = false,
 }: ApiRequestOptions<T>): Promise<any> => {
     try {
-        const baseUrl = process.env.REACT_APP_BASEURL || "";
-        if (!baseUrl) {
-            // throw new Error("Base URL is not defined in environment variables.");
-            return { error: "Base URL is not defined in environment variables." };
-        }
-
         const config: AxiosRequestConfig = {
             method,
-            url: `${baseUrl}${url}`,
+            url,
             data,
             params,
             headers: {
-                "Content-Type": contentType || "application/json",
+                ...(isFormData ? {} : { "Content-Type": contentType || "application/json" }),
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 ...headers,
             },
         };
 
-        const response: AxiosResponse = await axios(config);
+        const response: AxiosResponse = await api(config);
         return response.data;
     } catch (error) {
         const axiosError = error as AxiosError;
         let errorMessage = "API request failed.";
 
         if (axiosError.response) {
-            // Extract error message from response
             const responseData: any = axiosError.response.data;
             errorMessage =
                 responseData?.errors?.[0] ||

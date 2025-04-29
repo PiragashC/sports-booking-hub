@@ -26,6 +26,8 @@ import TextInput from "../../Components/TextInput";
 import MulipleFileInput from "../../Components/MulipleFileInput";
 
 import { GalleryList, galleryList } from "./GallerySampleData";
+import { useAppDispatch, useAppSelector } from "../../redux/hook";
+import { initialWebContents, WebContent } from "../Home/HomeData";
 
 const Gallery: React.FC = () => {
     const toastRef = useRef<Toast>(null);
@@ -50,6 +52,10 @@ const Gallery: React.FC = () => {
     const [title, setTitle] = useState<string>('');
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [status, setStatus] = useState<boolean>(true);
+
+    const dispatch = useAppDispatch();
+    const { data, loading: WebContenLoading, error, postStatus } = useAppSelector((state) => state.webContent);
+    const [webContents, setWebContents] = useState<WebContent>(initialWebContents);
 
 
     useEffect(() => {
@@ -239,6 +245,8 @@ const Gallery: React.FC = () => {
         };
     }, []);
 
+    useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
+
     return (
         <React.Fragment>
             <Toast ref={toastRef} />
@@ -351,7 +359,7 @@ const Gallery: React.FC = () => {
                                     className="my-masonry-grid"
                                     columnClassName="my-masonry-grid_column"
                                 >
-                                    {filteredgalleryData.map((item) => (
+                                    {webContents && webContents?.contentThirteen && Array.isArray(webContents?.contentThirteen) && webContents?.contentThirteen.map((item) => (
                                         <Zoom
                                             key={item.id}
                                             duration={1000}

@@ -9,7 +9,7 @@ import { Nullable } from "primereact/ts-helpers";
 import TextInput from "../../Components/TextInput";
 import { TimeList, timeList } from "../../Utils/SiteData";
 import { Lane } from "./BookingData";
-import apiRequest from "../../Utils/apiRequest";
+import apiRequest from "../../Utils/Axios/apiRequest";
 import { showSuccessToast, showErrorToast, emailRegex } from "../../Utils/commonLogic";
 import { loadStripe, PaymentIntent, Stripe } from "@stripe/stripe-js";
 import StripePayment from "../../Components/Stripe/StripePayment";

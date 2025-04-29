@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import apiRequest from "../Utils/apiRequest";
+import apiRequest from "../Utils/Axios/apiRequest";
 import { sessionInactivityCheckTime, tokenExpireIn } from "../Utils/commonLogic";
 import { setLogin, setLogout, User } from "../redux/authSlice";
 
