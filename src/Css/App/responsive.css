@@ -83,13 +83,13 @@
         font-size: var(--font-size-sm) !important;
     }
 
-    .logout_btn{
+    .logout_btn {
         height: 35px;
         padding: 6px 10px !important;
         font-size: var(--font-size-sm);
     }
 
-    .uploaded_image_area{
+    .uploaded_image_area {
         padding: 10px;
         border-radius: 12px;
     }
@@ -107,5 +107,16 @@
         padding-bottom: 10px;
         flex-wrap: nowrap;
         overflow-x: auto;
+    }
+
+    .image_edit_btn {
+        font-size: var(--font-size-sm) !important;
+        padding: 5px 10px !important;
+        gap: 8px !important;
+    }
+
+    .image_edit_btn.pos_abs.at_hero_sec {
+        top: 140px;
+        right: 15px;
     }
 }

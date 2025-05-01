@@ -13,6 +13,7 @@ export const useDeleteConfirmation = () => {
       acceptClassName: 'p-button-danger',
       rejectClassName: 'p-button-secondary',
       accept: options.accept,
+      dismissableMask: true
     });
   };
 

@@ -1,10 +1,13 @@
 import React, { useState, useRef, useCallback } from 'react';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { RotateCcw, Download, Crop as CropIcon, Sun, Palette, Upload, } from 'lucide-react';
+import { RotateCcw, Download, Crop as CropIcon, Sun, Palette, Upload, Check } from 'lucide-react';
 import { showErrorToast } from '../../Utils/commonLogic';
 import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
+import { Ripple } from 'primereact/ripple';
+import { Dialog } from 'primereact/dialog';
+import { Slider, SliderChangeEvent } from "primereact/slider";
 
 interface ImageEditorProps {
     isOpen: boolean;
@@ -274,216 +277,250 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
 
     if (!isOpen) return null;
 
+
+    const headerContent = (
+        <div className="custom_modal_header_inner">
+            <h5 className="modal-title fs-5">
+                <i className={`bi bi-palette me-2 modal_head_icon`}></i>
+                Image Editor
+            </h5>
+            <button
+                type="button"
+                aria-label="Close"
+                className="close_modal_btn p-ripple"
+                onClick={() => { onClose(); handleResetState(); }}
+            >
+                <i className="bi bi-x-circle"></i>
+                <Ripple />
+            </button>
+        </div>
+    )
+
+    const footerContent = (
+        <div className="custom_modal_footer">
+            <Button
+                label="Reset"
+                className="custom_btn secondary"
+                onClick={handleReset}
+                icon={<RotateCcw size={16} className="me-2" />}
+            />
+
+            <Button
+                label={`Save Changes`}
+                onClick={handleSave}
+                disabled={!selectedImage}
+                loading={loading}
+                className="custom_btn primary"
+                icon={<Check size={16} className="me-2" />}
+            />
+        </div>
+    );
+
     return (
-        <>
+        <React.Fragment>
             <Toast ref={toastRef} />
 
-            <div className="modal show d-block" tabIndex={-1}>
-                <div className="modal-backdrop show"></div>
-                <div className="modal-dialog modal-xl">
-                    <div className="modal-content">
-                        <div className="modal-header align-items-center">
-                            <h5 className="modal-title d-flex align-items-center">
-                                <Palette className="me-2" size={24} />
-                                Image Editor
-                            </h5>
-                            <button type="button" className="btn-close" onClick={() => { onClose(); handleResetState(); }}></button>
-                        </div>
-                        <div className="modal-body p-4">
-                            {!selectedImage ? (
-                                <div className="text-center p-5 border-2 border-dashed rounded-lg bg-light">
-                                    <Upload size={48} className="text-primary mb-3" />
-                                    <h5>Drop your image here or click to upload</h5>
-                                    <p className="text-muted mb-3">
-                                        Supported formats: {acceptedFileTypes.join(', ')} | Max size: {maxFileSize / (1024 * 1024)}MB
-                                    </p>
-                                    <input
-                                        type="file"
-                                        accept={acceptedFileTypes.join(',')}
-                                        onChange={handleFileSelect}
-                                        className="form-control"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="image-editor-container p-4">
-                                    <div className="btn-group mb-4 w-100">
-                                        <button
-                                            className={`btn ${activeTab === 'crop' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                            onClick={() => {
-                                                setActiveTab('crop');
-                                                startCropping();
-                                            }}
-                                        >
-                                            <CropIcon size={18} className="me-2" /> Crop
-                                        </button>
-                                        <button
-                                            className={`btn ${activeTab === 'adjust' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                            onClick={() => {
-                                                setActiveTab('adjust');
-                                                setIsCropping(false);
-                                            }}
-                                        >
-                                            <Sun size={18} className="me-2" /> Adjust
-                                        </button>
-                                        <button
-                                            className={`btn ${activeTab === 'filters' ? 'btn-primary' : 'btn-outline-primary'}`}
-                                            onClick={() => {
-                                                setActiveTab('filters');
-                                                setIsCropping(false);
-                                            }}
-                                        >
-                                            <Palette size={18} className="me-2" /> Filters
-                                        </button>
-                                    </div>
+            <Dialog
+                visible={isOpen}
+                header={headerContent}
+                footer={footerContent}
+                headerClassName="custom_modal_header"
+                className={`custom_modal_dialog modal_dialog_lg`}
+                onHide={() => { onClose(); handleResetState(); }}
+                closable={false}
+                position='top'
+                draggable={false}
+                contentClassName='pt-0'
+                dismissableMask={false}
+            >
+                <div className="custom_modal_body">
+                    {!selectedImage ? (
+                        <div className="file_upload_body">
+                            <Upload size={45} className="text-success mb-3" />
+                            <h5>Drop your image here or click to upload</h5>
+                            <p className="text-muted mb-3">
+                                Supported formats: {acceptedFileTypes.join(', ')} | Max size: {maxFileSize / (1024 * 1024)}MB
+                            </p>
+                            <input
+                                aria-label='Upload file'
+                                type="file"
+                                accept={acceptedFileTypes.join(',')}
+                                onChange={handleFileSelect}
+                                className="form-control file_upload_input"
+                            />
 
-                                    <div className="row">
-                                        <div className="col-md-8">
-                                            <div className="image-preview mb-4">
-                                                {activeTab === 'crop' && isCropping ? (
-                                                    <ReactCrop
-                                                        crop={crop}
-                                                        onChange={c => setCrop(c)}
-                                                        onComplete={handleCropComplete}
-                                                    >
-                                                        <img
-                                                            ref={imageRef}
-                                                            src={workingImage || selectedImage || ''}
-                                                            alt="Edit"
-                                                            style={{ maxWidth: '100%', maxHeight: '70vh' }}
-                                                            onLoad={(e) => {
-                                                                const img = e.currentTarget;
-                                                                setImageSize({
-                                                                    width: img.naturalWidth,
-                                                                    height: img.naturalHeight
-                                                                });
-                                                            }}
-                                                        />
-                                                    </ReactCrop>
-                                                ) : (
-                                                    <div className="filtered-image-container">
-                                                        <img
-                                                            src={workingImage || selectedImage || ''}
-                                                            alt="Edit"
-                                                            style={{
-                                                                maxWidth: '100%',
-                                                                maxHeight: '70vh',
-                                                                filter: `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) hue-rotate(${filters.hue}deg)`
-                                                            }}
-                                                        />
-                                                    </div>
-                                                )}
-                                                <canvas
-                                                    ref={previewCanvasRef}
-                                                    style={{ display: 'none' }}
+                            
+                        </div>
+                    ) : (
+                        <div className="image-editor-container pt-0 p-4">
+                            <div className="btn-group editor_opt_btn_grp mb-4 w-100">
+                                <button
+                                    className={`btn editor_opt_btn p-ripple ${activeTab === 'crop' ? 'btn_primary' : 'btn_outline_primary'}`}
+                                    onClick={() => {
+                                        setActiveTab('crop');
+                                        startCropping();
+                                    }}
+                                >
+                                    <CropIcon size={18} className="me-2" /> Crop
+                                    <Ripple />
+                                </button>
+                                <button
+                                    className={`btn editor_opt_btn p-ripple ${activeTab === 'adjust' ? 'btn_primary' : 'btn_outline_primary'}`}
+                                    onClick={() => {
+                                        setActiveTab('adjust');
+                                        setIsCropping(false);
+                                    }}
+                                >
+                                    <Sun size={18} className="me-2" /> Adjust
+                                    <Ripple />
+                                </button>
+                                <button
+                                    className={`btn editor_opt_btn p-ripple ${activeTab === 'filters' ? 'btn_primary' : 'btn_outline_primary'}`}
+                                    onClick={() => {
+                                        setActiveTab('filters');
+                                        setIsCropping(false);
+                                    }}
+                                >
+                                    <Palette size={18} className="me-2" /> Filters
+                                    <Ripple />
+                                </button>
+                            </div>
+
+                            <div className="row">
+                                <div className={`${activeTab === 'crop' ? 'col-md-12' : 'col-md-8'}`}>
+                                    <div className="image-preview mb-4">
+                                        {activeTab === 'crop' && isCropping ? (
+                                            <ReactCrop
+                                                crop={crop}
+                                                onChange={c => setCrop(c)}
+                                                onComplete={handleCropComplete}
+                                            >
+                                                <img
+                                                    ref={imageRef}
+                                                    src={workingImage || selectedImage || ''}
+                                                    alt="Edit"
+                                                    style={{ maxWidth: '100%', maxHeight: '70vh' }}
+                                                    onLoad={(e) => {
+                                                        const img = e.currentTarget;
+                                                        setImageSize({
+                                                            width: img.naturalWidth,
+                                                            height: img.naturalHeight
+                                                        });
+                                                    }}
+                                                />
+                                            </ReactCrop>
+                                        ) : (
+                                            <div className="filtered-image-container">
+                                                <img
+                                                    src={workingImage || selectedImage || ''}
+                                                    alt="Edit"
+                                                    style={{
+                                                        maxWidth: '100%',
+                                                        maxHeight: '70vh',
+                                                        filter: `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) hue-rotate(${filters.hue}deg)`
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                        <canvas
+                                            ref={previewCanvasRef}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className={`col-md-4`}>
+                                    {activeTab === 'adjust' && (
+                                        <div className="controls image_adjust_area">
+                                            <div className="image_adjust_group">
+                                                <div className="image_adjust_header">
+                                                    <label className="form-label adjust_value_label">Brightness</label>
+                                                    <span className="badge adjust_value_badge">{filters.brightness}%</span>
+                                                </div>
+                                                <Slider
+                                                    value={filters.brightness}
+                                                    min={0}
+                                                    max={200}
+                                                    onChange={(e: SliderChangeEvent) => handleFilterChange('brightness', Number(e.value))}
+                                                    className="adjust_range"
+                                                />
+                                            </div>
+                                            <div className="image_adjust_group">
+                                                <div className="image_adjust_header">
+                                                    <label className="form-label adjust_value_label">Contrast</label>
+                                                    <span className="badge adjust_value_badge">{filters.contrast}%</span>
+                                                </div>
+                                                <Slider
+                                                    value={filters.contrast}
+                                                    min={0}
+                                                    max={200}
+                                                    onChange={(e: SliderChangeEvent) => handleFilterChange('contrast', Number(e.value))}
+                                                    className="adjust_range"
+                                                />
+                                            </div>
+                                            <div className="image_adjust_group">
+                                                <div className="image_adjust_header">
+                                                    <label className="form-label adjust_value_label">Saturation</label>
+                                                    <span className="badge adjust_value_badge">{filters.saturation}%</span>
+                                                </div>
+                                                <Slider
+                                                    value={filters.saturation}
+                                                    min={0}
+                                                    max={200}
+                                                    onChange={(e: SliderChangeEvent) => handleFilterChange('saturation', Number(e.value))}
+                                                    className="adjust_range"
+                                                />
+                                            </div>
+                                            <div className="image_adjust_group">
+                                                <div className="image_adjust_header">
+                                                    <label className="form-label adjust_value_label">Hue</label>
+                                                    <span className="badge adjust_value_badge">{filters.hue}°</span>
+                                                </div>
+                                                <Slider
+                                                    value={filters.hue}
+                                                    min={-180}
+                                                    max={180}
+                                                    onChange={(e: SliderChangeEvent) => handleFilterChange('hue', Number(e.value))}
+                                                    className="adjust_range"
                                                 />
                                             </div>
                                         </div>
+                                    )}
 
-                                        <div className="col-md-4">
-                                            {activeTab === 'adjust' && (
-                                                <div className="controls">
-                                                    <div className="mb-4">
-                                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                                            <label className="form-label mb-0">Brightness</label>
-                                                            <span className="badge bg-primary">{filters.brightness}%</span>
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            className="form-range"
-                                                            min="0"
-                                                            max="200"
-                                                            value={filters.brightness}
-                                                            onChange={e => handleFilterChange('brightness', Number(e.target.value))}
-                                                        />
-                                                    </div>
-                                                    <div className="mb-4">
-                                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                                            <label className="form-label mb-0">Contrast</label>
-                                                            <span className="badge bg-primary">{filters.contrast}%</span>
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            className="form-range"
-                                                            min="0"
-                                                            max="200"
-                                                            value={filters.contrast}
-                                                            onChange={e => handleFilterChange('contrast', Number(e.target.value))}
-                                                        />
-                                                    </div>
-                                                    <div className="mb-4">
-                                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                                            <label className="form-label mb-0">Saturation</label>
-                                                            <span className="badge bg-primary">{filters.saturation}%</span>
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            className="form-range"
-                                                            min="0"
-                                                            max="200"
-                                                            value={filters.saturation}
-                                                            onChange={e => handleFilterChange('saturation', Number(e.target.value))}
-                                                        />
-                                                    </div>
-                                                    <div className="mb-4">
-                                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                                            <label className="form-label mb-0">Hue</label>
-                                                            <span className="badge bg-primary">{filters.hue}°</span>
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            className="form-range"
-                                                            min="-180"
-                                                            max="180"
-                                                            value={filters.hue}
-                                                            onChange={e => handleFilterChange('hue', Number(e.target.value))}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {activeTab === 'filters' && (
-                                                <div className="filter-presets">
-                                                    <div className="row g-3">
-                                                        {filterPresets.map((preset) => (
-                                                            <div key={preset.name} className="col-6">
-                                                                <div
-                                                                    className={`filter-preset-card card h-100 ${JSON.stringify(filters) === JSON.stringify(preset.filters) ? 'active' : ''
-                                                                        }`}
-                                                                    onClick={() => applyPreset(preset)}
-                                                                >
-                                                                    <img
-                                                                        src={workingImage || selectedImage || ''}
-                                                                        className="filter-preset-image"
-                                                                        alt={preset.name}
-                                                                        style={{
-                                                                            filter: `brightness(${preset.filters.brightness}%) contrast(${preset.filters.contrast}%) saturate(${preset.filters.saturation}%) hue-rotate(${preset.filters.hue}deg)`
-                                                                        }}
-                                                                    />
-                                                                    <div className="card-body p-2 text-center">
-                                                                        <h6 className="card-title mb-0">{preset.name}</h6>
-                                                                    </div>
-                                                                </div>
+                                    {activeTab === 'filters' && (
+                                        <div className="filter-presets filters_group">
+                                            <div className="row g-3">
+                                                {filterPresets.map((preset) => (
+                                                    <div key={preset.name} className="col-6 col-sm-4 col-md-6">
+                                                        <div
+                                                            className={`filter-preset-card p-ripple card h-100 ${JSON.stringify(filters) === JSON.stringify(preset.filters) ? 'active' : ''
+                                                                }`}
+                                                            onClick={() => applyPreset(preset)}
+                                                        >
+                                                            <img
+                                                                src={workingImage || selectedImage || ''}
+                                                                className="filter-preset-image"
+                                                                alt={preset.name}
+                                                                style={{
+                                                                    filter: `brightness(${preset.filters.brightness}%) contrast(${preset.filters.contrast}%) saturate(${preset.filters.saturation}%) hue-rotate(${preset.filters.hue}deg)`
+                                                                }}
+                                                            />
+                                                            <div className="card-body p-2 text-center">
+                                                                <h6 className="card-title mb-0">{preset.name}</h6>
                                                             </div>
-                                                        ))}
+                                                            <Ripple />
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
-                        <div className="modal-footer">
-                            <Button className="btn btn-outline-secondary" onClick={handleReset}>
-                                <RotateCcw size={16} className="me-2" /> Reset
-                            </Button>
-                            <Button className="btn btn-primary" onClick={handleSave} disabled={!selectedImage} loading={loading}>
-                                <Download size={16} className="me-2" /> Save Changes
-                            </Button>
-                        </div>
-                    </div>
+                    )}
                 </div>
-            </div>
-        </>
+            </Dialog>
+        </React.Fragment>
     );
 };

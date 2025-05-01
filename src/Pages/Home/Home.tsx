@@ -13,7 +13,7 @@ import apiRequest from "../../Utils/Axios/apiRequest";
 import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
 import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
-import { Edit, Pencil, PenSquare, Plus, PlusCircle, Trash2 } from "lucide-react";
+import { Edit, Pencil, PenSquare, Plus, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
 import { CardFormModal } from "./CardFormModal";
 import { FeatureFormModal } from "./FeatureFormModal";
@@ -24,12 +24,20 @@ import { uploadImageService } from "../../Utils/commonService";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 
+import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperClass } from 'swiper/types';
+import { Autoplay, Navigation } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 const Home: React.FC = () => {
     const toastRef = useRef<Toast>(null);
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
+    const prevRef = useRef<HTMLButtonElement | null>(null);
+    const nextRef = useRef<HTMLButtonElement | null>(null);
 
     const [modalVisible, setModalVisible] = useState(false);
     const showDialog = useDeleteConfirmation();
@@ -323,36 +331,46 @@ const Home: React.FC = () => {
             <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home" style={{
                 backgroundImage: `url(${webContents.contentFourViewUrl})`
             }}>
+                {isEditMode && (
+                    <Button
+                        icon={<Edit size={16} />}
+                        label="Edit"
+                        className="image_edit_btn pos_abs at_hero_sec"
+                        onClick={(() => {
+                            setOpenImageEditor(true);
+                            setContentKeyForImageEditor('contentFourViewUrl');
+                        })}
+                    />
+                )}
                 <div className="container-md">
                     <div className="row">
                         <div className="col-12">
                             <article className="home_hero_content">
                                 <Slide direction="up" triggerOnce>
                                     <h1>
-                                        Welcome to <span>Kover<span>Drive</span></span> Sports {isEditMode && <Edit size={16} className="ms-2" onClick={(() => {
-                                            setOpenImageEditor(true);
-                                            setContentKeyForImageEditor('contentFourViewUrl');
-                                        })} />}
+                                        Welcome to <span>Kover<span>Drive</span></span> Sports
                                     </h1>
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h2 contentEditable={isEditMode}
+                                    <h2
+                                        className={isEditMode ? 'content_in_edit_mode' : ''}
+                                        contentEditable={isEditMode}
                                         onBlur={handleContentChange}
                                         data-content-key="contentOne"
                                         suppressContentEditableWarning
-                                        style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
                                     >
                                         {webContents?.contentOne || ''}
                                     </h2>
                                 </Slide>
 
                                 <Slide direction="up" delay={200} triggerOnce>
-                                    <p contentEditable={isEditMode}
+                                    <p
+                                        className={isEditMode ? 'content_in_edit_mode' : ''}
+                                        contentEditable={isEditMode}
                                         onBlur={handleContentChange}
                                         data-content-key="contentTwo"
                                         suppressContentEditableWarning
-                                        style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
                                     >
                                         {webContents?.contentTwo || ''}
                                     </p>
@@ -377,59 +395,105 @@ const Home: React.FC = () => {
                         </div>
 
                         <div className="col-12 col-xl-5 col-md-8 col-sm-8 mx-auto">
-                            {isEditMode && <div className="d-flex justify-content-end mb-3">
-                                <Button
-                                    icon={<Plus size={16} />}
-                                    label="Add Card"
-                                    className="p-button-rounded p-button-success p-button-sm"
-                                    onClick={handleAddCard}
-                                />
-                            </div>}
+                            <div className="booking_card_area">
+                                <button
+                                    ref={prevRef}
+                                    className="book_card_swiper_nav_btn prev">
+                                    <ChevronLeft size={25} />
+                                </button>
 
-                            {webContents?.contentThree && Array.isArray(webContents?.contentThree) &&
-                                webContents.contentThree.map((content) => (
-                                    <Slide direction="up" triggerOnce delay={100} key={content.id}>
-                                        <article className="home_hero_card">
-                                            <div className="home_hero_card_header d-flex justify-content-between align-items-center">
-                                                <h4>{content?.laneCardTitle}</h4>
-                                                {isEditMode && <div className="d-flex gap-1">
-                                                    <Button
-                                                        icon={<Pencil size={16} />}
-                                                        className="p-button-rounded p-button-info p-button-text"
-                                                        onClick={() => handleEditCard(content)}
-                                                    />
-                                                    {webContents.contentThree.length > 1 && (
-                                                        <Button
-                                                            icon={<Trash2 size={16} />}
-                                                            className="p-button-rounded p-button-danger p-button-text"
-                                                            onClick={() => handleDeleteCard(content.id)}
-                                                        />
-                                                    )}
-                                                </div>}
-                                            </div>
+                                <button
+                                    ref={nextRef}
+                                    className="book_card_swiper_nav_btn next">
+                                    <ChevronRight size={25} />
+                                </button>
 
-                                            <div className="home_hero_card_body">
-                                                <p><i className="bi bi-clock-fill me-1"></i> {content?.frequency}</p>
-                                                <p>{content?.timeInterval}</p>
-                                            </div>
+                                {webContents?.contentThree && Array.isArray(webContents?.contentThree) &&
+                                    <Swiper
+                                        modules={[Autoplay, Navigation]}
+                                        spaceBetween={10}
+                                        slidesPerView={1}
+                                        grabCursor={true}
+                                        autoplay={{ delay: 3000, disableOnInteraction: false }}
+                                        navigation={{
+                                            prevEl: prevRef.current,
+                                            nextEl: nextRef.current,
+                                        }}
+                                        onSlideChange={() => console.log('slide change')}
+                                        onBeforeInit={(swiper: SwiperClass) => {
+                                            const navigation = swiper.params.navigation;
+                                            if (navigation && typeof navigation !== 'boolean') {
+                                                navigation.prevEl = prevRef.current;
+                                                navigation.nextEl = nextRef.current;
+                                            }
+                                        }}
+                                    >
+                                        {webContents.contentThree.map((content) => (
+                                            <SwiperSlide key={content.id}>
+                                                <Slide
+                                                    direction="up"
+                                                    triggerOnce
+                                                    delay={100}
+                                                >
+                                                    <article className="home_hero_card">
+                                                        <div className={`home_hero_card_header ${isEditMode ? 'editable_mode' : ''}`}>
+                                                            <h4>{content?.laneCardTitle}</h4>
+                                                            {isEditMode &&
+                                                                <div className="hero_card_edit_btn_area">
+                                                                    <Button
+                                                                        icon={<PenSquare size={20} />}
+                                                                        className="action_btn icon_only success"
+                                                                        onClick={() => handleEditCard(content)}
+                                                                    />
+                                                                    {webContents.contentThree.length > 1 && (
+                                                                        <Button
+                                                                            icon={<Trash2 size={20} />}
+                                                                            className="action_btn icon_only danger"
+                                                                            onClick={() => handleDeleteCard(content.id)}
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                            }
+                                                        </div>
 
-                                            <div className="home_hero_card_footer">
-                                                <h3>{content?.ratePerHour}
-                                                    <span> + Tax</span>
-                                                </h3>
-                                                <hr className="home_hero_card_footer_divider" />
-                                                <div className="home_hero_buttons">
-                                                    <Button
-                                                        label={content?.laneCardTitle}
-                                                        className="custom_button primary"
-                                                        onClick={handleNavigateBooking}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </article>
-                                    </Slide>
-                                ))
-                            }
+                                                        <div className="home_hero_card_body">
+                                                            <p><i className="bi bi-clock-fill me-1"></i> {content?.frequency}</p>
+                                                            <p>{content?.timeInterval}</p>
+                                                        </div>
+
+                                                        <div className="home_hero_card_footer">
+                                                            <h3>{content?.ratePerHour}
+                                                                <span> + Tax</span>
+                                                            </h3>
+                                                            <hr className="home_hero_card_footer_divider" />
+                                                            <div className="home_hero_buttons mt-2">
+                                                                <Button
+                                                                    label={content?.laneCardTitle}
+                                                                    className="custom_button primary"
+                                                                    onClick={handleNavigateBooking}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </article>
+                                                </Slide>
+                                            </SwiperSlide>
+                                        ))}
+                                    </Swiper>
+                                }
+                            </div>
+
+                            {isEditMode && (
+                                <Slide direction="up" delay={100} triggerOnce>
+                                    <div className="add_data_btn_area">
+                                        <Button
+                                            icon={<PlusCircle size={20} />}
+                                            label="Add new"
+                                            className="add_data_button p-button-success"
+                                            onClick={handleAddCard}
+                                        />
+                                    </div>
+                                </Slide>
+                            )}
 
                             <CardFormModal
                                 visible={modalVisible}
@@ -457,11 +521,11 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h4 className="section_sub_title" contentEditable={isEditMode}
+                                    <h4 className={`section_sub_title ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                        contentEditable={isEditMode}
                                         onBlur={handleContentChange}
                                         data-content-key="contentFive"
                                         suppressContentEditableWarning
-                                        style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
                                     >
                                         {webContents?.contentFive || ''}
                                     </h4>
@@ -469,38 +533,38 @@ const Home: React.FC = () => {
 
                                 <div className="section_content">
                                     <Fade triggerOnce>
-                                        <p className="section_desc" contentEditable={isEditMode}
+                                        <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                            contentEditable={isEditMode}
                                             onBlur={handleContentChange}
                                             data-content-key="contentSix"
                                             suppressContentEditableWarning
-                                            style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
                                         >
                                             {webContents?.contentSix || ''}
                                         </p>
 
-                                        <p className="section_desc" contentEditable={isEditMode}
+                                        <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                            contentEditable={isEditMode}
                                             onBlur={handleContentChange}
                                             data-content-key="contentSeven"
                                             suppressContentEditableWarning
-                                            style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
                                         >
                                             {webContents?.contentSeven || ''}
                                         </p>
 
-                                        <p className="section_desc" contentEditable={isEditMode}
+                                        <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                            contentEditable={isEditMode}
                                             onBlur={handleContentChange}
                                             data-content-key="contentEight"
                                             suppressContentEditableWarning
-                                            style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
                                         >
                                             {webContents?.contentEight || ''}
                                         </p>
 
-                                        <p className="section_desc" contentEditable={isEditMode}
+                                        <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                            contentEditable={isEditMode}
                                             onBlur={handleContentChange}
                                             data-content-key="contentNine"
                                             suppressContentEditableWarning
-                                            style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
                                         >
                                             {webContents?.contentNine || ''}
                                         </p>
@@ -521,14 +585,19 @@ const Home: React.FC = () => {
                         </div>
 
                         <div className="col-12 col-xl-6">
-                            <div className="">
-                                {isEditMode && <Edit size={16} className="ms-2 " onClick={(() => {
-                                    setOpenImageEditor(true);
-                                    setContentKeyForImageEditor('contentTenViewUrl');
-                                })} />}
-                            </div>
                             <Fade triggerOnce duration={1500} className="w-100">
                                 <div className="section_image_area">
+                                    {isEditMode && (
+                                        <Button
+                                            icon={<Edit size={16} />}
+                                            label="Edit"
+                                            className="image_edit_btn pos_abs"
+                                            onClick={(() => {
+                                                setOpenImageEditor(true);
+                                                setContentKeyForImageEditor('contentTenViewUrl');
+                                            })}
+                                        />
+                                    )}
                                     <img src={webContents?.contentTenViewUrl} alt="" />
                                 </div>
                             </Fade>
@@ -551,11 +620,11 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h4 className="section_sub_title text-center" contentEditable={isEditMode}
+                                    <h4 className={`section_sub_title text-center ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                        contentEditable={isEditMode}
                                         onBlur={handleContentChange}
                                         data-content-key="contentEleven"
                                         suppressContentEditableWarning
-                                        style={{ minHeight: '1em', border: isEditMode ? '1px dashed gray' : 'none', padding: '4px' }}
                                     >
                                         {webContents?.contentEleven || ''}
                                     </h4>

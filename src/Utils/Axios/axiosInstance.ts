@@ -24,7 +24,7 @@ api.interceptors.response.use(
             console.warn(`Global ${status} error detected. Calling logout...`);
             console.warn("Navigating to /login/admin due to 401");
             logoutCallback();
-            // navigateCallback("/login/admin");
+            navigateCallback("/login/admin");
         }
         return Promise.reject(error);
     }
