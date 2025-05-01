@@ -1,7 +1,7 @@
 
 export interface GalleryList {
     id?: string;
-    title?: string;
+    title: string;
     image?: string;
     imageViewUrl?:string;
     imageDeleteUrl?:string;

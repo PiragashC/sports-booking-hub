@@ -81,24 +81,24 @@ export interface WebContent {
     contentTenDeleteUrl: string;
     contentEleven: string;
     contentTwelve: {
-        id: string | number;
+        id?: string | number;
         icon: string;
-        iconViewUrl: string;
-        iconDeleteUrl: string;
+        iconViewUrl?: string;
+        iconDeleteUrl?: string;
         name: string;
         description: string;
     }[];
     contentThirteen: {
-        id: string;
+        id?: string;
         title: string;
         image: string;
-        imageViewUrl:string;
-        imageDeleteUrl:string;
+        imageViewUrl?:string;
+        imageDeleteUrl?:string;
         uploadedDate: string;
         status: boolean;
     }[];
     contentFourteen: {
-        id: string;
+        id?: string;
         eventTitle: string;
         eventDate: string;
         eventTime: string;
