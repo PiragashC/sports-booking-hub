@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { RotateCcw, Download, Crop as CropIcon, Sun, Palette, Upload, } from 'lucide-react';
@@ -12,6 +12,7 @@ interface ImageEditorProps {
     onSave: (file: File) => void;
     acceptedFileTypes?: string[];
     maxFileSize?: number;
+    imageToEdit?: File | null; // New prop to accept image file directly
 }
 
 interface ImageFilters {
@@ -59,6 +60,7 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
     onSave,
     acceptedFileTypes = ['.jpg', '.jpeg', '.png'],
     maxFileSize = 5 * 1024 * 1024,
+    imageToEdit = null, // Default to null
 }) => {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -78,6 +80,15 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
     const toastRef = useRef<Toast>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
+    // Effect to handle when imageToEdit prop changes
+    useEffect(() => {
+        if (imageToEdit) {
+            handleImageFile(imageToEdit);
+        } else {
+            handleResetState();
+        }
+    }, [imageToEdit]);
+
     const handleResetState = () => {
         setSelectedImage(null);
         setOriginalImage(null);
@@ -95,9 +106,7 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
         setLoading(false);
     }
 
-
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
+    const handleImageFile = (file: File) => {
         if (!file) return;
 
         if (!acceptedFileTypes.some(type => file.name.toLowerCase().endsWith(type))) {
@@ -125,6 +134,12 @@ export const ImageEditorNew: React.FC<ImageEditorProps> = ({
             setIsCropping(false);
         };
         reader.readAsDataURL(file);
+    };
+
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        handleImageFile(file);
     };
 
     const handleCropComplete = useCallback((cropArea: PixelCrop) => {
