@@ -49,6 +49,22 @@ const Dashboard: React.FC = () => {
                                 <Ripple />
                             </article>
                         </div>
+
+                        <div className="col-12 col-sm-6 col-lg-4 col-xl-4 col-xxl-3">
+                            <article className="dash_quick_link p-ripple"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    const newTab = window.open('/', '_blank');
+                                    if (newTab) newTab.focus();
+                                }}>
+                                <div className="quick_link_content">
+                                    <h4>Website</h4>
+                                    <i className="bi bi-box-arrow-up-right"></i>
+                                </div>
+                                <img src="/Admin/website.svg" className="dash_quick_link_img" alt="Website" />
+                                <Ripple />
+                            </article>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -121,6 +121,15 @@ const AdminLayout: React.FC = () => {
                         </Link>
                     </li>
 
+                    <li className={`${pathname === '/' ? 'active' : ''}`}>
+                        <Link to={'/'} target='_blank' onClick={handleLinkClick} >
+                            <span className="icon">
+                                <i className="bi bi-globe2"></i>
+                            </span>
+                            <span className="title">Website</span>
+                        </Link>
+                    </li>
+
                     <li className={`${pathname === '/admin/booking-management' ? 'active' : ''}`}>
                         <Link to={'/admin/booking-management'} onClick={handleLinkClick}>
                             <span className="icon">

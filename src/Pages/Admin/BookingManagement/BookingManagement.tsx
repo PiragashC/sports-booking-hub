@@ -928,11 +928,11 @@ const BookingManagement: React.FC = () => {
                             <Divider className="data-view-divider" />
 
                             <div className="row">
-                                <div className="col-5">
+                                <div className="col-12 col-sm-5">
                                     <h6 className="data-view-title">Booking Date(s) :</h6>
                                 </div>
-                                <div className="col-7">
-                                    <h6 className="data-view-data">
+                                <div className="col-12 col-sm-7">
+                                    <h6 className="data-view-data mt-3 mt-sm-0">
                                         {(selectedBookingData?.bookingDatesDtos && Array.isArray(selectedBookingData?.bookingDatesDtos) && selectedBookingData?.bookingDatesDtos?.length > 0) ?
                                             selectedBookingData?.bookingDatesDtos?.map((date) => (
                                                 <span className="data-view-label">
@@ -948,11 +948,11 @@ const BookingManagement: React.FC = () => {
                             <Divider className="data-view-divider" />
 
                             <div className="row">
-                                <div className="col-5">
+                                <div className="col-12 col-sm-5">
                                     <h6 className="data-view-title">Lanes :</h6>
                                 </div>
-                                <div className="col-7">
-                                    <h6 className="data-view-data">
+                                <div className="col-12 col-sm-7">
+                                    <h6 className="data-view-data mt-3 mt-sm-0">
                                         {(selectedBookingData?.laneDtos && Array.isArray(selectedBookingData?.laneDtos) && selectedBookingData?.laneDtos?.length > 0) ?
                                             selectedBookingData?.laneDtos?.map((lane) => (
                                                 <span className="data-view-label">
