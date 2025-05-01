@@ -596,7 +596,7 @@ const Home: React.FC = () => {
                                                                         <Button
                                                                             icon={<Trash2 size={16} />}
                                                                             className="p-button-rounded p-button-danger p-button-text"
-                                                                            onClick={() => handleDeleteFeature(feature.id)}
+                                                                            onClick={() => handleDeleteFeature(feature.id || '')}
                                                                         />
                                                                     )}
                                                                 </div>}
