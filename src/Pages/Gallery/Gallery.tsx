@@ -359,7 +359,6 @@ const Gallery: React.FC = () => {
     return (
         <React.Fragment>
             <Toast ref={toastRef} />
-            <ConfirmDialog />
 
             <BreadCrumbSection
                 title={'Gallery'}

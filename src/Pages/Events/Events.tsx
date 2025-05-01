@@ -307,7 +307,6 @@ const Events: React.FC = () => {
     return (
         <React.Fragment>
             <Toast ref={toastRef} />
-            <ConfirmDialog />
 
             <BreadCrumbSection
                 title={'Events'}

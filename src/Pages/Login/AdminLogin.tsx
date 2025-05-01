@@ -16,7 +16,6 @@ interface SignInInfo {
     password: string;
 }
 
-
 const AdminLogin: React.FC = () => {
     const toast = useRef<Toast | null>(null);
     const dispatch = useDispatch();
@@ -84,7 +83,7 @@ const AdminLogin: React.FC = () => {
     };
 
     return (
-        <>
+        <React.Fragment>
             <Toast ref={toast} />
 
             <div className="auth_layout">
@@ -105,63 +104,65 @@ const AdminLogin: React.FC = () => {
                                         </div>
 
                                         <div className="auth_form_area">
-                                            <div className="auth_form_group">
-                                                <div className="input_icon_group">
-                                                    <i className="bi bi-envelope-fill"></i>
-                                                    <InputText
-                                                        value={signInInfo.email}
-                                                        className="auth_form_input"
-                                                        onChange={handleInputChange}
-                                                        placeholder="Email"
-                                                        type="email"
-                                                        required
-                                                        name="email"
-                                                        keyfilter={'email'}
-                                                        autoFocus={true}
+                                            <form action="" onSubmit={handleSubmit}>
+                                                <div className="auth_form_group">
+                                                    <div className="input_icon_group">
+                                                        <i className="bi bi-envelope-fill"></i>
+                                                        <InputText
+                                                            value={signInInfo.email}
+                                                            className="auth_form_input"
+                                                            onChange={handleInputChange}
+                                                            placeholder="Email"
+                                                            type="email"
+                                                            required
+                                                            name="email"
+                                                            keyfilter={'email'}
+                                                            autoFocus={true}
+                                                        />
+                                                    </div>
+                                                    {require && !signInInfo.email && (
+                                                        <small className="auth_form_error">
+                                                            This field is required
+                                                        </small>
+                                                    )}
+
+                                                    {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signInInfo.email) && signInInfo.email && (
+                                                        <small className="auth_form_error">
+                                                            Enter a valid email
+                                                        </small>
+                                                    )}
+                                                </div>
+
+                                                <div className="auth_form_group">
+                                                    <div className="input_icon_group">
+                                                        <i className="bi bi-lock-fill"></i>
+                                                        <Password
+                                                            value={signInInfo.password}
+                                                            className="auth_form_input is_password"
+                                                            onChange={handleInputChange}
+                                                            placeholder="Password"
+                                                            feedback={false}
+                                                            tabIndex={1}
+                                                            toggleMask
+                                                            name="password"
+                                                        />
+                                                    </div>
+                                                    {require && !signInInfo.password && (<small className="auth_form_error">This field is required</small>)}
+                                                </div>
+
+                                                {/* <div className="auth_form_group">
+                                                    {loginError && (<span className="error_message_label">{loginError}</span>)}
+                                                </div> */}
+
+                                                <div className="auth_btn_group">
+                                                    <Button
+                                                        label="LOGIN"
+                                                        loading={loading}
+                                                        className="auth_form_button"
+                                                        type="submit"
                                                     />
                                                 </div>
-                                                {require && !signInInfo.email && (
-                                                    <small className="auth_form_error">
-                                                        This field is required
-                                                    </small>
-                                                )}
-
-                                                {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signInInfo.email) && signInInfo.email && (
-                                                    <small className="auth_form_error">
-                                                        Enter a valid email
-                                                    </small>
-                                                )}
-                                            </div>
-
-                                            <div className="auth_form_group">
-                                                <div className="input_icon_group">
-                                                    <i className="bi bi-lock-fill"></i>
-                                                    <Password
-                                                        value={signInInfo.password}
-                                                        className="auth_form_input is_password"
-                                                        onChange={handleInputChange}
-                                                        placeholder="Password"
-                                                        feedback={false}
-                                                        tabIndex={1}
-                                                        toggleMask
-                                                        name="password"
-                                                    />
-                                                </div>
-                                                {require && !signInInfo.password && (<small className="auth_form_error">This field is required</small>)}
-                                            </div>
-
-                                            {/* <div className="auth_form_group">
-                                                {loginError && (<span className="error_message_label">{loginError}</span>)}
-                                            </div> */}
-
-                                            <div className="auth_btn_group">
-                                                <Button
-                                                    label="LOGIN"
-                                                    loading={loading}
-                                                    className="auth_form_button"
-                                                    onClick={handleSubmit}
-                                                />
-                                            </div>
+                                            </form>
                                         </div>
                                     </div>
                                 </article>
@@ -170,7 +171,7 @@ const AdminLogin: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </React.Fragment>
     )
 }
 

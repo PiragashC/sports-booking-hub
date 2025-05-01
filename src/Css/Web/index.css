@@ -27,7 +27,8 @@
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
-    transition: top ease 0.3s, ease 0.3s;;
+    transition: top ease 0.3s, ease 0.3s;
+    ;
     z-index: 999;
 }
 
@@ -75,7 +76,7 @@
 }
 
 .web_header.scrolled {
-    top: 0;
+    top: 0 !important;
     background-color: rgba(255, 255, 255, 0.8);
     box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.08);
 }
@@ -239,7 +240,6 @@
 .section_desc {
     font-size: var(--font-size-base);
     color: rgba(0, 0, 0, 0.8);
-
 }
 
 .section_image_area {
@@ -444,4 +444,56 @@
 .toggle_btn:focus {
     outline: none;
     border: none;
+}
+
+.editable_toggle_switch.p-inputswitch .p-inputswitch-slider {
+    background-color: #929292;
+}
+
+.add_data_btn_area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+    width: 100%;
+}
+
+.content_in_edit_mode {
+    border: 1px dashed #000;
+    border-radius: 8px;
+    padding: 8px 12px;
+    background-color: rgb(232, 239, 248);
+    outline: none;
+    transition: ease 0.5s;
+}
+
+.content_in_edit_mode:focus {
+    outline: none;
+    border-style: solid;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-secondary);
+    background-color: #FFF;
+}
+
+.image_edit_btn.pos_abs {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 2;
+}
+
+.image_edit_btn.pos_abs.at_hero_sec {
+    top: 145px;
+}
+
+.image_edit_btn {
+    gap: 10px !important;
+    padding: 6px 14px !important;
+    border-radius: 12px !important;
+    align-items: center;
+    font-size: var(--font-size-md) !important;
+}
+
+.image-preview{
+    display: flex;
+    justify-content: center;
 }

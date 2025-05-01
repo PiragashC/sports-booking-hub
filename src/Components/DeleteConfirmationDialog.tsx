@@ -20,6 +20,7 @@ export const useDeleteConfirmation = () => {
       icon: 'bi bi-info-circle',
       acceptClassName: 'p-button-danger',
       rejectClassName: 'p-button-secondary',
+      dismissableMask: true,
       accept: () => {
         options.accept();
         dialogOpenRef.current = false;
