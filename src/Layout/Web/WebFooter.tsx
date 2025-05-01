@@ -1,6 +1,7 @@
 import { Ripple } from "primereact/ripple";
 import React from "react";
 import { Link } from "react-router-dom";
+import { Tooltip } from 'primereact/tooltip';
 
 const WebFooter: React.FC = () => {
     const scrollToSection = (id: string) => {
@@ -11,9 +12,7 @@ const WebFooter: React.FC = () => {
     };
 
     return (
-        <>
-
-
+        <React.Fragment>
             <footer className="footer_section">
                 <div className="main_footer">
                     <div className="container-md">
@@ -97,6 +96,7 @@ const WebFooter: React.FC = () => {
                             </div>
 
                             <div className="col-12 col-xl-2 col-lg-2">
+                                <Tooltip target=".footer_social_link" />
                                 <div className="footer_content_area pt-4">
                                     <h5 className="footer_link_head">Quick links</h5>
 
@@ -105,6 +105,9 @@ const WebFooter: React.FC = () => {
                                             <Link
                                                 to={`https://web.facebook.com/people/Kover-Drive-Sports/61572469933200/?mibextid=wwXIfr&rdid=RdpaU7aKJkFeWFIs&share_url=https%3A%2F%2Fweb.facebook.com%2Fshare%2F18to3KbNox%2F%3Fmibextid%3DwwXIfr%26_rdc%3D1%26_rdr`}
                                                 target="_blank"
+                                                data-pr-tooltip="Facebook"
+                                                data-pr-position="top"
+                                                data-pr-mousetrack
                                                 className="footer_social_link p-ripple"
                                                 aria-label="Visit our Facebook page">
                                                 <i className="ri-facebook-fill"></i>
@@ -114,6 +117,9 @@ const WebFooter: React.FC = () => {
                                         <li>
                                             <Link to={`https://www.instagram.com/kover_drive/`}
                                                 target="_blank"
+                                                data-pr-tooltip="Instagram"
+                                                data-pr-position="top"
+                                                data-pr-mousetrack
                                                 className="footer_social_link p-ripple"
                                                 aria-label="Visit our Instagram page">
                                                 <i className="bi bi-instagram"></i>
@@ -133,7 +139,7 @@ const WebFooter: React.FC = () => {
                     </div>
                 </div>
             </footer >
-        </>
+        </React.Fragment>
     )
 }
 

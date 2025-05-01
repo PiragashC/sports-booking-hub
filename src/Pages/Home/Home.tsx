@@ -13,7 +13,7 @@ import apiRequest from "../../Utils/Axios/apiRequest";
 import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
 import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
-import { Edit, Pencil, Plus, Trash2 } from "lucide-react";
+import { Edit, Pencil, PenSquare, Plus, PlusCircle, Trash2 } from "lucide-react";
 import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
 import { CardFormModal } from "./CardFormModal";
 import { FeatureFormModal } from "./FeatureFormModal";
@@ -317,7 +317,7 @@ const Home: React.FC = () => {
     )
 
     return (
-        <>
+        <React.Fragment>
             <Toast ref={toastRef} />
             {/* Hero section */}
             <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home" style={{
@@ -562,56 +562,65 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <div className="section_content">
-                                    {isEditMode && <div className="d-flex justify-content-end mb-3">
-                                        <Button
-                                            icon={<Plus size={16} />}
-                                            label="Add Feature"
-                                            className="p-button-rounded p-button-success p-button-sm"
-                                            onClick={handleAddFeature}
-                                        />
-                                    </div>}
-
                                     {webContents?.contentTwelve && Array.isArray(webContents?.contentTwelve) && (
                                         <div className="row features_row">
                                             {webContents?.contentTwelve?.map((feature, index) => (
                                                 <div key={feature?.id} className="col-12 col-xl-4 col-md-6 col-sm-8 mx-auto features_col">
                                                     <Slide direction="up" delay={index * 50} triggerOnce className="feature_card_area h-100">
                                                         <article className="feature_card">
-                                                            <div className="feature_card_header d-flex justify-content-between align-items-center">
-                                                                <div className="d-flex align-items-center">
-                                                                    <div className="feature_icon_area">
-                                                                        <img src={feature?.icon} alt={feature?.name} />
-                                                                    </div>
-                                                                    <h5 className="feature_title">
-                                                                        {feature?.name}
-                                                                    </h5>
+                                                            <div className="feature_card_header">
+                                                                <div className="feature_icon_area">
+                                                                    <img src={feature?.icon} alt={feature?.name} />
                                                                 </div>
-                                                                {isEditMode && <div className="d-flex gap-1">
-                                                                    <Button
-                                                                        icon={<Pencil size={16} />}
-                                                                        className="p-button-rounded p-button-info p-button-text"
-                                                                        onClick={() => handleEditFeature(feature)}
-                                                                    />
-                                                                    {webContents.contentTwelve.length > 1 && (
-                                                                        <Button
-                                                                            icon={<Trash2 size={16} />}
-                                                                            className="p-button-rounded p-button-danger p-button-text"
-                                                                            onClick={() => handleDeleteFeature(feature.id)}
-                                                                        />
-                                                                    )}
-                                                                </div>}
+                                                                <h5 className="feature_title">
+                                                                    {feature?.name}
+                                                                </h5>
                                                             </div>
 
-                                                            <div className="feature_card_body">
+                                                            <div className={`feature_card_body ${isEditMode ? 'fix_height' : ''}`}>
                                                                 <p className="feature_desc">
                                                                     {feature?.description}
                                                                 </p>
                                                             </div>
+
+                                                            {isEditMode && (
+                                                                <div className="feature_card_footer">
+                                                                    <div className="feature_action_btn_area">
+                                                                        <Button
+                                                                            icon={<PenSquare size={15} />}
+                                                                            className="action_btn success"
+                                                                            label="Edit"
+                                                                            onClick={() => handleEditFeature(feature)}
+                                                                        />
+                                                                        {webContents.contentTwelve.length > 1 && (
+                                                                            <Button
+                                                                                icon={<Trash2 size={16} />}
+                                                                                className="action_btn danger"
+                                                                                label="Delete"
+                                                                                onClick={() => handleDeleteFeature(feature.id)}
+                                                                            />
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </article>
                                                     </Slide>
                                                 </div>
                                             ))}
                                         </div>
+                                    )}
+
+                                    {isEditMode && (
+                                        <Slide direction="up" delay={100} triggerOnce>
+                                            <div className="add_data_btn_area">
+                                                <Button
+                                                    icon={<PlusCircle size={20} />}
+                                                    label="Add new feature"
+                                                    className="add_data_button p-button-success"
+                                                    onClick={handleAddFeature}
+                                                />
+                                            </div>
+                                        </Slide>
                                     )}
 
                                     <FeatureFormModal
@@ -816,6 +825,8 @@ const Home: React.FC = () => {
             </section>
             {/*  */}
 
+
+            {/* Image editor */}
             <ImageEditorNew
                 isOpen={openImageEditor}
                 onClose={() => { setOpenImageEditor(false); setContentKeyForImageEditor(undefined); }}
@@ -823,7 +834,8 @@ const Home: React.FC = () => {
                 acceptedFileTypes={['.jpg', '.jpeg', '.png']}
                 maxFileSize={5 * 1024 * 1024} // 5MB
             />
-        </>
+            {/*  */}
+        </React.Fragment>
     );
 };
 

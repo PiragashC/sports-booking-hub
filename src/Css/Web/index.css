@@ -27,7 +27,8 @@
     -webkit-backdrop-filter: blur(10px);
     display: flex;
     align-items: center;
-    transition: top ease 0.3s, ease 0.3s;;
+    transition: top ease 0.3s, ease 0.3s;
+    ;
     z-index: 999;
 }
 
@@ -75,7 +76,7 @@
 }
 
 .web_header.scrolled {
-    top: 0;
+    top: 0 !important;
     background-color: rgba(255, 255, 255, 0.8);
     box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.08);
 }
@@ -444,4 +445,16 @@
 .toggle_btn:focus {
     outline: none;
     border: none;
+}
+
+.editable_toggle_switch.p-inputswitch .p-inputswitch-slider {
+    background-color: #929292;
+}
+
+.add_data_btn_area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+    width: 100%;
 }

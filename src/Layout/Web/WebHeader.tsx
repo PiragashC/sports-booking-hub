@@ -2,12 +2,16 @@ import { Ripple } from "primereact/ripple";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { goToTop } from "../../Components/GoToTop";
+import { InputSwitch } from "primereact/inputswitch";
+import { confirmDialog } from "primereact/confirmdialog";
+import { Tooltip } from 'primereact/tooltip';
 
 const WebHeader: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
     const [menuToggled, setMenuToggled] = useState<boolean>(false);
+    const [editable, setEditable] = useState<boolean>(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -63,6 +67,22 @@ const WebHeader: React.FC = () => {
 
     const handleToggleMenu = () => {
         setMenuToggled(!menuToggled);
+    }
+
+    const handleToggleEditable = () => {
+        confirmDialog({
+            message: `${editable ? 'Do you want to disable editable mode?' : 'Do you want to enable web in editable mode?'}`,
+            header: 'Confirmation',
+            icon: 'bi bi-info-circle',
+            defaultFocus: 'accept',
+            acceptClassName: 'p-button-success',
+            dismissableMask: true,
+            accept: toggleEditable,
+        });
+    }
+
+    const toggleEditable = async () => {
+        setEditable(!editable);
     }
 
     return (
@@ -176,6 +196,14 @@ const WebHeader: React.FC = () => {
                             </ul>
 
                             <div className="web_nav_btn_area">
+                                <InputSwitch
+                                    checked={editable}
+                                    tooltip="Toggle editable mode"
+                                    tooltipOptions={{ position: window.innerWidth < 576 ? 'bottom' : 'left' }}
+                                    onChange={handleToggleEditable}
+                                    className="editable_toggle_switch"
+                                />
+
                                 <button
                                     type="button"
                                     className={`toggle_btn ${menuToggled ? 'toggled' : ''} p-ripple`}
@@ -188,6 +216,8 @@ const WebHeader: React.FC = () => {
                                         <i className="ri-menu-fill"></i>
                                     )}
                                 </button>
+
+
                                 <button className="web_nav_btn p-ripple"
                                     onClick={() => {
                                         navigate(`/booking`);

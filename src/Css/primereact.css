@@ -1078,3 +1078,7 @@
     border-radius: 15px;
     z-index: 99;
 }
+
+.p-tooltip{
+    font-size: 14px !important;
+}

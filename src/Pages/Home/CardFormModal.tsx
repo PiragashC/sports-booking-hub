@@ -2,7 +2,8 @@ import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
 import { useEffect, useState } from 'react';
 import TextInput from "../../Components/TextInput";
-import { Check, X } from "lucide-react";
+import { Check, X, SquarePen } from "lucide-react";
+import { Ripple } from "primereact/ripple";
 
 interface CardFormModalProps {
     visible: boolean;
@@ -24,7 +25,7 @@ export const CardFormModal = ({
         laneCardTitle: '',
         frequency: '',
         timeInterval: '',
-        ratePerHour: ''
+        ratePerHour: '$ '
     };
     const [formData, setFormData] = useState(initialFormData);
     const [isRequired, setIsRequired] = useState(false);
@@ -59,78 +60,105 @@ export const CardFormModal = ({
     }
 
     const footerContent = (
-        <div >
+        <div className="custom_modal_footer">
             <Button
                 label="Cancel"
-                icon={<X size={16} className="mr-1" />}
+                icon={<X size={16} className="me-1" />}
                 onClick={handleClose}
-                className="p-button-text me-2"
+                className="custom_btn secondary"
             />
             <Button
                 label={isEdit ? "Update" : "Save"}
-                icon={<Check size={16} className="mr-1" />}
+                icon={isEdit ? <SquarePen size={16} className="me-2" /> : <Check size={16} className="me-2" />}
                 onClick={handleSubmit}
+                className="custom_btn primary"
                 autoFocus
             />
         </div>
     );
 
+    const headerContent = (
+        <div className="custom_modal_header_inner">
+            <h5 className="modal-title fs-5">
+                <i className={`bi ${!isEdit ? ' bi-plus-square' : ' bi-pencil-square'} me-2 modal_head_icon`}></i>
+                {isEdit ? "Edit" : "Add new"}
+            </h5>
+            <button
+                type="button"
+                aria-label="Close"
+                className="close_modal_btn p-ripple"
+                onClick={handleClose}
+            >
+                <i className="bi bi-x-circle"></i>
+                <Ripple />
+            </button>
+        </div>
+    )
+
     return (
         <Dialog
-            header={isEdit ? "Edit Card" : "Add New Card"}
             visible={visible}
-            style={{ width: '50vw' }}
-            onHide={handleClose}
+            header={headerContent}
             footer={footerContent}
+            headerClassName="custom_modal_header"
+            className={`custom_modal_dialog modal_dialog_md`}
+            onHide={handleClose}
+            dismissableMask
         >
-            <div className="p-fluid">
-                <div className="p-field">
-                    <TextInput
-                        id="laneCardTitle"
-                        name="laneCardTitle"
-                        value={formData.laneCardTitle}
-                        onChange={handleChange}
-                        label="Card Title"
-                        required={true}
-                        placeholder="Enter card title"
-                        error={(isRequired && !formData.laneCardTitle) ? "Card Title is required!" : ""}
-                    />
-                </div>
-                <div className="p-field">
-                    <TextInput
-                        id="frequency"
-                        name="frequency"
-                        value={formData.frequency}
-                        onChange={handleChange}
-                        label="Frequency"
-                        required={true}
-                        placeholder="Enter frequency"
-                        error={(isRequired && !formData.frequency) ? "Frequency is required!" : ""}
-                    />
-                </div>
-                <div className="p-field">
-                    <TextInput
-                        id="timeInterval"
-                        name="timeInterval"
-                        value={formData.timeInterval}
-                        onChange={handleChange}
-                        label="Time Interval"
-                        required={true}
-                        placeholder="Enter Time Interval"
-                        error={(isRequired && !formData.timeInterval) ? "Time Interval is required!" : ""}
-                    />
-                </div>
-                <div className="p-field">
-                    <TextInput
-                        id="ratePerHour"
-                        name="ratePerHour"
-                        value={formData.ratePerHour}
-                        onChange={handleChange}
-                        label="Rate Per Hour"
-                        required={true}
-                        placeholder="Enter Rate Per Hour"
-                        error={(isRequired && !formData.ratePerHour) ? "Rate Per Hour is required!" : ""}
-                    />
+            <div className="custom_modal_body">
+                <div className="row">
+                    <div className="col-12">
+                        <TextInput
+                            id="laneCardTitle"
+                            name="laneCardTitle"
+                            value={formData.laneCardTitle}
+                            onChange={handleChange}
+                            label="Card Title"
+                            required={true}
+                            placeholder="Enter card title"
+                            error={(isRequired && !formData.laneCardTitle) ? "Card Title is required!" : ""}
+                        />
+                    </div>
+
+                    <div className="col-12 col-sm-6">
+                        <TextInput
+                            id="frequency"
+                            name="frequency"
+                            value={formData.frequency}
+                            onChange={handleChange}
+                            label="Frequency"
+                            required={true}
+                            placeholder="Enter frequency"
+                            error={(isRequired && !formData.frequency) ? "Frequency is required!" : ""}
+                        />
+                    </div>
+
+                    <div className="col-12 col-sm-6">
+                        <TextInput
+                            id="timeInterval"
+                            name="timeInterval"
+                            value={formData.timeInterval}
+                            onChange={handleChange}
+                            label="Time Interval"
+                            required={true}
+                            placeholder="Enter Time Interval"
+                            error={(isRequired && !formData.timeInterval) ? "Time Interval is required!" : ""}
+                        />
+                    </div>
+
+                    <div className="col-12 col-sm-6">
+                        <TextInput
+                            id="ratePerHour"
+                            name="ratePerHour"
+                            value={formData.ratePerHour}
+                            onChange={handleChange}
+                            label="Rate Per Hour"
+                            required={true}
+                            placeholder="Enter Rate Per Hour"
+                            formGroupClassName="mb-2"
+                            error={(isRequired && !formData.ratePerHour) ? "Rate Per Hour is required!" : ""}
+                        />
+                    </div>
                 </div>
             </div>
         </Dialog>
