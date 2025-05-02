@@ -22,7 +22,6 @@ export const FeatureFormModal = ({
     isEdit = false
 }: FeatureFormModalProps) => {
     const initialFormData = {
-        id: Date.now(),
         name: '',
         description: '',
         icon: ''
