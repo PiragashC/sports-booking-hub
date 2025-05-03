@@ -425,6 +425,7 @@
     margin-bottom: 0;
     color: var(--color-secondary);
     text-align: center;
+    text-transform: capitalize;
 }
 
 .home_hero_card_body {
@@ -439,6 +440,7 @@
     color: rgba(0, 0, 0, 0.8);
     font-size: var(--font-size-md);
     font-weight: 500;
+    text-transform: capitalize;
 }
 
 .home_hero_card_footer {
@@ -492,7 +494,7 @@
     height: 35px;
     transition: ease 0.5s;
     position: absolute;
-    top: 50%;
+    top: 55%;
     transform: translateY(-50%);
 }
 
@@ -507,3 +509,10 @@
 .book_card_swiper_nav_btn.next {
     right: -60px;
 }
+
+.book_card_swiper_nav_btn:disabled {
+    pointer-events: none !important;
+    opacity: 0.5 !important;
+}
+
+
