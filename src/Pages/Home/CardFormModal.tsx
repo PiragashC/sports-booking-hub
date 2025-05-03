@@ -21,7 +21,6 @@ export const CardFormModal = ({
     isEdit = false
 }: CardFormModalProps) => {
     const initialFormData = {
-        id: Date.now(),
         laneCardTitle: '',
         frequency: '',
         timeInterval: '',

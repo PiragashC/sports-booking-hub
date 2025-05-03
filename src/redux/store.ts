@@ -5,6 +5,7 @@ import storage from "redux-persist/lib/storage";
 import { authReducer, setLogout } from "./authSlice";
 import { webContentReducer } from "./webContentSlice";
 import { setLogoutCallback } from "../Utils/Axios/axiosInstance"; // <-- import
+import { uiReducer } from "./uiSlice";
 
 const persistConfig = { key: "auth", storage, version: 1 };
 const persistedAuthReducer = persistReducer(persistConfig, authReducer);
@@ -13,6 +14,7 @@ export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
     webContent: webContentReducer,
+    ui: uiReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

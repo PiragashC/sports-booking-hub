@@ -1,17 +1,67 @@
 import { Ripple } from "primereact/ripple";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { goToTop } from "../../Components/GoToTop";
 import { InputSwitch } from "primereact/inputswitch";
-import { confirmDialog } from "primereact/confirmdialog";
-import { Tooltip } from 'primereact/tooltip';
+import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
+import { useSelector } from "react-redux";
+import { setEditMode } from "../../redux/uiSlice";
+import { RootState } from "../../redux/store";
+import { showErrorToast } from "../../Utils/commonLogic";
+import { Toast } from "primereact/toast";
+import { useAppDispatch, useAppSelector } from "../../redux/hook";
+import { initialWebContents } from "../../Pages/Home/HomeData";
+import { postWebContentsThunk } from "../../redux/webContentSlice";
 
 const WebHeader: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
     const [menuToggled, setMenuToggled] = useState<boolean>(false);
-    const [editable, setEditable] = useState<boolean>(false);
+    const editable = useSelector((state: RootState) => state.ui.editMode);
+    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
+    const showDialog = useDeleteConfirmation();
+    const dispatch = useAppDispatch();
+    const toastRef = useRef(null);
+
+    const { data: currentContent } = useAppSelector((state) => state.webContent);
+
+    const handleResetToDefault = async () => {
+        if (!token) {
+            showErrorToast(toastRef, "Unauthorized", "You must be logged in to reset.");
+            return;
+        }
+
+        if (!currentContent) {
+            showErrorToast(toastRef, "No Content", "Current content not loaded yet.");
+            return;
+        }
+
+
+        const updatedContent = {
+            ...initialWebContents,
+            contentThirteen: currentContent.contentThirteen,
+            contentFourteen: currentContent.contentFourteen,
+        };
+
+        showDialog({
+            message: `Do you want to roll back to default content`,
+            header: 'Confirmation',
+            accept: async () => {
+                try {
+                    await dispatch(postWebContentsThunk({
+                        webContent: updatedContent,
+                        toastRef,
+                    })).unwrap();
+                } catch (err) {
+                    console.error("Reset failed", err);
+                }
+            },
+        });
+    };
+
+
+
 
     useEffect(() => {
         const handleScroll = () => {
@@ -70,23 +120,23 @@ const WebHeader: React.FC = () => {
     }
 
     const handleToggleEditable = () => {
-        confirmDialog({
+        if (!token) {
+            showErrorToast(toastRef, "Unauthorized", "You must be logged in to enter edit mode.");
+            return;
+        }
+        showDialog({
             message: `${editable ? 'Do you want to disable editable mode?' : 'Do you want to enable web in editable mode?'}`,
             header: 'Confirmation',
-            icon: 'bi bi-info-circle',
-            defaultFocus: 'accept',
-            acceptClassName: 'p-button-success',
-            dismissableMask: true,
-            accept: toggleEditable,
+            accept: () => dispatch(setEditMode(!editable)),
         });
-    }
-
-    const toggleEditable = async () => {
-        setEditable(!editable);
-    }
+    };
 
     return (
         <>
+
+            <Toast ref={toastRef} />
+
+
             <div className="web_sub_header">
                 <div className="container-md">
                     <div className="web_sub_header_area">
@@ -196,13 +246,22 @@ const WebHeader: React.FC = () => {
                             </ul>
 
                             <div className="web_nav_btn_area">
-                                <InputSwitch
+                                {token && <InputSwitch
                                     checked={editable}
                                     tooltip="Toggle editable mode"
                                     tooltipOptions={{ position: window.innerWidth < 576 ? 'bottom' : 'left' }}
                                     onChange={handleToggleEditable}
                                     className="editable_toggle_switch"
-                                />
+                                />}
+
+                                {editable && (
+                                    <button className="web_nav_btn p-ripple"
+                                        onClick={handleResetToDefault}>
+                                        Back to Default
+                                        <Ripple />
+                                    </button>
+                                )}
+
 
                                 <button
                                     type="button"

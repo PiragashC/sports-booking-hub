@@ -1,17 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
 import './Gallery.css';
 import './Gallery-responsive.css';
 
 import { Toast } from "primereact/toast";
 import { Ripple } from "primereact/ripple";
-import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
-import { IconField } from "primereact/iconfield";
-import { InputIcon } from "primereact/inputicon";
-import { InputText } from "primereact/inputtext";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
-import { InputSwitch, InputSwitchChangeEvent } from "primereact/inputswitch";
 import { Image } from "primereact/image";
 
 import { Fade, Zoom } from "react-awesome-reveal";
@@ -25,7 +19,7 @@ import NoData from "../../Components/NoData";
 import TextInput from "../../Components/TextInput";
 import MulipleFileInput from "../../Components/MulipleFileInput";
 
-import { GalleryList, galleryList } from "./GallerySampleData";
+import { GalleryList } from "./GallerySampleData";
 import { useAppDispatch, useAppSelector } from "../../redux/hook";
 import { initialWebContents, WebContent } from "../Home/HomeData";
 import { showErrorToast } from "../../Utils/commonLogic";
@@ -40,13 +34,7 @@ const Gallery: React.FC = () => {
     const [dataState, setDataState] = useState<'Add' | 'Edit'>('Add');
     const [loading, setLoading] = useState<boolean>(false);
     const [isRequired, setIsRequired] = useState<boolean>(false);
-    const today = new Date();
 
-    const [galleryData, setGalleryData] = useState<GalleryList[]>([]);
-    const [filteredgalleryData, setFilteredGalleryData] = useState<GalleryList[]>([]);
-    const [imageSearchKey, setImageSearchKey] = useState<string>('');
-    const [imageState, setImageState] = useState<'All' | 'Visible' | 'Hidden'>('All');
-    const [selectedGalleryImage, setSelectedGalleryImage] = useState<GalleryList | null>(null);
 
     const [contentEditable, setContentEditable] = useState<boolean>(true);
     const [actionButtonHoverd, setActionButtonHoverd] = useState<boolean>(false);
@@ -56,7 +44,6 @@ const Gallery: React.FC = () => {
     /* Form fields */
     const [title, setTitle] = useState<string>('');
     const [imageFiles, setImageFiles] = useState<File[]>([]);
-    const [status, setStatus] = useState<boolean>(true);
     const [selectedImage, setSelectedImage] = useState<GalleryList | null>(null);
     const [showImageEditor, setShowImageEditor] = useState(false);
     const [imageToEdit, setImageToEdit] = useState<File | null>(null);
@@ -353,9 +340,6 @@ const Gallery: React.FC = () => {
 
     useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
 
-
-    console.log(galleryItems, 'fgrtgfsdaf');
-
     return (
         <React.Fragment>
             <Toast ref={toastRef} />
@@ -475,9 +459,9 @@ const Gallery: React.FC = () => {
                                             cascade
                                         >
                                             <div className="gallery_img_container p-ripple">
-                                                <PhotoView src={item.image || item?.image || ''}>
+                                                <PhotoView src={item.imageViewUrl || item?.image || ''}>
                                                     <img
-                                                        src={item.image || item?.image}
+                                                        src={item.imageViewUrl || item?.image}
                                                         alt={item.title}
                                                         className="gallery-image"
                                                         loading="lazy"

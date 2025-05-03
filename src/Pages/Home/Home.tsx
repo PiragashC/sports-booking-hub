@@ -10,15 +10,14 @@ import { initialWebContents, WebContent } from "./HomeData";
 import TextInput from "../../Components/TextInput";
 import TextArea from "../../Components/TextArea";
 import apiRequest from "../../Utils/Axios/apiRequest";
-import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
+import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast, useUploadStatus } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
 import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
-import { Edit, Pencil, PenSquare, Plus, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, PenSquare, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
 import { CardFormModal } from "./CardFormModal";
 import { FeatureFormModal } from "./FeatureFormModal";
 import { useAppDispatch, useAppSelector } from "../../redux/hook";
-import { ProgressSpinner } from "primereact/progressspinner";
 import { postWebContentsThunk } from "../../redux/webContentSlice";
 import { uploadImageService } from "../../Utils/commonService";
 import { useSelector } from "react-redux";
@@ -30,6 +29,8 @@ import { Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import MediaUploadToast from "../../Components/MediaUploadToast";
+import AppLoader from "../../Components/AppLoader";
 
 const Home: React.FC = () => {
     const toastRef = useRef<Toast>(null);
@@ -57,15 +58,16 @@ const Home: React.FC = () => {
     const [reachUsForm, setReachUsForm] = useState<typeof intialReachUsForm>(intialReachUsForm);
     const [isRequired, setIsRequired] = useState<boolean>(false);
 
-    const [isEditMode, setIsEditMode] = useState<boolean>(true);
+    const isEditMode = useSelector((state: RootState) => state.ui.editMode);
 
     const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
     const dispatch = useAppDispatch();
     const { data, loading: WebContenLoading, error, postStatus } = useAppSelector((state) => state.webContent);
     const [webContents, setWebContents] = useState<WebContent>(initialWebContents);
+    const uploadStatus = useUploadStatus();
 
     const [openImageEditor, setOpenImageEditor] = useState<boolean>(false);
-    const [contentKeyForImageEditor, setContentKeyForImageEditor] = useState<'contentFourViewUrl' | 'contentTenViewUrl'>();
+    const [contentKeyForImageEditor, setContentKeyForImageEditor] = useState<'contentFour' | 'contentTen'>();
 
     const handleNavigateBooking = () => {
         navigate(`/booking`);
@@ -136,7 +138,7 @@ const Home: React.FC = () => {
             };
         }
 
-        setWebContents(updatedContent);
+        // setWebContents(updatedContent);
 
         dispatch(postWebContentsThunk({
             webContent: updatedContent,
@@ -145,7 +147,7 @@ const Home: React.FC = () => {
     };
 
 
-    const handleDeleteCard = (id: number) => {
+    const handleDeleteCard = (id: number | string) => {
         // Prevent deletion if only one card exists
         if (webContents.contentThree.length <= 1) {
             return;
@@ -160,7 +162,7 @@ const Home: React.FC = () => {
                     contentThree: webContents.contentThree.filter(card => card.id !== id)
                 };
 
-                setWebContents(updatedContent);
+                // setWebContents(updatedContent);
                 dispatch(postWebContentsThunk({
                     webContent: updatedContent,
                     toastRef: toastRef
@@ -198,7 +200,7 @@ const Home: React.FC = () => {
             };
         }
 
-        setWebContents(updatedContent);
+        // setWebContents(updatedContent);
         dispatch(postWebContentsThunk({
             webContent: updatedContent,
             toastRef: toastRef
@@ -219,7 +221,7 @@ const Home: React.FC = () => {
                     contentTwelve: webContents.contentTwelve.filter(feature => feature.id !== id)
                 };
 
-                setWebContents(updatedContent);
+                // setWebContents(updatedContent);
                 dispatch(postWebContentsThunk({
                     webContent: updatedContent,
                     toastRef: toastRef
@@ -233,57 +235,70 @@ const Home: React.FC = () => {
         const contentKey = target.dataset.contentKey;
 
         if (contentKey) {
-            setWebContents(prevContents => {
-                const updatedContent = {
-                    ...prevContents,
-                    [contentKey]: target.innerText
-                };
+            // setWebContents(prevContents => {
+            //     const updatedContent = {
+            //         ...prevContents,
+            //         [contentKey]: target.innerText
+            //     };
 
-                // Dispatch after state update
-                dispatch(postWebContentsThunk({
-                    webContent: updatedContent,
-                    toastRef: toastRef
-                })).unwrap();
-                return updatedContent;
-            });
+            //     // Dispatch after state update
+            //     dispatch(postWebContentsThunk({
+            //         webContent: updatedContent,
+            //         toastRef: toastRef
+            //     })).unwrap();
+            //     return updatedContent;
+            // });
+            const updatedContent = {
+                ...webContents,
+                [contentKey]: target.innerText
+            };
+
+            // Dispatch after state update
+            dispatch(postWebContentsThunk({
+                webContent: updatedContent,
+                toastRef: toastRef
+            })).unwrap();
         }
     };
 
     const handleOnSaveForImageEditor = async (file: File) => {
         if (!contentKeyForImageEditor) return;
 
-        const tempUrl = URL.createObjectURL(file);
         try {
+            uploadStatus.startUpload([file]);
+            const imagePaths = await uploadImageService(
+                [file],
+                token,
+                (index, progress) => {
+                    uploadStatus.updateStatus(index, { progress });
+                }
+            );
 
-            setWebContents(prev => ({
-                ...prev,
-                [contentKeyForImageEditor]: tempUrl
-            }));
-
-            const imagePaths = await uploadImageService([file], token);
             const permanentUrl = imagePaths[0];
+            uploadStatus.updateStatus(0, { status: 'success' });
 
-            setWebContents(prev => {
-                const updatedContent = {
-                    ...prev,
-                    [contentKeyForImageEditor]: permanentUrl
-                };
-                dispatch(postWebContentsThunk({
-                    webContent: updatedContent,
-                    toastRef: toastRef
-                })).unwrap();
-                return updatedContent;
-            });
+            const updatedContent = {
+                ...webContents,
+                [contentKeyForImageEditor]: permanentUrl
+            };
+
+            await dispatch(postWebContentsThunk({
+                webContent: updatedContent,
+                toastRef: toastRef
+            })).unwrap();
 
         } catch (error) {
             console.error('Upload failed:', error);
-            setWebContents(prev => ({
-                ...prev,
-                [contentKeyForImageEditor]: prev[contentKeyForImageEditor]
-            }));
+            uploadStatus.updateStatus(0, {
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Upload failed'
+            });
             showErrorToast(toastRef, 'Image upload failed', 'Please try again');
         } finally {
-            if (tempUrl) URL.revokeObjectURL(tempUrl);
+            // Clear after a short delay to allow users to see the final status
+            setTimeout(() => {
+                uploadStatus.resetUploadStatus();
+            }, 2000); // 2 seconds delay
         }
     };
 
@@ -303,30 +318,22 @@ const Home: React.FC = () => {
         };
     }, []);
 
-    useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
+    useEffect(() => { if (error) showErrorToast(toastRef, 'Web Content Error', error) }, [error]);
 
-    if (!webContents || WebContenLoading) return (
-        <div
-            style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100vh",
-                width: "100vw",
-                position: "fixed",
-                top: 0,
-                left: 0,
-                backgroundColor: "rgba(255, 255, 255, 0.8)",
-                zIndex: 9999,
-            }}
-        >
-            <ProgressSpinner strokeWidth="4" fill="var(--surface-ground)" animationDuration=".5s" />
-        </div>
-    )
+    useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
 
     return (
         <React.Fragment>
+            <AppLoader
+                visible={!webContents || WebContenLoading || postStatus === 'loading'}
+                message="Loading..."
+                spinnerColor="primary"
+            />
             <Toast ref={toastRef} />
+            <MediaUploadToast
+                loading={uploadStatus.isUploading}
+                fileStatuses={uploadStatus.fileStatuses}
+            />
             {/* Hero section */}
             <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home" style={{
                 backgroundImage: `url(${webContents.contentFourViewUrl})`
@@ -338,7 +345,7 @@ const Home: React.FC = () => {
                         className="image_edit_btn pos_abs at_hero_sec"
                         onClick={(() => {
                             setOpenImageEditor(true);
-                            setContentKeyForImageEditor('contentFourViewUrl');
+                            setContentKeyForImageEditor('contentFour');
                         })}
                     />
                 )}
@@ -449,7 +456,7 @@ const Home: React.FC = () => {
                                                                         <Button
                                                                             icon={<Trash2 size={20} />}
                                                                             className="action_btn icon_only danger"
-                                                                            onClick={() => handleDeleteCard(content.id)}
+                                                                            onClick={() => handleDeleteCard(content.id || '')}
                                                                         />
                                                                     )}
                                                                 </div>
@@ -594,7 +601,7 @@ const Home: React.FC = () => {
                                             className="image_edit_btn pos_abs"
                                             onClick={(() => {
                                                 setOpenImageEditor(true);
-                                                setContentKeyForImageEditor('contentTenViewUrl');
+                                                setContentKeyForImageEditor('contentTen');
                                             })}
                                         />
                                     )}
