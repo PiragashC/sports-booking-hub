@@ -85,7 +85,7 @@
         justify-content: space-between;
     }
 
-    .image_adjust_group{
+    .image_adjust_group {
         flex-basis: 48.6%;
     }
 }
@@ -229,8 +229,28 @@
         bottom: 20px;
     }
 
-    .editor_opt_btn_grp{
+    .editor_opt_btn_grp {
         padding: 20px 0 !important;
+    }
+
+
+    .global_reset_btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    .web_nav_btn {
+        min-width: 100px !important;
+    }
+
+    .content_reset_button {
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+    }
+
+    .content_in_edit_mode_area .content_reset_button {
+        right: -15px;
     }
 }
 

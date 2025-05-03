@@ -5,6 +5,7 @@ import { goToTop } from "../../Components/GoToTop";
 import { InputSwitch } from "primereact/inputswitch";
 import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
 import { useSelector } from "react-redux";
+import { Tooltip } from 'primereact/tooltip';
 import { setEditMode } from "../../redux/uiSlice";
 import { RootState } from "../../redux/store";
 import { showErrorToast } from "../../Utils/commonLogic";
@@ -246,22 +247,7 @@ const WebHeader: React.FC = () => {
                             </ul>
 
                             <div className="web_nav_btn_area">
-                                {token && <InputSwitch
-                                    checked={editable}
-                                    tooltip="Toggle editable mode"
-                                    tooltipOptions={{ position: window.innerWidth < 576 ? 'bottom' : 'left' }}
-                                    onChange={handleToggleEditable}
-                                    className="editable_toggle_switch"
-                                />}
-
-                                {editable && (
-                                    <button className="web_nav_btn p-ripple"
-                                        onClick={handleResetToDefault}>
-                                        Back to Default
-                                        <Ripple />
-                                    </button>
-                                )}
-
+                                <Tooltip target=".global_reset_btn" />
 
                                 <button
                                     type="button"
@@ -276,6 +262,25 @@ const WebHeader: React.FC = () => {
                                     )}
                                 </button>
 
+                                {token && (
+                                    <InputSwitch
+                                        checked={editable}
+                                        tooltip="Toggle editable mode"
+                                        tooltipOptions={{ position: window.innerWidth < 576 ? 'bottom' : 'left' }}
+                                        onChange={handleToggleEditable}
+                                        className="editable_toggle_switch"
+                                    />
+                                )}
+
+                                {editable && (
+                                    <button className="global_reset_btn p-ripple"
+                                        onClick={handleResetToDefault}
+                                        data-pr-tooltip="Reset all contents"
+                                        data-pr-position="left">
+                                        <i className="bi bi-arrow-counterclockwise"></i>
+                                        <Ripple />
+                                    </button>
+                                )}
 
                                 <button className="web_nav_btn p-ripple"
                                     onClick={() => {

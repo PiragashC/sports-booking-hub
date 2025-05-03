@@ -13,7 +13,7 @@ import apiRequest from "../../Utils/Axios/apiRequest";
 import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast, useUploadStatus } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
 import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
-import { Edit, PenSquare, PlusCircle, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit, PenSquare, PlusCircle, Trash2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
 import { CardFormModal } from "./CardFormModal";
 import { FeatureFormModal } from "./FeatureFormModal";
@@ -31,6 +31,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import MediaUploadToast from "../../Components/MediaUploadToast";
 import AppLoader from "../../Components/AppLoader";
+import { confirmDialog } from "primereact/confirmdialog";
 
 const Home: React.FC = () => {
     const toastRef = useRef<Toast>(null);
@@ -322,32 +323,62 @@ const Home: React.FC = () => {
 
     useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
 
+
+    const handleResetContent = (content?: string) => {
+        confirmDialog({
+            message: 'Are you sure you want to reset this content?',
+            header: 'Confirmation',
+            headerClassName: 'confirmation_succcess',
+            icon: 'bi bi-info-circle',
+            defaultFocus: 'accept',
+            acceptClassName: 'p-button-success',
+            rejectClassName: 'p-button-secondary',
+            dismissableMask: true,
+            accept: () => resetContent(content!)
+        });
+    }
+
+    const resetContent = (content: string) => {
+
+    }
+
     return (
         <React.Fragment>
             <AppLoader
                 visible={!webContents || WebContenLoading || postStatus === 'loading'}
-                message="Loading..."
-                spinnerColor="primary"
+                title="Loading..."
+                message="Please wait, Processing your request..."
+                backdropBlur
             />
+
             <Toast ref={toastRef} />
+
             <MediaUploadToast
                 loading={uploadStatus.isUploading}
                 fileStatuses={uploadStatus.fileStatuses}
             />
+
             {/* Hero section */}
             <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home" style={{
                 backgroundImage: `url(${webContents.contentFourViewUrl})`
             }}>
                 {isEditMode && (
-                    <Button
-                        icon={<Edit size={16} />}
-                        label="Edit"
-                        className="image_edit_btn pos_abs at_hero_sec"
-                        onClick={(() => {
-                            setOpenImageEditor(true);
-                            setContentKeyForImageEditor('contentFour');
-                        })}
-                    />
+                    <div className="image_edit_btn_area pos_abs at_hero_sec">
+                        <Button
+                            icon={<Edit size={16} />}
+                            label="Edit"
+                            className="image_edit_btn"
+                            onClick={(() => {
+                                setOpenImageEditor(true);
+                                setContentKeyForImageEditor('contentFour');
+                            })}
+                        />
+                        <Button
+                            icon={<RotateCcw size={16} />}
+                            className="image_edit_btn icon_only"
+                            onClick={() => handleResetContent('heroImage')}
+                        />
+                    </div>
                 )}
                 <div className="container-md">
                     <div className="row">
@@ -360,27 +391,45 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h2
-                                        className={isEditMode ? 'content_in_edit_mode' : ''}
-                                        contentEditable={isEditMode}
-                                        onBlur={handleContentChange}
-                                        data-content-key="contentOne"
-                                        suppressContentEditableWarning
-                                    >
-                                        {webContents?.contentOne || ''}
-                                    </h2>
+                                    <div className="content_in_edit_mode_area">
+                                        <h2
+                                            className={isEditMode ? 'content_in_edit_mode' : ''}
+                                            contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="contentOne"
+                                            suppressContentEditableWarning
+                                        >
+                                            {webContents?.contentOne || ''}
+                                        </h2>
+
+                                        {isEditMode && (
+                                            <button className="content_reset_button"
+                                                onClick={() => handleResetContent(webContents?.contentOne)}>
+                                                <i className="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </Slide>
 
                                 <Slide direction="up" delay={200} triggerOnce>
-                                    <p
-                                        className={isEditMode ? 'content_in_edit_mode' : ''}
-                                        contentEditable={isEditMode}
-                                        onBlur={handleContentChange}
-                                        data-content-key="contentTwo"
-                                        suppressContentEditableWarning
-                                    >
-                                        {webContents?.contentTwo || ''}
-                                    </p>
+                                    <div className="content_in_edit_mode_area">
+                                        <p
+                                            className={isEditMode ? 'content_in_edit_mode' : ''}
+                                            contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="contentTwo"
+                                            suppressContentEditableWarning
+                                        >
+                                            {webContents?.contentTwo || ''}
+                                        </p>
+
+                                        {isEditMode && (
+                                            <button className="content_reset_button"
+                                                onClick={() => handleResetContent(webContents?.contentTwo)}>
+                                                <i className="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </Slide>
 
                                 {/* <Zoom delay={200} duration={1500} triggerOnce className="w-100">
@@ -421,11 +470,13 @@ const Home: React.FC = () => {
                                         spaceBetween={10}
                                         slidesPerView={1}
                                         grabCursor={true}
-                                        autoplay={{ delay: 3000, disableOnInteraction: false }}
+                                        autoplay={{ delay: 3000, disableOnInteraction: false, waitForTransition: true }}
                                         navigation={{
                                             prevEl: prevRef.current,
                                             nextEl: nextRef.current,
                                         }}
+                                        speed={1500}
+                                        loop={true}
                                         onSlideChange={() => console.log('slide change')}
                                         onBeforeInit={(swiper: SwiperClass) => {
                                             const navigation = swiper.params.navigation;
@@ -437,9 +488,8 @@ const Home: React.FC = () => {
                                     >
                                         {webContents.contentThree.map((content) => (
                                             <SwiperSlide key={content.id}>
-                                                <Slide
-                                                    direction="up"
-                                                    triggerOnce
+                                                <Zoom
+                                                    // direction="up"
                                                     delay={100}
                                                 >
                                                     <article className="home_hero_card">
@@ -482,7 +532,7 @@ const Home: React.FC = () => {
                                                             </div>
                                                         </div>
                                                     </article>
-                                                </Slide>
+                                                </Zoom>
                                             </SwiperSlide>
                                         ))}
                                     </Swiper>
@@ -497,6 +547,12 @@ const Home: React.FC = () => {
                                             label="Add new"
                                             className="add_data_button p-button-success"
                                             onClick={handleAddCard}
+                                        />
+
+                                        <Button
+                                            icon={<RotateCcw size={20} />}
+                                            className="add_data_button icon_only p-button-success"
+                                            onClick={() => handleResetContent('homeCard')}
                                         />
                                     </div>
                                 </Slide>
@@ -528,53 +584,98 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h4 className={`section_sub_title ${isEditMode ? 'content_in_edit_mode' : ''}`}
-                                        contentEditable={isEditMode}
-                                        onBlur={handleContentChange}
-                                        data-content-key="contentFive"
-                                        suppressContentEditableWarning
-                                    >
-                                        {webContents?.contentFive || ''}
-                                    </h4>
+                                    <div className="content_in_edit_mode_area ms-0">
+                                        <h4 className={`section_sub_title ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                            contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="contentFive"
+                                            suppressContentEditableWarning
+                                        >
+                                            {webContents?.contentFive || ''}
+                                        </h4>
+
+                                        {isEditMode && (
+                                            <button className="content_reset_button"
+                                                onClick={() => handleResetContent(webContents?.contentFive)}>
+                                                <i className="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </Slide>
 
                                 <div className="section_content">
                                     <Fade triggerOnce>
-                                        <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
-                                            contentEditable={isEditMode}
-                                            onBlur={handleContentChange}
-                                            data-content-key="contentSix"
-                                            suppressContentEditableWarning
-                                        >
-                                            {webContents?.contentSix || ''}
-                                        </p>
+                                        <div className="content_in_edit_mode_area">
+                                            <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                                contentEditable={isEditMode}
+                                                onBlur={handleContentChange}
+                                                data-content-key="contentSix"
+                                                suppressContentEditableWarning
+                                            >
+                                                {webContents?.contentSix || ''}
 
-                                        <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
-                                            contentEditable={isEditMode}
-                                            onBlur={handleContentChange}
-                                            data-content-key="contentSeven"
-                                            suppressContentEditableWarning
-                                        >
-                                            {webContents?.contentSeven || ''}
-                                        </p>
+                                            </p>
+                                            {isEditMode && (
+                                                <button className="content_reset_button"
+                                                    onClick={() => handleResetContent(webContents?.contentSix)}>
+                                                    <i className="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            )}
+                                        </div>
 
-                                        <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
-                                            contentEditable={isEditMode}
-                                            onBlur={handleContentChange}
-                                            data-content-key="contentEight"
-                                            suppressContentEditableWarning
-                                        >
-                                            {webContents?.contentEight || ''}
-                                        </p>
+                                        <div className="content_in_edit_mode_area">
+                                            <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                                contentEditable={isEditMode}
+                                                onBlur={handleContentChange}
+                                                data-content-key="contentSeven"
+                                                suppressContentEditableWarning
+                                            >
+                                                {webContents?.contentSeven || ''}
+                                            </p>
 
-                                        <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
-                                            contentEditable={isEditMode}
-                                            onBlur={handleContentChange}
-                                            data-content-key="contentNine"
-                                            suppressContentEditableWarning
-                                        >
-                                            {webContents?.contentNine || ''}
-                                        </p>
+                                            {isEditMode && (
+                                                <button className="content_reset_button"
+                                                    onClick={() => handleResetContent(webContents?.contentSeven)}>
+                                                    <i className="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="content_in_edit_mode_area">
+                                            <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                                contentEditable={isEditMode}
+                                                onBlur={handleContentChange}
+                                                data-content-key="contentEight"
+                                                suppressContentEditableWarning
+                                            >
+                                                {webContents?.contentEight || ''}
+                                            </p>
+
+                                            {isEditMode && (
+                                                <button className="content_reset_button"
+                                                    onClick={() => handleResetContent(webContents?.contentEight)}>
+                                                    <i className="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="content_in_edit_mode_area">
+                                            <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                                contentEditable={isEditMode}
+                                                onBlur={handleContentChange}
+                                                data-content-key="contentNine"
+                                                suppressContentEditableWarning
+                                            >
+                                                {webContents?.contentNine || ''}
+                                            </p>
+
+                                            {isEditMode && (
+                                                <button className="content_reset_button"
+                                                    onClick={() => handleResetContent(webContents?.contentNine)}>
+                                                    <i className="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            )}
+                                        </div>
                                     </Fade>
 
                                     <Slide direction="up" delay={200} duration={1500} triggerOnce>
@@ -595,15 +696,24 @@ const Home: React.FC = () => {
                             <Fade triggerOnce duration={1500} className="w-100">
                                 <div className="section_image_area">
                                     {isEditMode && (
-                                        <Button
-                                            icon={<Edit size={16} />}
-                                            label="Edit"
-                                            className="image_edit_btn pos_abs"
-                                            onClick={(() => {
-                                                setOpenImageEditor(true);
-                                                setContentKeyForImageEditor('contentTen');
-                                            })}
-                                        />
+                                        <React.Fragment>
+                                            <div className="image_edit_btn_area pos_abs">
+                                                <Button
+                                                    icon={<Edit size={16} />}
+                                                    label="Edit"
+                                                    className="image_edit_btn"
+                                                    onClick={(() => {
+                                                        setOpenImageEditor(true);
+                                                        setContentKeyForImageEditor('contentTen');
+                                                    })}
+                                                />
+                                                <Button
+                                                    icon={<RotateCcw size={16} />}
+                                                    className="image_edit_btn icon_only"
+                                                    onClick={() => handleResetContent('aboutImage')}
+                                                />
+                                            </div>
+                                        </React.Fragment>
                                     )}
                                     <img src={webContents?.contentTenViewUrl} alt="" />
                                 </div>
@@ -627,14 +737,23 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h4 className={`section_sub_title text-center ${isEditMode ? 'content_in_edit_mode' : ''}`}
-                                        contentEditable={isEditMode}
-                                        onBlur={handleContentChange}
-                                        data-content-key="contentEleven"
-                                        suppressContentEditableWarning
-                                    >
-                                        {webContents?.contentEleven || ''}
-                                    </h4>
+                                    <div className="content_in_edit_mode_area">
+                                        <h4 className={`section_sub_title text-center ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                            contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="contentEleven"
+                                            suppressContentEditableWarning
+                                        >
+                                            {webContents?.contentEleven || ''}
+                                        </h4>
+
+                                        {isEditMode && (
+                                            <button className="content_reset_button"
+                                                onClick={() => handleResetContent(webContents?.contentEleven)}>
+                                                <i className="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </Slide>
 
                                 <div className="section_content">
@@ -694,6 +813,12 @@ const Home: React.FC = () => {
                                                     label="Add new feature"
                                                     className="add_data_button p-button-success"
                                                     onClick={handleAddFeature}
+                                                />
+
+                                                <Button
+                                                    icon={<RotateCcw size={20} />}
+                                                    className="add_data_button icon_only p-button-success"
+                                                    onClick={() => handleResetContent('featureCard')}
                                                 />
                                             </div>
                                         </Slide>

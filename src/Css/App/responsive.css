@@ -93,6 +93,29 @@
         padding: 10px;
         border-radius: 12px;
     }
+
+
+    .app_loader_container {
+        min-width: 85vw;
+        padding: 30px;
+    }
+
+    .app_loader_msg_box {
+        row-gap: 10px;
+    }
+
+    .app_loader_container h5 {
+        font-size: 18px;
+    }
+
+    .app_loader {
+        width: 50px;
+        height: 50px;
+    }
+
+    .app_loader_container p {
+        font-size: 13px;
+    }
 }
 
 /* For custom */
@@ -115,7 +138,7 @@
         gap: 8px !important;
     }
 
-    .image_edit_btn.pos_abs.at_hero_sec {
+    .image_edit_btn_area.pos_abs.at_hero_sec {
         top: 140px;
         right: 15px;
     }
