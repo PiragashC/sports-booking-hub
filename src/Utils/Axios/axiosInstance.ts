@@ -11,6 +11,9 @@ export const setNavigateCallback = (cb: (path: string) => void) => {
     navigateCallback = cb;
 };
 
+// Export the navigateCallback directly
+export const getNavigateCallback = () => navigateCallback;
+
 const api = axios.create({
     baseURL: process.env.REACT_APP_BASEURL || ""
 });

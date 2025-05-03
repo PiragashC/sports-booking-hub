@@ -10,6 +10,7 @@ interface ApiRequestOptions<T = any> {
     contentType?: string;
     token?: string | null;
     isFormData?: boolean;
+    onUploadProgress?: (progressEvent: ProgressEvent) => void;
 }
 
 const apiRequest = async <T = any>({
@@ -21,6 +22,7 @@ const apiRequest = async <T = any>({
     contentType,
     token,
     isFormData = false,
+    onUploadProgress
 }: ApiRequestOptions<T>): Promise<any> => {
     try {
         const config: AxiosRequestConfig = {

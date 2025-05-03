@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export function removeEmptyValues<T extends Record<string, any>>(obj: T): Partial<T> {
     return Object.fromEntries(
         Object.entries(obj).filter(
@@ -87,3 +89,49 @@ export const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 export const tokenExpireIn = 300000;
 
 export const sessionInactivityCheckTime = 180000;
+
+interface FileStatus {
+  file: File;
+  status: 'uploading' | 'success' | 'error';
+  progress?: number;
+  error?: string;
+}
+
+export const useUploadStatus = () => {
+  const [fileStatuses, setFileStatuses] = useState<FileStatus[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const startUpload = (files: File[]) => {
+    setIsUploading(true);
+    setFileStatuses(files.map(file => ({
+      file,
+      status: 'uploading',
+      progress: 0
+    })));
+  };
+
+  const updateStatus = (index: number, status: Partial<FileStatus>) => {
+    setFileStatuses(prev => prev.map((item, idx) => 
+      idx === index ? {...item, ...status} : item
+    ));
+  };
+
+  const completeUpload = () => {
+    setIsUploading(false);
+  };
+
+  // Add this new function
+  const resetUploadStatus = () => {
+    setFileStatuses([]);
+    setIsUploading(false);
+  };
+
+  return {
+    fileStatuses,
+    isUploading,
+    startUpload,
+    updateStatus,
+    completeUpload,
+    resetUploadStatus 
+  };
+};
