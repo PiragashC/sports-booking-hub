@@ -43,6 +43,7 @@ const FileInput: React.FC<FileInputProps> = ({
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [uploadedFileName, setUploadedFileName] = useState<string>('');
     const [uploadedFileExtension, setUploadedFileExtension] = useState<string>('');
+    console.log(uploadedFileExtension);
     const fileUploadRef = useRef<FileUpload>(null);
 
     const maxFileSizeInBytes = maxFileSize ? maxFileSize * 1024 * 1024 : null;

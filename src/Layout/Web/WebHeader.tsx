@@ -234,7 +234,7 @@ const WebHeader: React.FC = () => {
                                     </button>
                                 </li>
 
-                                <li className="web_nav_link_item">
+                                {/* <li className="web_nav_link_item">
                                     <button type="button" className="web_nav_link"
                                         onClick={() => {
                                             goToTop();
@@ -243,7 +243,7 @@ const WebHeader: React.FC = () => {
                                         }}>
                                         Blog
                                     </button>
-                                </li>
+                                </li> */}
                             </ul>
 
                             <div className="web_nav_btn_area">

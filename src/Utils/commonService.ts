@@ -18,7 +18,8 @@ export const fetchLanes = async (): Promise<{ id: string; name: string }[]> => {
 export const uploadImageService = async (
     files: File[],
     token: string | null,
-    onProgress?: (index: number, progress: number) => void
+    onProgress?: (index: number, progress: number) => void,
+    prevImgUrl?: string
 ): Promise<string[]> => {
     if (!files.length) {
         throw new Error('No files provided');
@@ -53,6 +54,15 @@ export const uploadImageService = async (
             }
         }
     });
+
+    if (prevImgUrl) {
+        await apiRequest({
+            method: "delete",
+            url: "/website/delete",
+            params: { downloadUrl: prevImgUrl },
+            token
+        });
+    }
 
     if (!Array.isArray(response)) {
         throw new Error('Invalid response format');

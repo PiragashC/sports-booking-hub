@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { RotateCcw, Download, Crop as CropIcon, Sun, Palette, Upload, Check } from 'lucide-react';
+import { RotateCcw, Crop as CropIcon, Sun, Palette, Upload, Check } from 'lucide-react';
 import { showErrorToast } from '../../Utils/commonLogic';
 import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
