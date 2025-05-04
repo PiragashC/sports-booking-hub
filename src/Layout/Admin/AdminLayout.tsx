@@ -89,7 +89,7 @@ const AdminLayout: React.FC = () => {
         <div className='admin_layout'>
             <div className={`menu-backdrop ${menuOpen ? 'show' : ''}`} onClick={closeMenu}></div>
 
-            <ConfirmDialog />
+            {/* <ConfirmDialog /> */}
 
             {/* Side bar */}
             <aside className={`navigation_area ${menuOpen ? 'active' : ''} `}>
