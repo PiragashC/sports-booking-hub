@@ -643,8 +643,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    border-radius: 15px;
+    padding: 5px;
+    border-radius: 25px;
     position: relative;
     margin-top: 10px;
     transition: ease 0.5s;
@@ -652,7 +652,7 @@
 
 .uploaded_image {
     border: 2px solid #FFF;
-    border-radius: 10px;
+    border-radius: 20px;
     object-fit: cover;
     /* height: 200px; */
     width: 100%;
@@ -673,7 +673,7 @@
     padding: 0;
 }
 
-.add_data_button.icon_only .p-button-label{
+.add_data_button.icon_only .p-button-label {
     display: none;
 }
 

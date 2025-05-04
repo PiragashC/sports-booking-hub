@@ -113,11 +113,16 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    text-transform: capitalize;
 }
 
 .event_desc {
     font-size: 15px;
     margin-bottom: 0;
+}
+
+.event_desc::first-letter {
+    text-transform: uppercase;
 }
 
 .event_detail_footer {
@@ -152,7 +157,7 @@
 .event_label span {
     font-size: 13px;
     font-weight: 500;
-
+    text-transform: capitalize;
 }
 
 .event_action_btn {
@@ -238,12 +243,17 @@
     margin-bottom: 13px;
     border-left: 4px solid var(--color-primary);
     padding-left: 10px;
+    text-transform: capitalize;
 }
 
 .event_view_desc {
     width: 100%;
     color: rgba(0, 0, 0, 0.7);
     font-size: 15px;
+}
+
+.event_view_desc::first-letter {
+    text-transform: uppercase;
 }
 
 .event_view_detail_item {
@@ -265,6 +275,7 @@
     font-size: 15px;
     font-weight: 500;
     padding-top: 4px;
+    text-transform: capitalize;
 }
 
 .event_view_detail_item span.not_available {
