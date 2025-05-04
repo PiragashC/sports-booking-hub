@@ -22,12 +22,16 @@ import MulipleFileInput from "../../Components/MulipleFileInput";
 import { GalleryList } from "./GallerySampleData";
 import { useAppDispatch, useAppSelector } from "../../redux/hook";
 import { initialWebContents, WebContent } from "../Home/HomeData";
-import { showErrorToast } from "../../Utils/commonLogic";
+import { showErrorToast, useUploadStatus } from "../../Utils/commonLogic";
 import { postWebContentsThunk } from "../../redux/webContentSlice";
 import { useSelector } from "react-redux";
 import { uploadImageService } from "../../Utils/commonService";
 import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
 import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
+import AppLoader from "../../Components/AppLoader";
+import MediaUploadToast from "../../Components/MediaUploadToast";
+import apiRequest from "../../Utils/Axios/apiRequest";
+import { RootState } from "../../redux/store";
 
 const Gallery: React.FC = () => {
     const toastRef = useRef<Toast>(null);
@@ -36,7 +40,7 @@ const Gallery: React.FC = () => {
     const [isRequired, setIsRequired] = useState<boolean>(false);
 
 
-    const [contentEditable, setContentEditable] = useState<boolean>(true);
+    const contentEditable = useSelector((state: RootState) => state.ui.editMode);
     const [actionButtonHoverd, setActionButtonHoverd] = useState<boolean>(false);
 
     const [showGalleryModal, setShowGalleryModal] = useState<boolean>(false);
@@ -54,6 +58,8 @@ const Gallery: React.FC = () => {
     const showDialog = useDeleteConfirmation();
     const [webContents, setWebContents] = useState<WebContent>(initialWebContents);
     const galleryItems = webContents?.contentThirteen || [];
+    const uploadStatus = useUploadStatus();
+
 
 
     // useEffect(() => {
@@ -125,8 +131,12 @@ const Gallery: React.FC = () => {
         setLoading(true);
 
         try {
+            uploadStatus.startUpload(imageFiles);
+            const uploadResponse = await uploadImageService(imageFiles, token, (index, progress) => {
+                uploadStatus.updateStatus(index, { progress });
+            },);
+            uploadStatus.updateStatus(0, { status: 'success' });
 
-            const uploadResponse = await uploadImageService(imageFiles, token);
 
             const newGalleryItems = uploadResponse.map((uploadedImage, index) => ({
                 title,
@@ -148,9 +158,16 @@ const Gallery: React.FC = () => {
             handleCloseGalleryModal();
         } catch (error) {
             console.error('Error saving images:', error);
+            uploadStatus.updateStatus(0, {
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Failed to save images'
+            });
             showErrorToast(toastRef, 'Error', 'Failed to save images');
         } finally {
             setLoading(false);
+            setTimeout(() => {
+                uploadStatus.resetUploadStatus();
+            }, 2000);
         }
     };
 
@@ -202,19 +219,41 @@ const Gallery: React.FC = () => {
         showDialog({
             message: 'Are you sure you want to delete this image?',
             header: 'Confirm the deletion',
-            accept: () => {
-                const updatedContent = {
-                    ...webContents,
-                    contentThirteen: webContents.contentThirteen.filter(img => img.id !== imageId)
-                };
+            accept: async () => {
+                const imageToDelete = webContents.contentThirteen.find(img => img.id === imageId);
+                if (!imageToDelete?.imageDeleteUrl) {
+                    showErrorToast(toastRef, 'Error', 'Image delete URL missing');
+                    return;
+                }
 
-                dispatch(postWebContentsThunk({
-                    webContent: updatedContent,
-                    toastRef: toastRef
-                })).unwrap();
+                try {
+
+                    const updatedContent = {
+                        ...webContents,
+                        contentThirteen: webContents.contentThirteen.filter(img => img.id !== imageId)
+                    };
+
+                    await dispatch(postWebContentsThunk({
+                        webContent: updatedContent,
+                        toastRef
+                    })).unwrap();
+
+                    await apiRequest({
+                        method: 'delete',
+                        url: '/website/delete',
+                        params: { downloadUrl: imageToDelete.imageDeleteUrl },
+                        token
+                    });
+
+
+                } catch (error) {
+                    console.error('Failed to delete image:', error);
+                    showErrorToast(toastRef, 'Deletion Failed', 'Could not delete image. Please try again.');
+                }
             }
         });
-    }
+    };
+
 
     const handleEditImageFile = (file: File, index: number) => {
         setImageToEdit(file);
@@ -339,10 +378,22 @@ const Gallery: React.FC = () => {
     }, [imageFiles]);
 
     useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
+    useEffect(() => { if (error) showErrorToast(toastRef, 'Web Content Error', error) }, [error]);
 
     return (
         <React.Fragment>
             <Toast ref={toastRef} />
+            <AppLoader
+                visible={!webContents || WebContenLoading || postStatus === 'loading'}
+                title="Loading..."
+                message="Please wait, Processing your request..."
+                backdropBlur
+            />
+
+            <MediaUploadToast
+                loading={uploadStatus.isUploading}
+                fileStatuses={uploadStatus.fileStatuses}
+            />
 
             <BreadCrumbSection
                 title={'Gallery'}
@@ -491,9 +542,7 @@ const Gallery: React.FC = () => {
                                                         <button
                                                             type="button"
                                                             onClick={(e) => {
-                                                                e.preventDefault();
                                                                 e.stopPropagation();
-                                                                e.nativeEvent.stopImmediatePropagation();
                                                                 handleDeleteImage(item?.id || '');
                                                             }}
                                                             onMouseOver={() => setActionButtonHoverd(true)}

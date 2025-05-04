@@ -31,7 +31,6 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import MediaUploadToast from "../../Components/MediaUploadToast";
 import AppLoader from "../../Components/AppLoader";
-import { confirmDialog } from "primereact/confirmdialog";
 
 const Home: React.FC = () => {
     const toastRef = useRef<Toast>(null);
@@ -216,17 +215,38 @@ const Home: React.FC = () => {
         showDialog({
             message: 'Are you sure you want to delete this feature?',
             header: 'Confirm the deletion',
-            accept: () => {
-                const updatedContent = {
-                    ...webContents,
-                    contentTwelve: webContents.contentTwelve.filter(feature => feature.id !== id)
-                };
+            accept: async () => {
+                const featToDelete = webContents.contentTwelve.find(feat => feat.id === id);
+                if (!featToDelete?.iconDeleteUrl) {
+                    showErrorToast(toastRef, 'Error', 'Image delete URL missing');
+                    return;
+                }
 
-                // setWebContents(updatedContent);
-                dispatch(postWebContentsThunk({
-                    webContent: updatedContent,
-                    toastRef: toastRef
-                })).unwrap();
+                try {
+                    const updatedContent = {
+                        ...webContents,
+                        contentTwelve: webContents.contentTwelve.filter(feature => feature.id !== id)
+                    };
+
+                    // setWebContents(updatedContent);
+                    await dispatch(postWebContentsThunk({
+                        webContent: updatedContent,
+                        toastRef: toastRef
+                    })).unwrap();
+
+                    await apiRequest({
+                        method: 'delete',
+                        url: '/website/delete',
+                        params: { downloadUrl: featToDelete.iconDeleteUrl },
+                        token
+                    });
+
+                } catch (err) {
+                    console.error('Failed to delete image:', err);
+                    showErrorToast(toastRef, 'Deletion Failed', 'Could not delete feature. Please try again.');
+                }
+
+
             }
         });
     };
@@ -265,14 +285,23 @@ const Home: React.FC = () => {
     const handleOnSaveForImageEditor = async (file: File) => {
         if (!contentKeyForImageEditor) return;
 
+        let prevImgUrl: string | undefined;
+        if (contentKeyForImageEditor === 'contentFour') {
+            prevImgUrl = webContents.contentFourDeleteUrl;
+        } else if (contentKeyForImageEditor === 'contentTen') {
+            prevImgUrl = webContents.contentTenDeleteUrl;
+        }
+
         try {
             uploadStatus.startUpload([file]);
+
             const imagePaths = await uploadImageService(
                 [file],
                 token,
                 (index, progress) => {
                     uploadStatus.updateStatus(index, { progress });
-                }
+                },
+                prevImgUrl
             );
 
             const permanentUrl = imagePaths[0];
@@ -296,10 +325,9 @@ const Home: React.FC = () => {
             });
             showErrorToast(toastRef, 'Image upload failed', 'Please try again');
         } finally {
-            // Clear after a short delay to allow users to see the final status
             setTimeout(() => {
                 uploadStatus.resetUploadStatus();
-            }, 2000); // 2 seconds delay
+            }, 2000);
         }
     };
 
@@ -324,23 +352,43 @@ const Home: React.FC = () => {
     useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
 
 
-    const handleResetContent = (content?: string) => {
-        confirmDialog({
-            message: 'Are you sure you want to reset this content?',
-            header: 'Confirmation',
-            headerClassName: 'confirmation_succcess',
-            icon: 'bi bi-info-circle',
-            defaultFocus: 'accept',
-            acceptClassName: 'p-button-success',
-            rejectClassName: 'p-button-secondary',
-            dismissableMask: true,
-            accept: () => resetContent(content!)
+    const handleResetContent = async (key: keyof WebContent) => {
+        if (!token) {
+            showErrorToast(toastRef, "Unauthorized", "You must be logged in to reset.");
+            return;
+        }
+
+        if (!data) {
+            showErrorToast(toastRef, "No Content", "Current content not loaded yet.");
+            return;
+        }
+
+        if (!(key in initialWebContents)) {
+            showErrorToast(toastRef, "Invalid Key", `Key "${key}" not found in initial content.`);
+            return;
+        }
+
+        const updatedContent = {
+            ...data,
+            [key]: initialWebContents[key],
+        };
+
+        showDialog({
+            message: `Do you want to reset "${key}" to default?`,
+            header: "Confirmation",
+            accept: async () => {
+                try {
+                    await dispatch(postWebContentsThunk({
+                        webContent: updatedContent,
+                        toastRef,
+                    })).unwrap();
+                } catch (err) {
+                    console.error(`Reset for "${key}" failed`, err);
+                }
+            },
         });
-    }
+    };
 
-    const resetContent = (content: string) => {
-
-    }
 
     return (
         <React.Fragment>
@@ -376,7 +424,7 @@ const Home: React.FC = () => {
                         <Button
                             icon={<RotateCcw size={16} />}
                             className="image_edit_btn icon_only"
-                            onClick={() => handleResetContent('heroImage')}
+                            onClick={() => handleResetContent('contentFour')}
                         />
                     </div>
                 )}
@@ -404,7 +452,7 @@ const Home: React.FC = () => {
 
                                         {isEditMode && (
                                             <button className="content_reset_button"
-                                                onClick={() => handleResetContent(webContents?.contentOne)}>
+                                                onClick={() => handleResetContent('contentOne')}>
                                                 <i className="bi bi-arrow-counterclockwise"></i>
                                             </button>
                                         )}
@@ -425,7 +473,7 @@ const Home: React.FC = () => {
 
                                         {isEditMode && (
                                             <button className="content_reset_button"
-                                                onClick={() => handleResetContent(webContents?.contentTwo)}>
+                                                onClick={() => handleResetContent('contentTwo')}>
                                                 <i className="bi bi-arrow-counterclockwise"></i>
                                             </button>
                                         )}
@@ -552,7 +600,7 @@ const Home: React.FC = () => {
                                         <Button
                                             icon={<RotateCcw size={20} />}
                                             className="add_data_button icon_only p-button-success"
-                                            onClick={() => handleResetContent('homeCard')}
+                                            onClick={() => handleResetContent('contentThree')}
                                         />
                                     </div>
                                 </Slide>
@@ -596,7 +644,7 @@ const Home: React.FC = () => {
 
                                         {isEditMode && (
                                             <button className="content_reset_button"
-                                                onClick={() => handleResetContent(webContents?.contentFive)}>
+                                                onClick={() => handleResetContent('contentFive')}>
                                                 <i className="bi bi-arrow-counterclockwise"></i>
                                             </button>
                                         )}
@@ -617,7 +665,7 @@ const Home: React.FC = () => {
                                             </p>
                                             {isEditMode && (
                                                 <button className="content_reset_button"
-                                                    onClick={() => handleResetContent(webContents?.contentSix)}>
+                                                    onClick={() => handleResetContent('contentSix')}>
                                                     <i className="bi bi-arrow-counterclockwise"></i>
                                                 </button>
                                             )}
@@ -635,7 +683,7 @@ const Home: React.FC = () => {
 
                                             {isEditMode && (
                                                 <button className="content_reset_button"
-                                                    onClick={() => handleResetContent(webContents?.contentSeven)}>
+                                                    onClick={() => handleResetContent('contentSeven')}>
                                                     <i className="bi bi-arrow-counterclockwise"></i>
                                                 </button>
                                             )}
@@ -653,7 +701,7 @@ const Home: React.FC = () => {
 
                                             {isEditMode && (
                                                 <button className="content_reset_button"
-                                                    onClick={() => handleResetContent(webContents?.contentEight)}>
+                                                    onClick={() => handleResetContent('contentEight')}>
                                                     <i className="bi bi-arrow-counterclockwise"></i>
                                                 </button>
                                             )}
@@ -671,7 +719,7 @@ const Home: React.FC = () => {
 
                                             {isEditMode && (
                                                 <button className="content_reset_button"
-                                                    onClick={() => handleResetContent(webContents?.contentNine)}>
+                                                    onClick={() => handleResetContent('contentNine')}>
                                                     <i className="bi bi-arrow-counterclockwise"></i>
                                                 </button>
                                             )}
@@ -710,7 +758,7 @@ const Home: React.FC = () => {
                                                 <Button
                                                     icon={<RotateCcw size={16} />}
                                                     className="image_edit_btn icon_only"
-                                                    onClick={() => handleResetContent('aboutImage')}
+                                                    onClick={() => handleResetContent('contentTen')}
                                                 />
                                             </div>
                                         </React.Fragment>
@@ -749,7 +797,7 @@ const Home: React.FC = () => {
 
                                         {isEditMode && (
                                             <button className="content_reset_button"
-                                                onClick={() => handleResetContent(webContents?.contentEleven)}>
+                                                onClick={() => handleResetContent('contentEleven')}>
                                                 <i className="bi bi-arrow-counterclockwise"></i>
                                             </button>
                                         )}
@@ -765,7 +813,7 @@ const Home: React.FC = () => {
                                                         <article className="feature_card">
                                                             <div className="feature_card_header">
                                                                 <div className="feature_icon_area">
-                                                                    <img src={feature?.icon} alt={feature?.name} />
+                                                                    <img src={feature?.iconViewUrl} alt={feature?.name} />
                                                                 </div>
                                                                 <h5 className="feature_title">
                                                                     {feature?.name}
@@ -818,7 +866,7 @@ const Home: React.FC = () => {
                                                 <Button
                                                     icon={<RotateCcw size={20} />}
                                                     className="add_data_button icon_only p-button-success"
-                                                    onClick={() => handleResetContent('featureCard')}
+                                                    onClick={() => handleResetContent('contentTwelve')}
                                                 />
                                             </div>
                                         </Slide>
@@ -830,6 +878,7 @@ const Home: React.FC = () => {
                                         onSubmit={handleSubmitFeature}
                                         editData={currentEditFeature}
                                         isEdit={isFeatureEdit}
+                                        token={token}
                                     />
                                 </div>
                             </div>
