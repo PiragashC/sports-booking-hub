@@ -52,11 +52,13 @@ const Dashboard: React.FC = () => {
 
                         <div className="col-12 col-sm-6 col-lg-4 col-xl-4 col-xxl-3">
                             <article className="dash_quick_link p-ripple"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    const newTab = window.open('/', '_blank');
-                                    if (newTab) newTab.focus();
-                                }}>
+                                // onClick={(e) => {
+                                //     e.preventDefault();
+                                //     const newTab = window.open('/', '_blank');
+                                //     if (newTab) newTab.focus();
+                                // }}
+                                onClick={() => navigate(`/`)}
+                            >
                                 <div className="quick_link_content">
                                     <h4>Website</h4>
                                     <i className="bi bi-box-arrow-up-right"></i>

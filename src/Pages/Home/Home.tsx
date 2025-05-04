@@ -370,7 +370,7 @@ const Home: React.FC = () => {
 
         const updatedContent = {
             ...data,
-            [key]: initialWebContents[key],
+            [key]: (initialWebContents as WebContent)[key]
         };
 
         showDialog({
@@ -1081,7 +1081,7 @@ const Home: React.FC = () => {
                 isOpen={openImageEditor}
                 onClose={() => { setOpenImageEditor(false); setContentKeyForImageEditor(undefined); }}
                 onSave={handleOnSaveForImageEditor}
-                acceptedFileTypes={['.jpg', '.jpeg', '.png']}
+                acceptedFileTypes={['.jpg', '.jpeg', '.png', '.svg']}
                 maxFileSize={5 * 1024 * 1024} // 5MB
             />
             {/*  */}

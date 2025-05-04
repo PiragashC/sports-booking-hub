@@ -597,3 +597,33 @@
     transform: translateY(-50%);
     right: -35px;
 }
+
+.global_dashboard_btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    color: #FFF;
+    outline: none;
+    transition: ease 0.3s;
+}
+
+.global_dashboard_btn:hover {
+    background-color: var(--color-primary-dark);
+}
+
+.global_dashboard_btn:focus {
+    border-color: #FFF;
+    box-shadow: 0px 0px 0px 4px var(--color-focus-primary);
+}
+
+.global_dashboard_btn i {
+    font-size: 20px;
+    line-height: 0;
+}
+
