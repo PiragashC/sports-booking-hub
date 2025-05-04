@@ -41,6 +41,7 @@ const WebHeader: React.FC = () => {
 
         const updatedContent = {
             ...initialWebContents,
+            id: currentContent.id,
             contentThirteen: currentContent.contentThirteen,
             contentFourteen: currentContent.contentFourteen,
         };
@@ -263,13 +264,22 @@ const WebHeader: React.FC = () => {
                                 </button>
 
                                 {token && (
-                                    <InputSwitch
-                                        checked={editable}
-                                        tooltip="Toggle editable mode"
-                                        tooltipOptions={{ position: window.innerWidth < 576 ? 'bottom' : 'left' }}
-                                        onChange={handleToggleEditable}
-                                        className="editable_toggle_switch"
-                                    />
+                                    <>
+                                        <InputSwitch
+                                            checked={editable}
+                                            tooltip="Toggle editable mode"
+                                            tooltipOptions={{ position: window.innerWidth < 576 ? 'bottom' : 'left' }}
+                                            onChange={handleToggleEditable}
+                                            className="editable_toggle_switch"
+                                        />
+                                        <button className="global_dashboard_btn p-ripple"
+                                            onClick={() => navigate(`/admin/dashboard`)}
+                                            data-pr-tooltip="Go to Dashboard"
+                                            data-pr-position="top">
+                                            <i className="bi bi-grid"></i>
+                                            <Ripple />
+                                        </button>
+                                    </>
                                 )}
 
                                 {editable && (

@@ -23,7 +23,7 @@ const AppHeader: React.FC = () => {
 
     return (
         <>
-            <ConfirmDialog />
+            {/* <ConfirmDialog /> */}
             <header className="app_header">
                 <nav className="app_nav">
                     <div className={`app_nav_area ${token && 'justify-content-between'}`}>

@@ -347,4 +347,10 @@
     .image-editor-container {
         padding: 0 !important;
     }
+
+    .global_dashboard_btn {
+        width: 30px;
+        height: 30px;
+
+    }
 }
