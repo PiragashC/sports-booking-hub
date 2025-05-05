@@ -12,7 +12,7 @@ const WebLayout: React.FC = () => {
         dispatch(getWebContentsThunk({ id: "402888e696a0b7920196a0c108bc0018" }));
     }, [dispatch]);
     return (
-        <>
+        <React.Fragment>
             <WebHeader />
 
             <main>
@@ -22,7 +22,7 @@ const WebLayout: React.FC = () => {
             <WebFooter />
 
             <BackToTop />
-        </>
+        </React.Fragment>
     )
 }
 

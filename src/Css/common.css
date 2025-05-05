@@ -1022,9 +1022,9 @@ body {
 }
 
 .customize_data_area:first-child {
-    border-bottom: 1px solid #DDD;
+    /* border-bottom: 1px solid #DDD;
     padding-bottom: 10px !important;
-    margin-bottom: 16px;
+    margin-bottom: 16px; */
 }
 
 .data_tab_btn:focus {
