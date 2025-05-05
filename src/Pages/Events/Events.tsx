@@ -31,6 +31,7 @@ import MediaUploadToast from "../../Components/MediaUploadToast";
 import { RootState } from "../../redux/store";
 import AppLoader from "../../Components/AppLoader";
 import apiRequest from "../../Utils/Axios/apiRequest";
+import { Edit } from "lucide-react";
 
 interface EventFormState {
     title: string;
@@ -398,148 +399,163 @@ const Events: React.FC = () => {
                 activeIcon={'bi-image-fill'}
             />
 
-            <div className="section_content">
-                {contentEditable && (
-                    <Fade triggerOnce className="w-100">
-                        <div className="customize_data_container">
-                            <div className="customize_data_area">
-                                <div className="customize_data_sub">
-                                    <h5>
-                                        <i className="bi bi-pencil-square me-2"></i>
-                                        Customize Events
-                                    </h5>
-                                    <p>Total events: {String(eventItems?.length || 0).padStart(2, '0')}</p>
-                                </div>
+            <section className="page_section events_section">
+                <div className="container-md">
+                    <div className="event_content">
+                        <div className="section_body">
+                            <Slide direction="up" triggerOnce>
+                                <h3 className="section_title text-center">
+                                    Upcoming Events
+                                </h3>
+                            </Slide>
 
-                                <button
-                                    className="new_data_button m-0 is_btn p-ripple"
-                                    aria-label="New Event"
-                                    onClick={handleAddEvent}>
-                                    <i className="bi bi-plus-circle"></i>
-                                    <span>Add Event</span>
-                                    <Ripple />
-                                </button>
+                            <div className="section_content">
+                                {contentEditable && (
+                                    <Fade triggerOnce className="w-100">
+                                        <div className="customize_data_container">
+                                            <div className="customize_data_area">
+                                                <div className="customize_data_sub">
+                                                    <h5>
+                                                        <i className="bi bi-pencil-square me-2"></i>
+                                                        Customize Events
+                                                    </h5>
+                                                    <p>Total events: {String(eventItems?.length || 0).padStart(2, '0')}</p>
+                                                </div>
+
+                                                <button
+                                                    className="new_data_button m-0 is_btn p-ripple"
+                                                    aria-label="New Event"
+                                                    onClick={handleAddEvent}>
+                                                    <i className="bi bi-plus-circle"></i>
+                                                    <span>Add Event</span>
+                                                    <Ripple />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Fade>
+                                )}
+
+                                {webContents && eventItems && Array.isArray(eventItems) && eventItems.length > 0 ? (
+                                    <div className="row event_content_row">
+                                        {eventItems.map((event, index) => {
+                                            let month = '---';
+                                            let day = '--';
+
+                                            if (event.eventDate) {
+                                                const parsedDate = parseISO(event.eventDate);
+                                                month = format(parsedDate, 'MMM').toUpperCase();
+                                                day = format(parsedDate, 'dd');
+                                            }
+
+                                            return (
+                                                <div key={event?.id}
+                                                    className="col-12 col-sm-6 col-lg-4 col-xl-4 col-xxl-4">
+                                                    <Slide direction="up" delay={index * 50} className="w-100" triggerOnce>
+                                                        <article className="event_content_card p-ripple"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleViewEvent(event);
+                                                            }}>
+                                                            <div className="event_img_area">
+                                                                <img
+                                                                    className={`event_img ${!event?.imageViewUrl ? 'no_image' : ''}`}
+                                                                    src={event?.imageViewUrl || eventEmptyImage}
+                                                                    alt={event?.eventTitle}
+                                                                    loading="lazy"
+                                                                />
+                                                            </div>
+
+                                                            <div className="event_detail_area">
+                                                                <div className="event_detail_header">
+                                                                    <div className="event_date">
+                                                                        <h6>{month}</h6>
+                                                                        <h1>{day}</h1>
+                                                                    </div>
+
+                                                                    <div className="event_detail_sub">
+                                                                        <h5 className="event_title">
+                                                                            {event?.eventTitle || '---------------'}
+                                                                        </h5>
+
+                                                                        <p className="event_desc">
+                                                                            {event?.description
+                                                                                ? event.description.length > 80
+                                                                                    ? `${event.description.slice(0, 80)}...`
+                                                                                    : event.description
+                                                                                : '---------------'}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="event_detail_footer">
+                                                                    <div className="event_label">
+                                                                        <i className="bi bi-clock"></i>
+                                                                        <span>
+                                                                            {event?.eventTime
+                                                                                ? format(parse(event.eventTime, 'HH:mm:ss', new Date()), 'hh:mm a')
+                                                                                : '-----'}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    <div className="event_label">
+                                                                        <i className="bi bi-geo-alt"></i>
+                                                                        <span>{event?.location || '-----'}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {contentEditable && (
+                                                                <div className="event_action_btn_grp">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleEditEvent(event);
+                                                                        }}
+                                                                        onMouseOver={() => setActionButtonHoverd(true)}
+                                                                        onMouseLeave={() => setActionButtonHoverd(false)}
+                                                                        className="event_action_btn edit is_btn p-ripple"
+                                                                    >
+                                                                        <i className="bi bi-pencil-square"></i>
+                                                                        Edit
+                                                                        <Ripple />
+                                                                    </button>
+
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleDeleteEvent(event);
+                                                                        }}
+                                                                        onMouseOver={() => setActionButtonHoverd(true)}
+                                                                        onMouseLeave={() => setActionButtonHoverd(false)}
+                                                                        className="event_action_btn delete is_btn p-ripple"
+                                                                    >
+                                                                        <i className="bi bi-trash3"></i>
+                                                                        <Ripple />
+                                                                    </button>
+                                                                </div>
+                                                            )}
+
+                                                            {!actionButtonHoverd && <Ripple />}
+                                                        </article>
+                                                    </Slide>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <NoData
+                                        showImage={true}
+                                        message="Oops! No events found!"
+                                    />
+                                )}
                             </div>
+
                         </div>
-                    </Fade>
-                )}
-
-                {webContents && eventItems && Array.isArray(eventItems) && eventItems.length > 0 ? (
-                    <div className="row event_content_row">
-                        {eventItems.map((event, index) => {
-                            let month = '---';
-                            let day = '--';
-
-                            if (event.eventDate) {
-                                const parsedDate = parseISO(event.eventDate);
-                                month = format(parsedDate, 'MMM').toUpperCase();
-                                day = format(parsedDate, 'dd');
-                            }
-
-                            return (
-                                <div key={event?.id}
-                                    className="col-12 col-sm-6 col-lg-4 col-xl-4 col-xxl-4">
-                                    <Slide direction="up" delay={index * 50} className="w-100" triggerOnce>
-                                        <article className="event_content_card p-ripple"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleViewEvent(event);
-                                            }}>
-                                            <div className="event_img_area">
-                                                <img
-                                                    className={`event_img ${!event?.imageViewUrl ? 'no_image' : ''}`}
-                                                    src={event?.imageViewUrl || eventEmptyImage}
-                                                    alt={event?.eventTitle}
-                                                    loading="lazy"
-                                                />
-                                            </div>
-
-                                            <div className="event_detail_area">
-                                                <div className="event_detail_header">
-                                                    <div className="event_date">
-                                                        <h6>{month}</h6>
-                                                        <h1>{day}</h1>
-                                                    </div>
-
-                                                    <div className="event_detail_sub">
-                                                        <h5 className="event_title">
-                                                            {event?.eventTitle || '---------------'}
-                                                        </h5>
-
-                                                        <p className="event_desc">
-                                                            {event?.description
-                                                                ? event.description.length > 80
-                                                                    ? `${event.description.slice(0, 80)}...`
-                                                                    : event.description
-                                                                : '---------------'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="event_detail_footer">
-                                                    <div className="event_label">
-                                                        <i className="bi bi-clock"></i>
-                                                        <span>
-                                                            {event?.eventTime
-                                                                ? format(parse(event.eventTime, 'HH:mm:ss', new Date()), 'hh:mm a')
-                                                                : '-----'}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="event_label">
-                                                        <i className="bi bi-geo-alt"></i>
-                                                        <span>{event?.location || '-----'}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {contentEditable && (
-                                                <div className="event_action_btn_grp">
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleEditEvent(event);
-                                                        }}
-                                                        onMouseOver={() => setActionButtonHoverd(true)}
-                                                        onMouseLeave={() => setActionButtonHoverd(false)}
-                                                        className="event_action_btn edit is_btn p-ripple"
-                                                    >
-                                                        <i className="bi bi-pencil-square"></i>
-                                                        Edit
-                                                        <Ripple />
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDeleteEvent(event);
-                                                        }}
-                                                        onMouseOver={() => setActionButtonHoverd(true)}
-                                                        onMouseLeave={() => setActionButtonHoverd(false)}
-                                                        className="event_action_btn delete is_btn p-ripple"
-                                                    >
-                                                        <i className="bi bi-trash3"></i>
-                                                        <Ripple />
-                                                    </button>
-                                                </div>
-                                            )}
-
-                                            {!actionButtonHoverd && <Ripple />}
-                                        </article>
-                                    </Slide>
-                                </div>
-                            );
-                        })}
                     </div>
-                ) : (
-                    <NoData
-                        showImage={true}
-                        message="Oops! No events found!"
-                    />
-                )}
-            </div>
+                </div>
+            </section>
 
             {/* Event add/edit modal */}
             <Dialog
@@ -681,14 +697,14 @@ const Events: React.FC = () => {
                                         className="uploaded_image"
                                     />
                                     {formState.imageFile && (
-                                        <button
-                                            className="edit_image_btn is_btn p-ripple"
-                                            onClick={handleEditImage}
-                                        >
-                                            <i className="bi bi-pencil-square"></i>
-                                            Edit Image
-                                            <Ripple />
-                                        </button>
+                                        <div className="image_edit_btn_area pos_abs">
+                                            <Button
+                                                icon={<Edit size={16} />}
+                                                label="Edit"
+                                                className="image_edit_btn"
+                                                onClick={handleEditImage}
+                                            />
+                                        </div>
                                     )}
                                 </div>
                             </div>

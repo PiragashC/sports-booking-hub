@@ -252,6 +252,11 @@
     .content_in_edit_mode_area .content_reset_button {
         right: -15px;
     }
+
+
+    .file_upload_status_area {
+        max-width: 90vw;
+    }
 }
 
 /* For custom */
