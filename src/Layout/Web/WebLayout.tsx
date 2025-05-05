@@ -9,7 +9,7 @@ import { useAppDispatch } from "../../redux/hook";
 const WebLayout: React.FC = () => {
     const dispatch = useAppDispatch();
     useEffect(() => {
-        dispatch(getWebContentsThunk({ id: "402888e59675b326019675b3ce110008" }));
+        dispatch(getWebContentsThunk({ id: "402888e696a0b7920196a0c108bc0018" }));
     }, [dispatch]);
     return (
         <React.Fragment>
