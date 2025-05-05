@@ -7,7 +7,7 @@ import { Ripple } from "primereact/ripple";
 const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     return (
-        <>
+        <React.Fragment>
             <div>
                 <div className="page_header_area">
                     <h4 className="page_heading">Dashboard</h4>
@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </React.Fragment>
     )
 }
 

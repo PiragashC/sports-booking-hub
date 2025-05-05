@@ -310,7 +310,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
     /*  */
 
     return (
-        <>
+        <React.Fragment>
             {/* Booking modal */}
             <Dialog
                 visible={isOpen}
@@ -631,7 +631,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, toastRef, 
                 </div>
             </Dialog>
             {/*  */}
-        </>
+        </React.Fragment>
     )
 }
 

@@ -228,7 +228,7 @@ const Extras: React.FC = () => {
     useEffect(() => { fetchPromoCodeData() }, []);
 
     return (
-        <>
+        <React.Fragment>
             <Toast ref={toast} />
 
             <div>
@@ -383,7 +383,7 @@ const Extras: React.FC = () => {
                     )}
                 </div>
             </div>
-        </>
+        </React.Fragment>
     )
 }
 

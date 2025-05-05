@@ -22,7 +22,7 @@ const AppHeader: React.FC = () => {
     }
 
     return (
-        <>
+        <React.Fragment>
             {/* <ConfirmDialog /> */}
             <header className="app_header">
                 <nav className="app_nav">
@@ -51,7 +51,7 @@ const AppHeader: React.FC = () => {
                     </div>
                 </nav>
             </header>
-        </>
+        </React.Fragment>
     )
 }
 

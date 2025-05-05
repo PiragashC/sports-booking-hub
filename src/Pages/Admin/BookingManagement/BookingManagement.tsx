@@ -654,7 +654,7 @@ const BookingManagement: React.FC = () => {
     useEffect(() => { if (fromDate && toDate && paginationParams.page && paginationParams.size && bookingState) fetchBookingsForFilters(); }, [fromDate, toDate, paginationParams, bookingState, selectedLane, status]);
 
     return (
-        <>
+        <React.Fragment>
             <Toast ref={toastRef} />
             <div>
                 <div className="page_header_section">
@@ -1084,7 +1084,7 @@ const BookingManagement: React.FC = () => {
                     </div> : <SkeletonLoader layout={bookingSkeletonLayout} />}
             </Dialog >
             {/*  */}
-        </>
+        </React.Fragment>
     )
 }
 
