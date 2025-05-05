@@ -1,5 +1,5 @@
 import React from 'react';
-import { ProgressSpinner } from 'primereact/progressspinner';
+import { ProgressBar } from 'primereact/progressbar';
 
 interface FileStatus {
     file: File;
@@ -21,65 +21,37 @@ const MediaUploadToast: React.FC<MediaUploadToastProps> = ({
     if (!loading) return null;
 
     return (
-        <div
-            className="p-3 border-1 surface-border border-round"
-            style={{
-                position: 'fixed',
-                bottom: '20px',
-                right: '20px',
-                backgroundColor: 'var(--surface-ground)',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                zIndex: 1000,
-                minWidth: '300px',
-            }}
-        >
-            {fileStatuses.length === 0 ? (
-                <div className="flex align-items-center">
-                    <ProgressSpinner 
-                        style={{ width: '30px', height: '30px' }} 
-                        strokeWidth="6" 
-                        animationDuration=".5s" 
-                    />
-                    <span className="ml-2">{type} Upload in progress...</span>
-                </div>
-            ) : (
-                <div>
-                    {fileStatuses.map((fileStatus, index) => (
-                        <div key={index} className="mb-3">
-                            <div className="flex align-items-center">
-                                <span 
-                                    className="text-overflow-ellipsis white-space-nowrap overflow-hidden"
-                                    style={{ maxWidth: '150px' }}
-                                >
-                                    {fileStatus.file.name}
-                                </span>
-                                <span 
-                                    className="ml-2"
-                                    style={{
-                                        color: fileStatus.status === 'success' 
-                                            ? 'var(--green-500)' 
-                                            : fileStatus.status === 'error' 
-                                                ? 'var(--red-500)' 
-                                                : 'var(--primary-500)'
-                                    }}
-                                >
-                                    - {fileStatus.status}
-                                </span>
-                            </div>
-                            {fileStatus.status === 'uploading' && fileStatus.progress !== undefined && (
-                                <div className="flex align-items-center mt-1">
-                                    <ProgressSpinner 
-                                        style={{ width: '20px', height: '20px' }} 
-                                        strokeWidth="6" 
-                                        animationDuration=".5s" 
-                                    />
-                                    <span className="ml-2 text-sm">{fileStatus.progress}%</span>
+
+        <div className="file_upload_backdrop">
+            <div className="file_upload_status_area">
+                {fileStatuses.length === 0 ? (
+                    <div className="file_upload_status_container">
+                        <div className="upload_loader"></div>
+                        <span>{type} Uploading in progress...</span>
+                    </div>
+                ) : (
+                    <React.Fragment>
+                        {fileStatuses.map((fileStatus, index) => (
+                            <div key={index} className="file_upload_status_sub">
+                                <div className="file_upload_status_container_sub">
+                                    <span className="upload_file_name">
+                                        {fileStatus.file.name}
+                                    </span>
+                                    <span className={`${fileStatus.status === 'success' ? 'text_success' : fileStatus.status === 'error' ? 'text_danger' : 'text-dark'} upload_file_status`}>
+                                        - {fileStatus.status}
+                                    </span>
                                 </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )}
+                                {fileStatus.status === 'uploading' && fileStatus.progress !== undefined && (
+                                    <div className="file_progress_container">
+                                        {/* <ProgressBar value={fileStatus.progress}></ProgressBar> */}
+                                        <div className="progress_loader"></div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </React.Fragment>
+                )}
+            </div>
         </div>
     );
 };

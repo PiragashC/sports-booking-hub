@@ -134,10 +134,9 @@ const WebHeader: React.FC = () => {
     };
 
     return (
-        <>
-
+        <React.Fragment>
             <Toast ref={toastRef} />
-
+            <Tooltip target=".btn_info_tooltip" />
 
             <div className="web_sub_header">
                 <div className="container-md">
@@ -264,7 +263,7 @@ const WebHeader: React.FC = () => {
                                 </button>
 
                                 {token && (
-                                    <>
+                                    <React.Fragment>
                                         <InputSwitch
                                             checked={editable}
                                             tooltip="Toggle editable mode"
@@ -272,18 +271,19 @@ const WebHeader: React.FC = () => {
                                             onChange={handleToggleEditable}
                                             className="editable_toggle_switch"
                                         />
-                                        <button className="global_dashboard_btn p-ripple"
+
+                                        <button className="global_dashboard_btn p-ripple btn_info_tooltip"
                                             onClick={() => navigate(`/admin/dashboard`)}
                                             data-pr-tooltip="Go to Dashboard"
-                                            data-pr-position="top">
+                                            data-pr-position="left">
                                             <i className="bi bi-grid"></i>
                                             <Ripple />
                                         </button>
-                                    </>
+                                    </React.Fragment>
                                 )}
 
                                 {editable && (
-                                    <button className="global_reset_btn p-ripple"
+                                    <button className="global_reset_btn p-ripple btn_info_tooltip"
                                         onClick={handleResetToDefault}
                                         data-pr-tooltip="Reset all contents"
                                         data-pr-position="left">
@@ -307,7 +307,7 @@ const WebHeader: React.FC = () => {
             </header>
 
             <div className={`menu_backdrop ${menuToggled && ' show'}`} onClick={() => setMenuToggled(false)}></div>
-        </>
+        </React.Fragment>
     )
 }
 
