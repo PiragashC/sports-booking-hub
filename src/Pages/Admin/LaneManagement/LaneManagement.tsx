@@ -15,12 +15,10 @@ import { Dialog } from "primereact/dialog";
 
 import { removeEmptyValues, showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
 
-import { Lane } from "../SampleData";
 import TextInput from "../../../Components/TextInput";
-import apiRequest from "../../../Utils/apiRequest";
+import apiRequest from "../../../Utils/Axios/apiRequest";
 import { useSelector } from "react-redux";
 import NumberInput from "../../../Components/NumberInput";
-import { SkeletonLayout } from "../../../Components/SkeletonLoader";
 
 interface LaneFormData {
     laneName: string;
@@ -43,7 +41,8 @@ interface LaneApiResult {
 const LaneManagement: React.FC = () => {
     const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
     const toastRef = useRef<Toast>(null);
-    const [loading, setLoading] = useState<boolean>(false);
+    const [submitLoading, setSubmitLoading] = useState<boolean>(false);
+    const [dataLoading, setDataLoading] = useState<boolean>(false);
     const [dataState, setDataState] = useState<'Add' | 'Edit'>('Add');
     const [isRequired, setIsRequired] = useState<boolean>(false);
     const toast = useRef<Toast>(null);
@@ -57,7 +56,6 @@ const LaneManagement: React.FC = () => {
     }
 
     const [laneFormData, setLaneFormData] = useState<LaneFormData>(initialLaneFormData);
-    const [laneNameError, setLaneNameError] = useState<string>('');
 
     const statuses: Status[] = [
         { label: 'Active', value: true },
@@ -74,45 +72,18 @@ const LaneManagement: React.FC = () => {
     const [rowPerPage, setRowsPerPage] = useState<number[]>([5]);
     const [editId, setEditId] = useState<string>('');
 
-    const laneSkeletonLayout: SkeletonLayout = {
-        type: "column",
-        items: [
-            { width: "150px", height: "20px", className: "mb-3" },
-            {
-                type: "row",
-                items: [
-                    { width: "85%", height: "40px", className: "mb-3 col-12 col-lg-6" },
-
-                ],
-            },
-            { width: "150px", height: "20px", className: "mb-3" },
-            {
-                type: "row",
-                items: [
-                    { width: "55%", height: "40px", className: "mb-3 col-12 col-lg-6" },
-
-                ],
-            },
-        ]
-    };
-
-
     const handleCloseLaneModal = () => {
         setShowLaneModal(false);
         handleClearLaneFields();
-        handleClearLaneErrors();
         setEditId("");
         setDataState("Add");
         setIsRequired(false);
-        setLoading(false);
+        setSubmitLoading(false);
+        setDataLoading(false);
     }
 
     const handleClearLaneFields = () => {
         setLaneFormData(initialLaneFormData);
-    }
-
-    const handleClearLaneErrors = () => {
-        setLaneNameError('');
     }
 
     const handleAddLane = () => {
@@ -121,7 +92,7 @@ const LaneManagement: React.FC = () => {
     }
 
     const createlane = async () => {
-        setLoading(true);
+        setSubmitLoading(true);
         const response = await apiRequest({
             method: "post",
             url: "/booking/create-lane",
@@ -136,7 +107,7 @@ const LaneManagement: React.FC = () => {
         } else {
             showErrorToast(toastRef, "Failed to create a lane. Please try again.", response?.error);
         }
-        setLoading(false);
+        setSubmitLoading(false);
     }
 
     const validateRequiredFields = (): boolean => {
@@ -156,7 +127,7 @@ const LaneManagement: React.FC = () => {
     };
 
     const getLaneById = async (laneId: string) => {
-        setLoading(true);
+        setDataLoading(true);
         const response = await apiRequest({
             method: "get",
             url: `/booking/get-lane-by-id/${laneId}`,
@@ -171,7 +142,7 @@ const LaneManagement: React.FC = () => {
         } else {
             setLaneFormData(initialLaneFormData);
         }
-        setLoading(false);
+        setDataLoading(false);
     }
 
     const handleEditLane = (data: LaneApiResult) => {
@@ -185,7 +156,7 @@ const LaneManagement: React.FC = () => {
     }
 
     const updateLane = async () => {
-        setLoading(true);
+        setSubmitLoading(true);
         const payload = {
             laneId: editId,
             laneName: laneFormData.laneName || "",
@@ -206,7 +177,7 @@ const LaneManagement: React.FC = () => {
         } else {
             showErrorToast(toastRef, " Lane data Update Failed", response?.error);
         }
-        setLoading(false);
+        setSubmitLoading(false);
     }
 
     const handleUpdateLane = async (e: React.FormEvent) => {
@@ -310,9 +281,9 @@ const LaneManagement: React.FC = () => {
             />
 
             <Button
-                label={`${loading ? 'Processing' : dataState === 'Add' ? 'Save' : 'Update'}`}
+                label={`${submitLoading ? 'Processing' : dataState === 'Add' ? 'Save' : 'Update'}`}
                 onClick={dataState === 'Add' ? handleCreateLane : handleUpdateLane}
-                loading={loading}
+                loading={submitLoading}
                 className="custom_btn primary"
                 disabled={laneFormData?.laneName === '' || !laneFormData.lanePrice || laneFormData.lanePrice === 0}
             />
@@ -447,7 +418,7 @@ const LaneManagement: React.FC = () => {
     useEffect(() => { if (paginationParams.page && paginationParams.size) fetchLanes(); }, [paginationParams]);
 
     return (
-        <>
+        <React.Fragment>
             <Toast ref={toast} />
             <div>
                 <div className="page_header_section">
@@ -532,6 +503,8 @@ const LaneManagement: React.FC = () => {
                 </div>
             </div>
 
+
+            {/* Lane modal */}
             <Dialog
                 visible={showLaneModal}
                 header={laneModalHeader}
@@ -542,7 +515,7 @@ const LaneManagement: React.FC = () => {
                 dismissableMask
             >
                 <div className="custom_modal_body">
-                    {!loading ? (
+                    {!dataLoading ? (
                         <div className="row">
                             <div className="col-12 col-sm-6">
                                 <TextInput
@@ -579,7 +552,6 @@ const LaneManagement: React.FC = () => {
                                     prefix="$ "
                                     error={(isRequired && !laneFormData?.lanePrice) ? "Lane price is required!" : ""}
                                 />
-
                             </div>
                         </div>
                     ) : (
@@ -587,7 +559,8 @@ const LaneManagement: React.FC = () => {
                     )}
                 </div>
             </Dialog>
-        </>
+            {/*  */}
+        </React.Fragment>
     )
 }
 

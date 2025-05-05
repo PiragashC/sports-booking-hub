@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate } from "react-router-dom";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -9,7 +8,7 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { goToTop } from '../../Components/GoToTop';
 
 import AdminFooter from "./AdminFooter";
-import { setLogout, User } from '../../state';
+import { setLogout, User } from '../../redux/authSlice';
 
 const AdminLayout: React.FC = () => {
     const { userName } = useSelector((state: { auth: { user: User } }) => state.auth.user);
@@ -90,7 +89,7 @@ const AdminLayout: React.FC = () => {
         <div className='admin_layout'>
             <div className={`menu-backdrop ${menuOpen ? 'show' : ''}`} onClick={closeMenu}></div>
 
-            <ConfirmDialog />
+            {/* <ConfirmDialog /> */}
 
             {/* Side bar */}
             <aside className={`navigation_area ${menuOpen ? 'active' : ''} `}>
@@ -119,6 +118,15 @@ const AdminLayout: React.FC = () => {
                                 <i className="bi bi-speedometer2"></i>
                             </span>
                             <span className="title">Dashboard</span>
+                        </Link>
+                    </li>
+
+                    <li className={`${pathname === '/' ? 'active' : ''}`}>
+                        <Link to={'/'} target='_blank' onClick={handleLinkClick} >
+                            <span className="icon">
+                                <i className="bi bi-globe2"></i>
+                            </span>
+                            <span className="title">Website</span>
                         </Link>
                     </li>
 

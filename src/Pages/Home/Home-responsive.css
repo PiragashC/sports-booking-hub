@@ -158,6 +158,21 @@
     .contact_us_card {
         row-gap: 10px;
     }
+
+    .book_card_swiper_nav_btn {
+        width: 30px;
+        height: 30px;
+        top: 100%;
+        transform: translateY(120%);
+    }
+
+    .book_card_swiper_nav_btn.prev {
+        left: 20px;
+    }
+
+    .book_card_swiper_nav_btn.next {
+        right: 20px;
+    }
 }
 
 /* For custom */

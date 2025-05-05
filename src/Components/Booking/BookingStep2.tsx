@@ -9,7 +9,7 @@ import { MultiSelect, MultiSelectChangeEvent } from 'primereact/multiselect';
 import TextInput from '../TextInput';
 import { Checkbox, CheckboxChangeEvent } from 'primereact/checkbox';
 import PhoneNumberInput from '../PhoneNumberInput';
-import apiRequest from '../../Utils/apiRequest';
+import apiRequest from '../../Utils/Axios/apiRequest';
 import { Toast } from 'primereact/toast';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
@@ -575,19 +575,19 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
 
         {/* Phone number */}
         <div className="col-12 col-sm-6">
-          {/* <TextInput
-                                            id="phoneNumber"
-                                            label="Phone number"
-                                            labelHtmlFor="phoneNumber"
-                                            required={false}
-                                            inputType="number"
-                                            value={phoneNumber}
-                                            placeholder="eg: 077 123 4567"
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value)}
-                                            error={phoneNumberError}
-                                            formGroupClassName="mb-sm-0"
-                                        /> */}
-          <PhoneNumberInput
+          <TextInput
+            id="phoneNumber"
+            label="Phone number"
+            labelHtmlFor="phoneNumber"
+            required={true}
+            inputType="number"
+            value={bookingFormData?.telephoneNumber}
+            placeholder="eg: 077 123 4567"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBookingFormData({ ...bookingFormData, telephoneNumber: e.target.value })}
+            error={(isRequired && !bookingFormData?.telephoneNumber) ? "Phone number is required!" : ""}
+            formGroupClassName="mb-sm-0"
+          />
+          {/* <PhoneNumberInput
             id="phoneNumber"
             label="Phone number"
             labelHtmlFor="phoneNumber"
@@ -598,7 +598,7 @@ const BookingStep2 = forwardRef(({ isValidNumber, setIsValidNumber, timeListData
             error={(isRequired && !bookingFormData?.telephoneNumber) ? "Phone number is required!" : ""}
             formGroupClassName="mb-sm-0"
             setIsValidNumber={setIsValidNumber}
-          />
+          /> */}
         </div>
 
         {/* Email */}

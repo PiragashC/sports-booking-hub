@@ -2,8 +2,8 @@ import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { setLogout } from "../../state";
 import { Button } from "primereact/button";
+import { setLogout } from '../../redux/authSlice';
 
 
 const AppHeader: React.FC = () => {
@@ -23,7 +23,7 @@ const AppHeader: React.FC = () => {
 
     return (
         <>
-            <ConfirmDialog />
+            {/* <ConfirmDialog /> */}
             <header className="app_header">
                 <nav className="app_nav">
                     <div className={`app_nav_area ${token && 'justify-content-between'}`}>

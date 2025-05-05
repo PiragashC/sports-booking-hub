@@ -11,7 +11,7 @@ import { InputSwitch, InputSwitchChangeEvent } from "primereact/inputswitch";
 import { confirmDialog } from "primereact/confirmdialog";
 import TextInput from "../../../Components/TextInput";
 import NumberInput from "../../../Components/NumberInput";
-import apiRequest from "../../../Utils/apiRequest";
+import apiRequest from "../../../Utils/Axios/apiRequest";
 import SkeletonLoader, { SkeletonLayout } from "../../../Components/SkeletonLoader";
 import { showErrorToast, showSuccessToast } from "../../../Utils/commonLogic";
 

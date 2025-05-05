@@ -6,30 +6,48 @@ import { Button } from "primereact/button";
 import { Slide, Fade, Zoom } from "react-awesome-reveal";
 
 import { goToTop } from "../../Components/GoToTop";
-import { Features, features } from "./HomeData";
+import { initialWebContents, WebContent } from "./HomeData";
 import TextInput from "../../Components/TextInput";
 import TextArea from "../../Components/TextArea";
-import apiRequest from "../../Utils/apiRequest";
-import { removeEmptyValues, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
+import apiRequest from "../../Utils/Axios/apiRequest";
+import { emailRegex, removeEmptyValues, showErrorToast, showSuccessToast, useUploadStatus } from "../../Utils/commonLogic";
 import { Toast } from "primereact/toast";
+import { ImageEditorNew } from "../../Components/ImageEditor/ImageEditor";
+import { Edit, PenSquare, PlusCircle, Trash2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { useDeleteConfirmation } from "../../Components/DeleteConfirmationDialog";
+import { CardFormModal } from "./CardFormModal";
+import { FeatureFormModal } from "./FeatureFormModal";
+import { useAppDispatch, useAppSelector } from "../../redux/hook";
+import { postWebContentsThunk } from "../../redux/webContentSlice";
+import { uploadImageService } from "../../Utils/commonService";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
 
+import { Swiper, SwiperSlide } from 'swiper/react';
+import type { Swiper as SwiperClass } from 'swiper/types';
+import { Autoplay, Navigation } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
+import MediaUploadToast from "../../Components/MediaUploadToast";
+import AppLoader from "../../Components/AppLoader";
 
 const Home: React.FC = () => {
     const toastRef = useRef<Toast>(null);
     const navigate = useNavigate();
     const [loading, setLoading] = useState<boolean>(false);
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const [isScrolled, setIsScrolled] = useState<boolean>(false);
-    const [featuresData, setFeaturesData] = useState<Features[]>([]);
+    const prevRef = useRef<HTMLButtonElement | null>(null);
+    const nextRef = useRef<HTMLButtonElement | null>(null);
 
-    useEffect(() => {
-        setFeaturesData(features);
-    }, []);
+    const [modalVisible, setModalVisible] = useState(false);
+    const showDialog = useDeleteConfirmation();
+    const [isEdit, setIsEdit] = useState(false);
+    const [currentEditCard, setCurrentEditCard] = useState<any>(null);
 
-    const handleNavigateBooking = () => {
-        navigate(`/booking`);
-        goToTop();
-    }
+    const [featureModalVisible, setFeatureModalVisible] = useState(false);
+    const [currentEditFeature, setCurrentEditFeature] = useState<any>(null);
+    const [isFeatureEdit, setIsFeatureEdit] = useState(false);
 
     const intialReachUsForm = {
         name: '',
@@ -40,6 +58,21 @@ const Home: React.FC = () => {
     const [reachUsForm, setReachUsForm] = useState<typeof intialReachUsForm>(intialReachUsForm);
     const [isRequired, setIsRequired] = useState<boolean>(false);
 
+    const isEditMode = useSelector((state: RootState) => state.ui.editMode);
+
+    const token = useSelector((state: { auth: { token: string } }) => state.auth.token);
+    const dispatch = useAppDispatch();
+    const { data, loading: WebContenLoading, error, postStatus } = useAppSelector((state) => state.webContent);
+    const [webContents, setWebContents] = useState<WebContent>(initialWebContents);
+    const uploadStatus = useUploadStatus();
+
+    const [openImageEditor, setOpenImageEditor] = useState<boolean>(false);
+    const [contentKeyForImageEditor, setContentKeyForImageEditor] = useState<'contentFour' | 'contentTen'>();
+
+    const handleNavigateBooking = () => {
+        navigate(`/booking`);
+        goToTop();
+    }
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -69,11 +102,232 @@ const Home: React.FC = () => {
         setLoading(false);
     }
 
-
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
             element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    };
+
+    const handleAddCard = () => {
+        setIsEdit(false);
+        setCurrentEditCard(null);
+        setModalVisible(true);
+    };
+
+    const handleEditCard = (card: any) => {
+        setIsEdit(true);
+        setCurrentEditCard(card);
+        setModalVisible(true);
+    };
+
+    const handleSubmitCard = (cardData: any) => {
+        let updatedContent;
+
+        if (isEdit) {
+            updatedContent = {
+                ...webContents,
+                contentThree: webContents.contentThree.map(card =>
+                    card.id === cardData.id ? cardData : card
+                )
+            };
+        } else {
+            updatedContent = {
+                ...webContents,
+                contentThree: [...webContents.contentThree, cardData]
+            };
+        }
+
+        // setWebContents(updatedContent);
+
+        dispatch(postWebContentsThunk({
+            webContent: updatedContent,
+            toastRef: toastRef
+        })).unwrap();
+    };
+
+
+    const handleDeleteCard = (id: number | string) => {
+        // Prevent deletion if only one card exists
+        if (webContents.contentThree.length <= 1) {
+            return;
+        }
+
+        showDialog({
+            message: 'Are you sure you want to delete this card?',
+            header: 'Confirm the deletion',
+            accept: () => {
+                const updatedContent = {
+                    ...webContents,
+                    contentThree: webContents.contentThree.filter(card => card.id !== id)
+                };
+
+                // setWebContents(updatedContent);
+                dispatch(postWebContentsThunk({
+                    webContent: updatedContent,
+                    toastRef: toastRef
+                })).unwrap();
+            }
+        });
+    };
+
+    const handleAddFeature = () => {
+        setIsFeatureEdit(false);
+        setCurrentEditFeature(null);
+        setFeatureModalVisible(true);
+    };
+
+    const handleEditFeature = (feature: any) => {
+        setIsFeatureEdit(true);
+        setCurrentEditFeature(feature);
+        setFeatureModalVisible(true);
+    };
+
+    const handleSubmitFeature = (featureData: any) => {
+        let updatedContent;
+
+        if (isFeatureEdit) {
+            updatedContent = {
+                ...webContents,
+                contentTwelve: webContents.contentTwelve.map(feature =>
+                    feature.id === featureData.id ? featureData : feature
+                )
+            };
+        } else {
+            updatedContent = {
+                ...webContents,
+                contentTwelve: [...webContents.contentTwelve, featureData]
+            };
+        }
+
+        // setWebContents(updatedContent);
+        dispatch(postWebContentsThunk({
+            webContent: updatedContent,
+            toastRef: toastRef
+        })).unwrap();
+    };
+
+    const handleDeleteFeature = (id: number | string) => {
+        if (webContents.contentTwelve.length <= 1) {
+            return;
+        }
+
+        showDialog({
+            message: 'Are you sure you want to delete this feature?',
+            header: 'Confirm the deletion',
+            accept: async () => {
+                const featToDelete = webContents.contentTwelve.find(feat => feat.id === id);
+                if (!featToDelete?.iconDeleteUrl) {
+                    showErrorToast(toastRef, 'Error', 'Image delete URL missing');
+                    return;
+                }
+
+                try {
+                    const updatedContent = {
+                        ...webContents,
+                        contentTwelve: webContents.contentTwelve.filter(feature => feature.id !== id)
+                    };
+
+                    // setWebContents(updatedContent);
+                    await dispatch(postWebContentsThunk({
+                        webContent: updatedContent,
+                        toastRef: toastRef
+                    })).unwrap();
+
+                    await apiRequest({
+                        method: 'delete',
+                        url: '/website/delete',
+                        params: { downloadUrl: featToDelete.iconDeleteUrl },
+                        token
+                    });
+
+                } catch (err) {
+                    console.error('Failed to delete image:', err);
+                    showErrorToast(toastRef, 'Deletion Failed', 'Could not delete feature. Please try again.');
+                }
+
+
+            }
+        });
+    };
+
+    const handleContentChange = (event: React.FormEvent<HTMLHeadingElement | HTMLParagraphElement>) => {
+        const target = event.target as HTMLElement;
+        const contentKey = target.dataset.contentKey;
+
+        if (contentKey) {
+            // setWebContents(prevContents => {
+            //     const updatedContent = {
+            //         ...prevContents,
+            //         [contentKey]: target.innerText
+            //     };
+
+            //     // Dispatch after state update
+            //     dispatch(postWebContentsThunk({
+            //         webContent: updatedContent,
+            //         toastRef: toastRef
+            //     })).unwrap();
+            //     return updatedContent;
+            // });
+            const updatedContent = {
+                ...webContents,
+                [contentKey]: target.innerText
+            };
+
+            // Dispatch after state update
+            dispatch(postWebContentsThunk({
+                webContent: updatedContent,
+                toastRef: toastRef
+            })).unwrap();
+        }
+    };
+
+    const handleOnSaveForImageEditor = async (file: File) => {
+        if (!contentKeyForImageEditor) return;
+
+        let prevImgUrl: string | undefined;
+        if (contentKeyForImageEditor === 'contentFour') {
+            prevImgUrl = webContents.contentFourDeleteUrl;
+        } else if (contentKeyForImageEditor === 'contentTen') {
+            prevImgUrl = webContents.contentTenDeleteUrl;
+        }
+
+        try {
+            uploadStatus.startUpload([file]);
+
+            const imagePaths = await uploadImageService(
+                [file],
+                token,
+                (index, progress) => {
+                    uploadStatus.updateStatus(index, { progress });
+                },
+                prevImgUrl
+            );
+
+            const permanentUrl = imagePaths[0];
+            uploadStatus.updateStatus(0, { status: 'success' });
+
+            const updatedContent = {
+                ...webContents,
+                [contentKeyForImageEditor]: permanentUrl
+            };
+
+            await dispatch(postWebContentsThunk({
+                webContent: updatedContent,
+                toastRef: toastRef
+            })).unwrap();
+
+        } catch (error) {
+            console.error('Upload failed:', error);
+            uploadStatus.updateStatus(0, {
+                status: 'error',
+                error: error instanceof Error ? error.message : 'Upload failed'
+            });
+            showErrorToast(toastRef, 'Image upload failed', 'Please try again');
+        } finally {
+            setTimeout(() => {
+                uploadStatus.resetUploadStatus();
+            }, 2000);
         }
     };
 
@@ -93,11 +347,87 @@ const Home: React.FC = () => {
         };
     }, []);
 
+    useEffect(() => { if (error) showErrorToast(toastRef, 'Web Content Error', error) }, [error]);
+
+    useEffect(() => { setWebContents(data || initialWebContents) }, [data, dispatch]);
+
+
+    const handleResetContent = async (key: keyof WebContent) => {
+        if (!token) {
+            showErrorToast(toastRef, "Unauthorized", "You must be logged in to reset.");
+            return;
+        }
+
+        if (!data) {
+            showErrorToast(toastRef, "No Content", "Current content not loaded yet.");
+            return;
+        }
+
+        if (!(key in initialWebContents)) {
+            showErrorToast(toastRef, "Invalid Key", `Key "${key}" not found in initial content.`);
+            return;
+        }
+
+        const updatedContent = {
+            ...data,
+            [key]: (initialWebContents as WebContent)[key]
+        };
+
+        showDialog({
+            message: `Do you want to reset "${key}" to default?`,
+            header: "Confirmation",
+            accept: async () => {
+                try {
+                    await dispatch(postWebContentsThunk({
+                        webContent: updatedContent,
+                        toastRef,
+                    })).unwrap();
+                } catch (err) {
+                    console.error(`Reset for "${key}" failed`, err);
+                }
+            },
+        });
+    };
+
+
     return (
-        <>
+        <React.Fragment>
+            <AppLoader
+                visible={!webContents || WebContenLoading || postStatus === 'loading'}
+                title="Loading..."
+                message="Please wait, Processing your request..."
+                backdropBlur
+            />
+
             <Toast ref={toastRef} />
+
+            <MediaUploadToast
+                loading={uploadStatus.isUploading}
+                fileStatuses={uploadStatus.fileStatuses}
+            />
+
             {/* Hero section */}
-            <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home">
+            <section className={`home_hero_section page_init_section ${isScrolled && 'scrolled'}`} overflow-hidden id="home" style={{
+                backgroundImage: `url(${webContents.contentFourViewUrl})`
+            }}>
+                {isEditMode && (
+                    <div className="image_edit_btn_area pos_abs at_hero_sec">
+                        <Button
+                            icon={<Edit size={16} />}
+                            label="Edit"
+                            className="image_edit_btn"
+                            onClick={(() => {
+                                setOpenImageEditor(true);
+                                setContentKeyForImageEditor('contentFour');
+                            })}
+                        />
+                        <Button
+                            icon={<RotateCcw size={16} />}
+                            className="image_edit_btn icon_only"
+                            onClick={() => handleResetContent('contentFour')}
+                        />
+                    </div>
+                )}
                 <div className="container-md">
                     <div className="row">
                         <div className="col-12">
@@ -109,18 +439,48 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h2>
-                                        London’s Premier Indoor Cricket and Multi-Sport Facility!
-                                    </h2>
+                                    <div className="content_in_edit_mode_area">
+                                        <h2
+                                            className={isEditMode ? 'content_in_edit_mode' : ''}
+                                            contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="contentOne"
+                                            suppressContentEditableWarning
+                                        >
+                                            {webContents?.contentOne || ''}
+                                        </h2>
+
+                                        {isEditMode && (
+                                            <button className="content_reset_button"
+                                                onClick={() => handleResetContent('contentOne')}>
+                                                <i className="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </Slide>
 
                                 <Slide direction="up" delay={200} triggerOnce>
-                                    <p>
-                                        Experience London’s ultimate indoor cricket and multi-sport destination! Train with top-quality lanes, pro-grade nets, and advanced pitching machines. With baseball and table tennis coming soon, the game never stops. Book your session today!
-                                    </p>
+                                    <div className="content_in_edit_mode_area">
+                                        <p
+                                            className={isEditMode ? 'content_in_edit_mode' : ''}
+                                            contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="contentTwo"
+                                            suppressContentEditableWarning
+                                        >
+                                            {webContents?.contentTwo || ''}
+                                        </p>
+
+                                        {isEditMode && (
+                                            <button className="content_reset_button"
+                                                onClick={() => handleResetContent('contentTwo')}>
+                                                <i className="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </Slide>
 
-                                <Zoom delay={200} duration={1500} triggerOnce className="w-100">
+                                {/* <Zoom delay={200} duration={1500} triggerOnce className="w-100">
                                     <div className="home_hero_buttons">
                                         <Button
                                             label="Book Cricket Lane"
@@ -134,34 +494,125 @@ const Home: React.FC = () => {
                                             onClick={() => scrollToSection("features")}
                                         />
                                     </div>
-                                </Zoom>
+                                </Zoom> */}
                             </article>
                         </div>
 
                         <div className="col-12 col-xl-5 col-md-8 col-sm-8 mx-auto">
-                            <Slide direction="up" triggerOnce delay={100}>
-                                <article className="home_hero_card">
-                                    <div className="home_hero_card_header">
-                                        <h4>Book Cricket Lane</h4>
-                                    </div>
+                            <div className="booking_card_area">
+                                <button
+                                    ref={prevRef}
+                                    className="book_card_swiper_nav_btn prev">
+                                    <ChevronLeft size={25} />
+                                </button>
 
-                                    <div className="home_hero_card_body">
-                                        <p><i className="bi bi-clock-fill me-1"></i> Daily</p>
-                                        <p>8 am – 10 pm</p>
-                                    </div>
+                                <button
+                                    ref={nextRef}
+                                    className="book_card_swiper_nav_btn next">
+                                    <ChevronRight size={25} />
+                                </button>
 
-                                    <div className="home_hero_card_footer">
-                                        <h3>$45/hr
-                                            <span> + Tax</span>
-                                        </h3>
-                                        <hr className="home_hero_card_footer_divider" />
-                                        <h3>$55/hr
-                                            <span> + Tax</span>&nbsp;
-                                            <small>(Book Bowling Machine (Lane 1))</small>
-                                        </h3>
+                                {webContents?.contentThree && Array.isArray(webContents?.contentThree) &&
+                                    <Swiper
+                                        modules={[Autoplay, Navigation]}
+                                        spaceBetween={10}
+                                        slidesPerView={1}
+                                        grabCursor={true}
+                                        autoplay={{ delay: 3000, disableOnInteraction: false, waitForTransition: true }}
+                                        navigation={{
+                                            prevEl: prevRef.current,
+                                            nextEl: nextRef.current,
+                                        }}
+                                        speed={1500}
+                                        loop={true}
+                                        onSlideChange={() => console.log('slide change')}
+                                        onBeforeInit={(swiper: SwiperClass) => {
+                                            const navigation = swiper.params.navigation;
+                                            if (navigation && typeof navigation !== 'boolean') {
+                                                navigation.prevEl = prevRef.current;
+                                                navigation.nextEl = nextRef.current;
+                                            }
+                                        }}
+                                    >
+                                        {webContents.contentThree.map((content) => (
+                                            <SwiperSlide key={content.id}>
+                                                <Zoom
+                                                    // direction="up"
+                                                    delay={100}
+                                                >
+                                                    <article className="home_hero_card">
+                                                        <div className={`home_hero_card_header ${isEditMode ? 'editable_mode' : ''}`}>
+                                                            <h4>{content?.laneCardTitle}</h4>
+                                                            {isEditMode &&
+                                                                <div className="hero_card_edit_btn_area">
+                                                                    <Button
+                                                                        icon={<PenSquare size={20} />}
+                                                                        className="action_btn icon_only success"
+                                                                        onClick={() => handleEditCard(content)}
+                                                                    />
+                                                                    {webContents.contentThree.length > 1 && (
+                                                                        <Button
+                                                                            icon={<Trash2 size={20} />}
+                                                                            className="action_btn icon_only danger"
+                                                                            onClick={() => handleDeleteCard(content.id || '')}
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                            }
+                                                        </div>
+
+                                                        <div className="home_hero_card_body">
+                                                            <p><i className="bi bi-clock-fill me-1"></i> {content?.frequency}</p>
+                                                            <p>{content?.timeInterval}</p>
+                                                        </div>
+
+                                                        <div className="home_hero_card_footer">
+                                                            <h3>{content?.ratePerHour}
+                                                                <span> + Tax</span>
+                                                            </h3>
+                                                            <hr className="home_hero_card_footer_divider" />
+                                                            <div className="home_hero_buttons mt-2">
+                                                                <Button
+                                                                    label={content?.laneCardTitle}
+                                                                    className="custom_button primary"
+                                                                    onClick={handleNavigateBooking}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </article>
+                                                </Zoom>
+                                            </SwiperSlide>
+                                        ))}
+                                    </Swiper>
+                                }
+                            </div>
+
+                            {isEditMode && (
+                                <Slide direction="up" delay={100} triggerOnce>
+                                    <div className="add_data_btn_area">
+                                        <Button
+                                            icon={<PlusCircle size={20} />}
+                                            label="Add new"
+                                            className="add_data_button p-button-success"
+                                            onClick={handleAddCard}
+                                        />
+
+                                        <Button
+                                            icon={<RotateCcw size={20} />}
+                                            className="add_data_button icon_only p-button-success"
+                                            onClick={() => handleResetContent('contentThree')}
+                                        />
                                     </div>
-                                </article>
-                            </Slide>
+                                </Slide>
+                            )}
+
+                            <CardFormModal
+                                visible={modalVisible}
+                                onHide={() => { setModalVisible(false); setCurrentEditCard(null); }}
+                                onSubmit={handleSubmitCard}
+                                editData={currentEditCard}
+                                isEdit={isEdit}
+                            />
                         </div>
                     </div>
                 </div>
@@ -181,28 +632,98 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h5 className="section_sub_title">
-                                        Elevating Indoor Sports in London, Ontario
-                                    </h5>
+                                    <div className="content_in_edit_mode_area ms-0">
+                                        <h4 className={`section_sub_title ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                            contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="contentFive"
+                                            suppressContentEditableWarning
+                                        >
+                                            {webContents?.contentFive || ''}
+                                        </h4>
+
+                                        {isEditMode && (
+                                            <button className="content_reset_button"
+                                                onClick={() => handleResetContent('contentFive')}>
+                                                <i className="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </Slide>
 
                                 <div className="section_content">
                                     <Fade triggerOnce>
-                                        <p className="section_desc">
-                                            Welcome to Kover Drive, the premier indoor cricket and baseball facility dedicated to fostering a love for the game while promoting fitness and skill development. Our mission is to create a vibrant community where players of all ages and skill levels can come together to enhance their abilities, build confidence, and enjoy the thrill of sports. At Kover Drive, we understand that every player has unique goals, whether you’re a beginner looking to learn the basics or an experienced athlete aiming to refine your technique. Our state of the-art facility is equipped with top-notch training equipment, batting cages, and practice areas designed to help you elevate your game.
-                                        </p>
+                                        <div className="content_in_edit_mode_area">
+                                            <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                                contentEditable={isEditMode}
+                                                onBlur={handleContentChange}
+                                                data-content-key="contentSix"
+                                                suppressContentEditableWarning
+                                            >
+                                                {webContents?.contentSix || ''}
 
-                                        <p className="section_desc">
-                                            Our facility provides a welcoming environment where you can work on your strength, agility, and endurance, ensuring you are at your best both on and off the field.
-                                        </p>
+                                            </p>
+                                            {isEditMode && (
+                                                <button className="content_reset_button"
+                                                    onClick={() => handleResetContent('contentSix')}>
+                                                    <i className="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            )}
+                                        </div>
 
-                                        <p className="section_desc">
-                                            Join us at Kover Drive and become part of a community that celebrates the spirit of cricket and baseball. Whether you’re here to improve your game, meet new friends, or simply enjoy the sport, we are excited to support you on your journey. Together, let’s hit new heights in your athletic pursuits!
-                                        </p>
+                                        <div className="content_in_edit_mode_area">
+                                            <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                                contentEditable={isEditMode}
+                                                onBlur={handleContentChange}
+                                                data-content-key="contentSeven"
+                                                suppressContentEditableWarning
+                                            >
+                                                {webContents?.contentSeven || ''}
+                                            </p>
 
-                                        <p className="section_desc">
-                                            Contact Us today to learn more about our programs, schedule a visit, or book a session. We can’t wait to see you on the field!
-                                        </p>
+                                            {isEditMode && (
+                                                <button className="content_reset_button"
+                                                    onClick={() => handleResetContent('contentSeven')}>
+                                                    <i className="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="content_in_edit_mode_area">
+                                            <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                                contentEditable={isEditMode}
+                                                onBlur={handleContentChange}
+                                                data-content-key="contentEight"
+                                                suppressContentEditableWarning
+                                            >
+                                                {webContents?.contentEight || ''}
+                                            </p>
+
+                                            {isEditMode && (
+                                                <button className="content_reset_button"
+                                                    onClick={() => handleResetContent('contentEight')}>
+                                                    <i className="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="content_in_edit_mode_area">
+                                            <p className={`section_desc ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                                contentEditable={isEditMode}
+                                                onBlur={handleContentChange}
+                                                data-content-key="contentNine"
+                                                suppressContentEditableWarning
+                                            >
+                                                {webContents?.contentNine || ''}
+                                            </p>
+
+                                            {isEditMode && (
+                                                <button className="content_reset_button"
+                                                    onClick={() => handleResetContent('contentNine')}>
+                                                    <i className="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            )}
+                                        </div>
                                     </Fade>
 
                                     <Slide direction="up" delay={200} duration={1500} triggerOnce>
@@ -222,7 +743,27 @@ const Home: React.FC = () => {
                         <div className="col-12 col-xl-6">
                             <Fade triggerOnce duration={1500} className="w-100">
                                 <div className="section_image_area">
-                                    <img src="/web_assets/home/about_img.png" alt="" />
+                                    {isEditMode && (
+                                        <React.Fragment>
+                                            <div className="image_edit_btn_area pos_abs">
+                                                <Button
+                                                    icon={<Edit size={16} />}
+                                                    label="Edit"
+                                                    className="image_edit_btn"
+                                                    onClick={(() => {
+                                                        setOpenImageEditor(true);
+                                                        setContentKeyForImageEditor('contentTen');
+                                                    })}
+                                                />
+                                                <Button
+                                                    icon={<RotateCcw size={16} />}
+                                                    className="image_edit_btn icon_only"
+                                                    onClick={() => handleResetContent('contentTen')}
+                                                />
+                                            </div>
+                                        </React.Fragment>
+                                    )}
+                                    <img src={webContents?.contentTenViewUrl} alt="" />
                                 </div>
                             </Fade>
                         </div>
@@ -244,38 +785,101 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h5 className="section_sub_title text-center">
-                                        Discover What Makes Us the Ultimate Indoor Sports Destination
-                                    </h5>
+                                    <div className="content_in_edit_mode_area">
+                                        <h4 className={`section_sub_title text-center ${isEditMode ? 'content_in_edit_mode' : ''}`}
+                                            contentEditable={isEditMode}
+                                            onBlur={handleContentChange}
+                                            data-content-key="contentEleven"
+                                            suppressContentEditableWarning
+                                        >
+                                            {webContents?.contentEleven || ''}
+                                        </h4>
+
+                                        {isEditMode && (
+                                            <button className="content_reset_button"
+                                                onClick={() => handleResetContent('contentEleven')}>
+                                                <i className="bi bi-arrow-counterclockwise"></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </Slide>
 
                                 <div className="section_content">
-                                    {featuresData && featuresData?.length > 0 && (
+                                    {webContents?.contentTwelve && Array.isArray(webContents?.contentTwelve) && (
                                         <div className="row features_row">
-                                            {featuresData?.map((feature, index) => (
+                                            {webContents?.contentTwelve?.map((feature, index) => (
                                                 <div key={feature?.id} className="col-12 col-xl-4 col-md-6 col-sm-8 mx-auto features_col">
                                                     <Slide direction="up" delay={index * 50} triggerOnce className="feature_card_area h-100">
                                                         <article className="feature_card">
                                                             <div className="feature_card_header">
                                                                 <div className="feature_icon_area">
-                                                                    <img src={feature?.icon} alt={feature?.name} />
+                                                                    <img src={feature?.iconViewUrl} alt={feature?.name} />
                                                                 </div>
                                                                 <h5 className="feature_title">
                                                                     {feature?.name}
                                                                 </h5>
                                                             </div>
 
-                                                            <div className="feature_card_body">
+                                                            <div className={`feature_card_body ${isEditMode ? 'fix_height' : ''}`}>
                                                                 <p className="feature_desc">
                                                                     {feature?.description}
                                                                 </p>
                                                             </div>
+
+                                                            {isEditMode && (
+                                                                <div className="feature_card_footer">
+                                                                    <div className="feature_action_btn_area">
+                                                                        <Button
+                                                                            icon={<PenSquare size={15} />}
+                                                                            className="action_btn success"
+                                                                            label="Edit"
+                                                                            onClick={() => handleEditFeature(feature)}
+                                                                        />
+                                                                        {webContents.contentTwelve.length > 1 && (
+                                                                            <Button
+                                                                                icon={<Trash2 size={16} />}
+                                                                                className="action_btn danger"
+                                                                                label="Delete"
+                                                                                onClick={() => handleDeleteFeature(feature.id || '')}
+                                                                            />
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </article>
                                                     </Slide>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
+
+                                    {isEditMode && (
+                                        <Slide direction="up" delay={100} triggerOnce>
+                                            <div className="add_data_btn_area">
+                                                <Button
+                                                    icon={<PlusCircle size={20} />}
+                                                    label="Add new feature"
+                                                    className="add_data_button p-button-success"
+                                                    onClick={handleAddFeature}
+                                                />
+
+                                                <Button
+                                                    icon={<RotateCcw size={20} />}
+                                                    className="add_data_button icon_only p-button-success"
+                                                    onClick={() => handleResetContent('contentTwelve')}
+                                                />
+                                            </div>
+                                        </Slide>
+                                    )}
+
+                                    <FeatureFormModal
+                                        visible={featureModalVisible}
+                                        onHide={() => { setFeatureModalVisible(false); setCurrentEditFeature(null); }}
+                                        onSubmit={handleSubmitFeature}
+                                        editData={currentEditFeature}
+                                        isEdit={isFeatureEdit}
+                                        token={token}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -297,9 +901,9 @@ const Home: React.FC = () => {
                                 </Slide>
 
                                 <Slide direction="up" delay={100} triggerOnce>
-                                    <h5 className="section_sub_title text-center">
+                                    <h4 className="section_sub_title text-center">
                                         We're Here to Help – Reach Out Today!
-                                    </h5>
+                                    </h4>
                                 </Slide>
 
                                 <div className="section_content">
@@ -470,7 +1074,18 @@ const Home: React.FC = () => {
                 </div>
             </section>
             {/*  */}
-        </>
+
+
+            {/* Image editor */}
+            <ImageEditorNew
+                isOpen={openImageEditor}
+                onClose={() => { setOpenImageEditor(false); setContentKeyForImageEditor(undefined); }}
+                onSave={handleOnSaveForImageEditor}
+                acceptedFileTypes={['.jpg', '.jpeg', '.png', '.svg']}
+                maxFileSize={5 * 1024 * 1024} // 5MB
+            />
+            {/*  */}
+        </React.Fragment>
     );
 };
 

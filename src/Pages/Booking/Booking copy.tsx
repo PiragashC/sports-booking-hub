@@ -15,7 +15,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 
 import { Lane, BookingResponse, BookingRangeResponse } from "./BookingData";
 import { Dialog } from "primereact/dialog";
-import apiRequest from "../../Utils/apiRequest";
+import apiRequest from "../../Utils/Axios/apiRequest";
 import { formatDate, formatDateToISO, getMonthDateRange, showErrorToast, showSuccessToast } from "../../Utils/commonLogic";
 import { Button } from "primereact/button";
 import { useSelector } from "react-redux";
